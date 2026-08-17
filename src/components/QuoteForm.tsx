@@ -6,6 +6,7 @@ import CardActions from "./CardActions.js";
 import type { EntityAction } from "./CardActions.js";
 import FormMessage from "./FormMessage.js";
 import Icon from "./Icon.js";
+import LoadingOverlay from "./LoadingOverlay.js";
 import PageState from "./PageState.js";
 import ProductSearch from "./ProductSearch.js";
 import { useAsyncData } from "../hooks/useAsyncData.js";
@@ -431,9 +432,9 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     }
   }
 
-  if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
-    return <PageState kind="loading" title="Cargando..." />;
-  }
+if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
+    return <LoadingOverlay title="Cargando..." />;
+}
 
   if (loadError || detailError) {
     return (

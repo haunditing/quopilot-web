@@ -9,6 +9,7 @@ import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import PasswordStrength from "../components/PasswordStrength.js";
 import StatusBadge from "../components/StatusBadge.js";
@@ -389,9 +390,9 @@ export default function Tenants() {
     return actions;
   }
 
-  if (loading) {
-    return <PageState kind="loading" title="Cargando tenants..." />;
-  }
+if (loading) {
+    return <LoadingOverlay title="Cargando tenants..." />;
+}
 
   if (error) {
     return <PageState kind="error" title="Error en tenants" message={error} />;

@@ -5,6 +5,7 @@ import EmptyState from "../components/EmptyState.js";
 import EntityCard from "../components/EntityCard.js";
 import FilterPanel from "../components/FilterPanel.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import { QUOTE_FILTER_FIELDS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
@@ -52,11 +53,7 @@ export default function Quotes() {
   const canView = can(role, "quotes", "view");
   const canCreate = can(role, "quotes", "create");
 
-  if (loading) {
-    return <PageState kind="loading" title="Cargando cotizaciones..." />;
-  }
-
-  if (error) {
+if (error) {
     return (
       <PageState kind="error" title="Error en cotizaciones" message={error} />
     );
@@ -93,7 +90,9 @@ export default function Quotes() {
         searchPlaceholder="Buscar por número de cotización..."
       />
 
-      {quotes.length === 0 ? (
+      {loading ? (
+        <LoadingOverlay title="Cargando cotizaciones..." />
+      ) : quotes.length === 0 ? (
         <EmptyState
           title="No hay cotizaciones"
           message="Todavía no existen cotizaciones para mostrar."

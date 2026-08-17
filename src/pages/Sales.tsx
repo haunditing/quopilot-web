@@ -5,6 +5,7 @@ import EntityCard from "../components/EntityCard.js";
 import type { EntityAction } from "../components/EntityCard.js";
 import FilterPanel from "../components/FilterPanel.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import StatCard from "../components/StatCard.js";
 import { SALE_FILTER_FIELDS } from "../config/filters.js";
@@ -168,11 +169,7 @@ export default function Sales() {
       </section>
 
       {loading ? (
-        <PageState
-          kind="loading"
-          title="Cargando ventas..."
-          message="Esto puede tomar unos segundos"
-        />
+        <LoadingOverlay title="Cargando ventas..." message="Esto puede tomar unos segundos" />
       ) : error ? (
         <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : sales.length === 0 ? (

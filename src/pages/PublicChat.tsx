@@ -4,6 +4,7 @@ import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import {
   closePublicChat,
@@ -695,11 +696,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
         ) : (
           <>
             {loading ? (
-              <PageState
-                kind="loading"
-                title="Cargando conversación..."
-                message="Esto puede tomar unos segundos"
-              />
+              <LoadingOverlay title="Cargando conversación..." message="Esto puede tomar unos segundos" />
             ) : loadError ? (
               <PageState
                 kind="error"

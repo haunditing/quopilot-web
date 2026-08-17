@@ -372,15 +372,9 @@ export default function AgentConfig() {
     }
   }
 
-  if (loading) {
-    return (
-      <PageState
-        kind="loading"
-        title="Cargando configuración..."
-        message="Obteniendo los datos del agente de IA"
-      />
-    );
-  }
+if (loading) {
+    return null;
+}
 
   if (loadError || !form) {
     return (

@@ -1,4 +1,5 @@
 import DashboardRenderer from "../components/dashboard/DashboardRenderer.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import { createAgentDashboard } from "../config/agent-dashboard.js";
 import { createSuperAdminDashboard } from "../config/super-admin-dashboard.js";
@@ -20,9 +21,9 @@ interface DashboardViewProps<T> {
 function DashboardView<T>({ fetcher, buildConfig }: DashboardViewProps<T>) {
   const { data, loading, error } = useAsyncData(fetcher);
 
-  if (loading) {
-    return <PageState kind="loading" title="Cargando dashboard..." />;
-  }
+if (loading) {
+    return <LoadingOverlay title="Cargando dashboard..." />;
+}
 
   if (error) {
     return <PageState kind="error" title="Error en dashboard" message={error} />;

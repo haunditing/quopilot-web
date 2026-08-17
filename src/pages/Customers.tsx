@@ -9,6 +9,7 @@ import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import { CUSTOMER_FILTER_FIELDS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
@@ -226,11 +227,7 @@ export default function Customers() {
       />
 
       {loading ? (
-        <PageState
-          kind="loading"
-          title="Cargando clientes..."
-          message="Esto puede tomar unos segundos"
-        />
+        <LoadingOverlay title="Cargando clientes..." message="Esto puede tomar unos segundos" />
       ) : error ? (
         <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : !data || data.data.length === 0 ? (

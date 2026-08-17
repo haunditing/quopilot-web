@@ -9,6 +9,7 @@ import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import PasswordStrength from "../components/PasswordStrength.js";
 import { USER_FILTER_FIELDS } from "../config/filters.js";
@@ -323,11 +324,7 @@ export default function Users() {
       />
 
       {loading ? (
-        <PageState
-          kind="loading"
-          title="Cargando agentes..."
-          message="Esto puede tomar unos segundos"
-        />
+        <LoadingOverlay title="Cargando agentes..." message="Esto puede tomar unos segundos" />
       ) : error ? (
         <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : !data || data.data.length === 0 ? (

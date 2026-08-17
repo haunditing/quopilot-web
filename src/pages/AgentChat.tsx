@@ -8,6 +8,7 @@ import Icon from "../components/Icon.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import StatusBadge from "../components/StatusBadge.js";
 import { useToast } from "../hooks/useToast.js";
 import { getUser } from "../services/auth-storage.js";
@@ -458,11 +459,7 @@ export default function AgentChat() {
           </div>
 
           {listLoading ? (
-            <PageState
-              kind="loading"
-              title="Cargando conversaciones..."
-              message="Esto puede tomar unos segundos"
-            />
+            <LoadingOverlay title="Cargando conversaciones..." message="Esto puede tomar unos segundos" />
           ) : listError ? (
             <PageState
               kind="error"
@@ -537,11 +534,7 @@ export default function AgentChat() {
               </header>
 
               {threadLoading ? (
-                <PageState
-                  kind="loading"
-                  title="Cargando mensajes..."
-                  message="Esto puede tomar unos segundos"
-                />
+                null
               ) : threadError ? (
                 <PageState
                   kind="error"

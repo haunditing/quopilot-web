@@ -9,6 +9,7 @@ import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import { PRODUCT_FILTER_FIELDS } from "../config/filters.js";
 import { CURRENCY_OPTIONS } from "../config/options.js";
@@ -299,11 +300,7 @@ export default function Products() {
       />
 
       {loading ? (
-        <PageState
-          kind="loading"
-          title="Cargando productos..."
-          message="Esto puede tomar unos segundos"
-        />
+        <LoadingOverlay title="Cargando productos..." message="Esto puede tomar unos segundos" />
       ) : error ? (
         <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : !data || data.data.length === 0 ? (

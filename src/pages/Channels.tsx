@@ -620,11 +620,7 @@ export default function Channels() {
       />
 
       {loading ? (
-        <PageState
-          kind="loading"
-          title="Cargando canales..."
-          message="Esto puede tomar unos segundos"
-        />
+        null
       ) : error ? (
         <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : !data || data.data.length === 0 ? (

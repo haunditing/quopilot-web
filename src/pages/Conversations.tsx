@@ -5,6 +5,7 @@ import EmptyState from "../components/EmptyState.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import PageHeader from "../components/PageHeader.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import StatusBadge from "../components/StatusBadge.js";
 import { getUser, getUserRole } from "../services/auth-storage.js";
@@ -573,11 +574,7 @@ export default function Conversations() {
           <aside className="agent-chat__list">
 
           {listLoading ? (
-            <PageState
-              kind="loading"
-              title="Cargando conversaciones..."
-              message="Esto puede tomar unos segundos"
-            />
+            <LoadingOverlay title="Cargando conversaciones..." message="Esto puede tomar unos segundos" />
           ) : listError ? (
             <PageState
               kind="error"
@@ -668,11 +665,7 @@ export default function Conversations() {
               </header>
 
               {threadLoading ? (
-                <PageState
-                  kind="loading"
-                  title="Cargando mensajes..."
-                  message="Esto puede tomar unos segundos"
-                />
+                null
               ) : threadError ? (
                 <PageState
                   kind="error"

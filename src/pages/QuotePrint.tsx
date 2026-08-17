@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import Button from "../components/Button.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import QuotePrintTemplate from "../components/QuotePrintTemplate.js";
 import { useAsyncData } from "../hooks/useAsyncData.js";
@@ -50,9 +51,9 @@ export default function QuotePrint({ quoteId }: QuotePrintProps) {
     documentTitle: `Cotización ${data?.quote.number ?? quoteId}`,
   });
 
-  if (loading) {
-    return <PageState kind="loading" title="Cargando cotización..." />;
-  }
+if (loading) {
+    return <LoadingOverlay title="Cargando cotización..." />;
+}
 
   if (error || !data) {
     return (

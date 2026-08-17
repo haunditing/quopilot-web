@@ -4,6 +4,7 @@ import BackButton from "../components/BackButton.js";
 import DetailCard from "../components/DetailCard.js";
 import type { EntityAction } from "../components/CardActions.js";
 import FormMessage from "../components/FormMessage.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import Section from "../components/Section.js";
 import { useAsyncData } from "../hooks/useAsyncData.js";
@@ -26,9 +27,9 @@ export default function SaleDetail({ saleId }: SaleDetailProps) {
 
   const [deleting, setDeleting] = useState(false);
 
-  if (loading) {
-    return <PageState kind="loading" title="Cargando venta..." />;
-  }
+if (loading) {
+    return <LoadingOverlay title="Cargando venta..." />;
+}
 
   if (error) {
     return <PageState kind="error" title="Error en venta" message={error} />;

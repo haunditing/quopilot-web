@@ -562,12 +562,17 @@ p {
   margin-bottom: 16px;
 }
 
-.page-state--error .page-state__icon {
-  color: var(--danger);
+.page-state__spinner {
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  margin: 0 auto 16px;
+  animation: spin 0.8s linear infinite;
 }
 
-.page-state p {
-  margin-top: 8px;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* =========================================
