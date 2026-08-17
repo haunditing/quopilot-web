@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Icon from "./Icon.js";
 import type { IconName } from "./Icon.js";
-import { getHeaderTitle, getRoleLabel, getRoleScope, getRoleThemeClass } from "../lib/roles.js";
+import {
+  getHeaderTitle,
+  getRoleLabel,
+  getRoleScope,
+  getRoleThemeClass,
+} from "../lib/roles.js";
 import { clearAuth, getUser } from "../services/auth-storage.js";
 import type { UserRole } from "../types/user.js";
 
@@ -172,9 +177,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               className="app-navigation__group"
             >
               {group.label && (
-                <span className="app-navigation__section">
-                  {group.label}
-                </span>
+                <span className="app-navigation__section">{group.label}</span>
               )}
 
               {group.items.map((item) => (
@@ -199,31 +202,32 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </nav>
 
         <div className="app-user">
-          <div className="app-user__top">
+          <div className="app-user__card">
             <span className="app-user__avatar" aria-hidden="true">
               {avatarInitial}
             </span>
 
             <div className="app-user__info">
-              <strong>{user?.name ?? "Usuario"}</strong>
-
-              {user?.email && <small>{user.email}</small>}
-
-              {roleLabel && <small className="app-user__role">{roleLabel}</small>}
+              <strong className="app-user__name">
+                {user?.name ?? "Usuario"}
+              </strong>
+              {user?.email && (
+                <span className="app-user__email">{user.email}</span>
+              )}
+              {roleLabel && <span className="app-user__role">{roleLabel}</span>}
             </div>
+
+            <button
+              className="app-user__logout"
+              type="button"
+              onClick={handleLogout}
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+            >
+              <Icon name="logout" size={18} />
+              <span className="visually-hidden">Cerrar sesión</span>
+            </button>
           </div>
-
-          <button
-            className="app-user__logout"
-            type="button"
-            onClick={handleLogout}
-            aria-label="Cerrar sesión"
-            title="Cerrar sesión"
-          >
-            <Icon name="logout" size={18} />
-
-            <span className="visually-hidden">Cerrar sesión</span>
-          </button>
         </div>
       </aside>
 
