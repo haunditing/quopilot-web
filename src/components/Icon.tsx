@@ -34,7 +34,9 @@ export type IconName =
   | "settings"
   | "channels"
   | "inbox"
-  | "print";
+  | "print"
+  | "lock"
+  | "upload";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -298,6 +300,21 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M6 9V2h12v7" />
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
       <path d="M6 14h12v8H6z" />
+    </>
+  ),
+
+  lock: (
+    <>
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </>
+  ),
+
+  upload: (
+    <>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M17 8l-5-5-5 5" />
+      <path d="M12 3v12" />
     </>
   ),
 };

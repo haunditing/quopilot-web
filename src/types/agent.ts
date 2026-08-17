@@ -45,6 +45,7 @@ export interface AgentConfig {
   tenantId: string;
 
   name: string;
+  avatarData?: string;
   description?: string;
   personality?: string;
   systemInstructions?: string;
@@ -70,6 +71,7 @@ export interface AgentConfig {
 
 export interface AgentConfigInput {
   name?: string;
+  avatarData?: string;
   description?: string;
   personality?: string;
   systemInstructions?: string;

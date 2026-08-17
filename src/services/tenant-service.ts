@@ -83,10 +83,23 @@ export interface UpdateTenantInput {
   name?: string;
   legalName?: string;
   taxId?: string;
+  email?: string;
   phone?: string;
   country?: string;
   currency?: string;
   timezone?: string;
+  address?: string;
+  city?: string;
+  department?: string;
+  postalCode?: string;
+  website?: string;
+  logoUrl?: string;
+  documentLogoUrl?: string;
+  brandColor?: string;
+  footerText?: string;
+  decimalPrecision?: number;
+  thousandsSeparator?: string;
+  decimalSeparator?: string;
 }
 
 export async function updateTenant(
@@ -94,6 +107,15 @@ export async function updateTenant(
   input: UpdateTenantInput,
 ): Promise<Tenant> {
   return apiRequest<Tenant>(`/api/tenants/${tenantId}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateCurrentTenant(
+  input: UpdateTenantInput,
+): Promise<Tenant> {
+  return apiRequest<Tenant>("/api/tenants/me", {
     method: "PATCH",
     body: JSON.stringify(input),
   });

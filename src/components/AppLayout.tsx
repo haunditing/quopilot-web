@@ -78,21 +78,9 @@ const navigationGroups: NavigationGroup[] = [
     label: "Configuración",
     items: [
       {
-        to: "/channels",
-        label: "Canales",
-        icon: "channels",
-        roles: ["TENANT_ADMIN"],
-      },
-      {
-        to: "/agent",
-        label: "Agente",
-        icon: "bot",
-        roles: ["TENANT_ADMIN"],
-      },
-      {
-        to: "/users",
-        label: "Usuarios",
-        icon: "users",
+        to: "/settings/company",
+        label: "Empresa",
+        icon: "settings",
         roles: ["TENANT_ADMIN"],
       },
       {
