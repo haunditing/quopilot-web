@@ -1,5 +1,10 @@
 import { apiRequest } from "../lib/api.js";
-import type { Customer, CustomerListResponse } from "../types/customer.js";
+import type {
+  Customer,
+  CustomerListResponse,
+  CustomerType,
+  IdentificationType,
+} from "../types/customer.js";
 
 export interface GetCustomersParams {
   page?: number;
@@ -10,16 +15,40 @@ export interface GetCustomersParams {
 
 export interface CreateCustomerInput {
   name: string;
+  customerType?: CustomerType;
+  firstName?: string;
+  lastName?: string;
+  identificationType?: IdentificationType;
+  identificationNumber?: string;
+  municipality?: string;
+  department?: string;
+  address?: string;
+  postalCode?: string;
   email?: string;
+  email2?: string;
   phone?: string;
+  phone2?: string;
+  sendStatement?: boolean;
   whatsappId?: string;
   country?: string;
 }
 
 export interface UpdateCustomerInput {
   name?: string;
+  customerType?: CustomerType;
+  firstName?: string;
+  lastName?: string;
+  identificationType?: IdentificationType;
+  identificationNumber?: string;
+  municipality?: string;
+  department?: string;
+  address?: string;
+  postalCode?: string;
   email?: string;
+  email2?: string;
   phone?: string;
+  phone2?: string;
+  sendStatement?: boolean;
   whatsappId?: string;
   country?: string;
 }

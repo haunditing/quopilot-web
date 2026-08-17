@@ -12,6 +12,7 @@ import QuotePrint from "../pages/QuotePrint.js";
 import Sales from "../pages/Sales.js";
 import SaleDetail from "../pages/SaleDetail.js";
 import Customers from "../pages/Customers.js";
+import CustomerDetail from "../pages/CustomerDetail.js";
 import Products from "../pages/Products.js";
 import Channels from "../pages/Channels.js";
 import Conversations from "../pages/Conversations.js";
@@ -53,6 +54,10 @@ export default function AppRouter() {
         <Route path="/sales/:saleId" element={<SaleDetailRoute />} />
 
         <Route path="/customers" element={<Customers />} />
+
+        <Route path="/customers/new" element={<CustomerDetail />} />
+
+        <Route path="/customers/:customerId" element={<CustomerDetailRoute />} />
 
         <Route path="/products" element={<Products />} />
 
@@ -123,6 +128,18 @@ function SaleDetailRoute() {
   }
 
   return <SaleDetail saleId={saleId} />;
+}
+
+function CustomerDetailRoute() {
+  const { customerId } = useParams<{
+    customerId: string;
+  }>();
+
+  if (!customerId) {
+    return <Navigate to="/customers" replace />;
+  }
+
+  return <CustomerDetail customerId={customerId} />;
 }
 
 function PublicChatRoute() {
