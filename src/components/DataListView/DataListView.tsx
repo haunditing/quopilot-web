@@ -230,13 +230,14 @@ export default function DataListView<T extends object>({
             </div>
 
             {hasActiveFilters && (
-              <button
-                type="button"
+              <Button
+                icon="trash"
+                iconOnly
                 onClick={clearAllFilters}
                 className="btn-remove-filters"
               >
                 Remover filtros
-              </button>
+              </Button>
             )}
           </div>
         )}

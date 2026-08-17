@@ -66,6 +66,28 @@ export async function replyToConversation(
   );
 }
 
+export async function claimConversation(
+  conversationId: string,
+): Promise<{ claimed: boolean }> {
+  return apiRequest<{ claimed: boolean }>(
+    `/api/conversations/${conversationId}/claim`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function reopenConversation(
+  conversationId: string,
+): Promise<unknown> {
+  return apiRequest<unknown>(
+    `/api/conversations/${conversationId}/reopen`,
+    {
+      method: "POST",
+    },
+  );
+}
+
 export interface ConversationTypingStatus {
   isTyping: boolean;
   senderType?: "CUSTOMER" | "AGENT";

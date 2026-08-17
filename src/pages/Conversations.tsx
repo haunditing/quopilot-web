@@ -1,19 +1,36 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Camera,
+  ChevronDown,
+  Filter,
+  Globe,
+  MessageCircle,
+  Paperclip,
+  RotateCcw,
+  Search,
+  Send,
+  Smile,
+  Trash2,
+  UserRound,
+} from "lucide-react";
+
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
-import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import PageHeader from "../components/PageHeader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import StatusBadge from "../components/StatusBadge.js";
+import "../components/DataListView/DataListView.css";
 import { getUser, getUserRole } from "../services/auth-storage.js";
 import { useToast } from "../hooks/useToast.js";
 import {
+  claimConversation,
   getConversationMessages,
   getConversationTyping,
   getInboxConversations,
+  reopenConversation,
   replyToConversation,
   setConversationTyping,
 } from "../services/inbox-service.js";
@@ -24,6 +41,9 @@ import type {
 } from "../types/agent-conversation.js";
 
 type ChannelFilter = ConversationChannel | "ALL";
+type StatusTab = "ALL" | "OPEN" | "PENDING" | "CLOSED";
+type BaseAssignee = "ANY" | "UNASSIGNED" | "MINE";
+type AssigneeFilter = BaseAssignee | `user:${string}`;
 
 const CHANNEL_LABELS: Record<ConversationChannel, string> = {
   WHATSAPP: "WhatsApp",
@@ -31,9 +51,42 @@ const CHANNEL_LABELS: Record<ConversationChannel, string> = {
   INSTAGRAM: "Instagram",
 };
 
-const FILTER_LABELS: Record<ChannelFilter, string> = {
-  ALL: "Todos",
-  ...CHANNEL_LABELS,
+const CHANNEL_FILTER_OPTIONS: Array<{
+  value: ChannelFilter;
+  label: string;
+}> = [
+  { value: "ALL", label: "Todos" },
+  { value: "WHATSAPP", label: "WhatsApp" },
+  { value: "WEB_CHAT", label: "Chat Web" },
+  { value: "INSTAGRAM", label: "Instagram" },
+];
+
+const STATUS_FILTER_OPTIONS: Array<{
+  value: StatusTab;
+  label: string;
+}> = [
+  { value: "ALL", label: "Todas" },
+  { value: "OPEN", label: "Abiertas" },
+  { value: "PENDING", label: "Pendientes" },
+  { value: "CLOSED", label: "Cerradas" },
+];
+
+const BASE_ASSIGNEE_OPTIONS: Array<{
+  value: BaseAssignee;
+  label: string;
+}> = [
+  { value: "ANY", label: "Todos" },
+  { value: "MINE", label: "Mías" },
+  { value: "UNASSIGNED", label: "Sin asignar" },
+];
+
+const CHANNEL_ICONS: Record<
+  ConversationChannel,
+  { Icon: typeof MessageCircle; className: string }
+> = {
+  WHATSAPP: { Icon: MessageCircle, className: "inbox__channel-dot--whatsapp" },
+  WEB_CHAT: { Icon: Globe, className: "inbox__channel-dot--webchat" },
+  INSTAGRAM: { Icon: Camera, className: "inbox__channel-dot--instagram" },
 };
 
 const POLL_INTERVAL_MS = 5000;
@@ -75,6 +128,19 @@ function formatRelativeTime(value?: string): string {
   });
 }
 
+function formatClockTime(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function conversationTitle(conversation: ChatConversation): string {
   return (
     conversation.customer?.name?.trim() ||
@@ -82,6 +148,10 @@ function conversationTitle(conversation: ChatConversation): string {
     conversation.customer?.email ||
     "Cliente sin nombre"
   );
+}
+
+function conversationInitial(conversation: ChatConversation): string {
+  return conversationTitle(conversation).charAt(0).toUpperCase();
 }
 
 function senderLabel(message: ChatMessage): string {
@@ -101,27 +171,29 @@ function nextOptimisticId(prefix: string): string {
 }
 
 export default function Conversations() {
-  const [channelFilter, setChannelFilter] =
-    useState<ChannelFilter>("ALL");
-  const [counts, setCounts] = useState<Record<ChannelFilter, number>>({
-    ALL: 0,
-    WHATSAPP: 0,
-    INSTAGRAM: 0,
-    WEB_CHAT: 0,
-  });
-  const [channelsWithMessages, setChannelsWithMessages] = useState<
-    ConversationChannel[]
-  >([]);
-  const [conversations, setConversations] = useState<
-    ChatConversation[] | null
-  >(null);
+  const navigate = useNavigate();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("ALL");
+  const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilter>("ANY");
+  const [openChipKey, setOpenChipKey] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const filtersBarRef = useRef<HTMLDivElement | null>(null);
+
+  const [conversations, setConversations] = useState<ChatConversation[] | null>(
+    null,
+  );
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState("");
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showDetailOnMobile, setShowDetailOnMobile] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [threadLoading, setThreadLoading] = useState(false);
   const [threadError, setThreadError] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const [reopening, setReopening] = useState(false);
   const autoSelectedRef = useRef(false);
 
   const [draft, setDraft] = useState("");
@@ -142,6 +214,23 @@ export default function Conversations() {
   useEffect(() => {
     selectedIdRef.current = selectedId;
   }, [selectedId]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        filtersBarRef.current &&
+        !filtersBarRef.current.contains(event.target as Node)
+      ) {
+        setOpenChipKey(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -178,35 +267,148 @@ export default function Conversations() {
     Boolean(selectedConversation?.assignedTo) &&
     selectedConversation?.assignedTo !== currentUserId;
 
-  const showAllTab = channelsWithMessages.length > 1;
+  const canClaim =
+    canReply &&
+    !selectedConversation?.assignedTo &&
+    selectedConversation?.status === "OPEN";
 
-  const visibleChannelFilters: ChannelFilter[] = showAllTab
-    ? ["ALL", ...channelsWithMessages]
-    : (channelsWithMessages.length === 1
-        ? [channelsWithMessages[0]]
-        : []);
+  const availableAgents = useMemo(() => {
+    const map = new Map<string, string>();
 
-  const selectConversation = useCallback(
-    async (conversationId: string) => {
-      setSelectedId(conversationId);
-      setThreadLoading(true);
-      setThreadError("");
-
-      try {
-        const result = await getConversationMessages(conversationId);
-        setMessages(result);
-      } catch (error) {
-        setThreadError(
-          error instanceof Error
-            ? error.message
-            : "No fue posible cargar los mensajes",
+    for (const conversation of conversations ?? []) {
+      if (
+        conversation.assignedTo &&
+        conversation.assignedTo !== currentUserId
+      ) {
+        map.set(
+          conversation.assignedTo,
+          conversation.assignedAgentName ?? "Asesor",
         );
-      } finally {
-        setThreadLoading(false);
       }
-    },
-    [],
-  );
+    }
+
+    return [...map.entries()].map(([id, name]) => ({
+      value: `user:${id}` as const,
+      label: name,
+    }));
+  }, [conversations, currentUserId]);
+
+  const channelFilterLabel =
+    CHANNEL_FILTER_OPTIONS.find((option) => option.value === channelFilter)
+      ?.label ?? "Todos";
+
+  const statusFilterLabel =
+    STATUS_FILTER_OPTIONS.find((option) => option.value === statusTab)?.label ??
+    "Todas";
+
+  const assigneeFilterLabel = assigneeFilter.startsWith("user:")
+    ? (availableAgents.find((option) => option.value === assigneeFilter)
+        ?.label ?? "Asesor")
+    : (BASE_ASSIGNEE_OPTIONS.find((option) => option.value === assigneeFilter)
+        ?.label ?? "Todos");
+
+  const hasActiveFilters =
+    searchTerm.trim() !== "" ||
+    channelFilter !== "ALL" ||
+    statusTab !== "ALL" ||
+    assigneeFilter !== "ANY";
+
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusTab("ALL");
+    setChannelFilter("ALL");
+    setAssigneeFilter("ANY");
+    setOpenChipKey(null);
+  }, []);
+
+  const visibleConversations = useMemo(() => {
+    const list = conversations ?? [];
+
+    const term = searchTerm.trim().toLowerCase();
+
+    return list.filter((conversation) => {
+      if (statusTab === "OPEN" && conversation.status !== "OPEN") {
+        return false;
+      }
+
+      if (
+        statusTab === "PENDING" &&
+        !(conversation.status === "OPEN" && !conversation.assignedTo)
+      ) {
+        return false;
+      }
+
+      if (statusTab === "CLOSED" && conversation.status !== "CLOSED") {
+        return false;
+      }
+
+      if (channelFilter !== "ALL" && conversation.channel !== channelFilter) {
+        return false;
+      }
+
+      if (assigneeFilter === "UNASSIGNED" && conversation.assignedTo) {
+        return false;
+      }
+
+      if (
+        assigneeFilter === "MINE" &&
+        conversation.assignedTo !== currentUserId
+      ) {
+        return false;
+      }
+
+      if (
+        assigneeFilter.startsWith("user:") &&
+        conversation.assignedTo !== assigneeFilter.slice("user:".length)
+      ) {
+        return false;
+      }
+
+      if (term) {
+        const haystack = [
+          conversationTitle(conversation),
+          conversation.customer?.phone ?? "",
+          conversation.customer?.email ?? "",
+          conversation.lastMessage?.content ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        if (!haystack.includes(term)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [
+    conversations,
+    searchTerm,
+    statusTab,
+    channelFilter,
+    assigneeFilter,
+    currentUserId,
+  ]);
+
+  const selectConversation = useCallback(async (conversationId: string) => {
+    setSelectedId(conversationId);
+    setShowDetailOnMobile(true);
+    setThreadLoading(true);
+    setThreadError("");
+
+    try {
+      const result = await getConversationMessages(conversationId);
+      setMessages(result);
+    } catch (error) {
+      setThreadError(
+        error instanceof Error
+          ? error.message
+          : "No fue posible cargar los mensajes",
+      );
+    } finally {
+      setThreadLoading(false);
+    }
+  }, []);
 
   const loadConversations = useCallback(async () => {
     setListLoading(true);
@@ -216,7 +418,6 @@ export default function Conversations() {
       const result = await getInboxConversations({
         page: 1,
         limit: 50,
-        channel: channelFilter === "ALL" ? undefined : channelFilter,
       });
 
       setConversations(result.data);
@@ -227,7 +428,7 @@ export default function Conversations() {
     } finally {
       setListLoading(false);
     }
-  }, [channelFilter]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -237,62 +438,13 @@ export default function Conversations() {
       setListError("");
 
       try {
-        const channel =
-          channelFilter === "ALL" ? undefined : channelFilter;
-
-        const [result, whatsappCount, instagramCount, webChatCount] =
-          await Promise.all([
-            getInboxConversations({
-              page: 1,
-              limit: 50,
-              channel,
-            }),
-            getInboxConversations({
-              page: 1,
-              limit: 1,
-              channel: "WHATSAPP",
-            }),
-            getInboxConversations({
-              page: 1,
-              limit: 1,
-              channel: "INSTAGRAM",
-            }),
-            getInboxConversations({
-              page: 1,
-              limit: 1,
-              channel: "WEB_CHAT",
-            }),
-          ]);
+        const result = await getInboxConversations({
+          page: 1,
+          limit: 50,
+        });
 
         if (!cancelled) {
-          const whatsapp = whatsappCount.pagination.total;
-          const instagram = instagramCount.pagination.total;
-          const webChat = webChatCount.pagination.total;
-
           setConversations(result.data);
-          setCounts({
-            ALL: whatsapp + instagram + webChat,
-            WHATSAPP: whatsapp,
-            INSTAGRAM: instagram,
-            WEB_CHAT: webChat,
-          });
-
-          const activeChannels = [
-            whatsapp > 0 && "WHATSAPP",
-            instagram > 0 && "INSTAGRAM",
-            webChat > 0 && "WEB_CHAT",
-          ].filter(Boolean) as ConversationChannel[];
-
-          setChannelsWithMessages(activeChannels);
-
-          if (
-            channelFilter !== "ALL" &&
-            !activeChannels.includes(channelFilter)
-          ) {
-            setChannelFilter(
-              activeChannels.length === 1 ? activeChannels[0] : "ALL",
-            );
-          }
 
           if (
             !autoSelectedRef.current &&
@@ -308,8 +460,7 @@ export default function Conversations() {
             knownAssignedRef.current = new Set(
               result.data
                 .filter(
-                  (conversation) =>
-                    conversation.assignedTo === currentUserId,
+                  (conversation) => conversation.assignedTo === currentUserId,
                 )
                 .map((conversation) => conversation._id),
             );
@@ -333,14 +484,7 @@ export default function Conversations() {
     return () => {
       cancelled = true;
     };
-  }, [channelFilter, currentUserId, selectConversation]);
-
-  useEffect(() => {
-    threadEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [messages, sending, threadLoading]);
+  }, [currentUserId, selectConversation]);
 
   useEffect(() => {
     if (listLoading || threadLoading || sending) {
@@ -350,13 +494,10 @@ export default function Conversations() {
     const interval = window.setInterval(() => {
       void (async () => {
         try {
-          const channel = channelFilter === "ALL" ? undefined : channelFilter;
-
           const [listResult, threadResult, typingResult] = await Promise.all([
             getInboxConversations({
               page: 1,
               limit: 50,
-              channel,
             }),
             selectedId
               ? getConversationMessages(selectedId)
@@ -396,8 +537,7 @@ export default function Conversations() {
             const stillMine = new Set(
               listResult.data
                 .filter(
-                  (conversation) =>
-                    conversation.assignedTo === currentUserId,
+                  (conversation) => conversation.assignedTo === currentUserId,
                 )
                 .map((conversation) => conversation._id),
             );
@@ -412,9 +552,7 @@ export default function Conversations() {
 
             const known = new Set(
               current
-                .filter(
-                  (message) => !isOptimisticMessageId(message._id),
-                )
+                .filter((message) => !isOptimisticMessageId(message._id))
                 .map((message) => message._id),
             );
 
@@ -447,8 +585,7 @@ export default function Conversations() {
 
           if (typingResult) {
             setCustomerTyping(
-              typingResult.isTyping &&
-                typingResult.senderType === "CUSTOMER",
+              typingResult.isTyping && typingResult.senderType === "CUSTOMER",
             );
           }
         } catch {
@@ -460,7 +597,58 @@ export default function Conversations() {
     return () => {
       window.clearInterval(interval);
     };
-  }, [channelFilter, selectedId, listLoading, threadLoading, sending, currentUserId, toast]);
+  }, [selectedId, listLoading, threadLoading, sending, currentUserId, toast]);
+
+  useEffect(() => {
+    threadEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [messages, sending, threadLoading]);
+
+  async function handleClaim() {
+    if (!selectedId || claiming) {
+      return;
+    }
+
+    setClaiming(true);
+
+    try {
+      await claimConversation(selectedId);
+      toast.success("Conversación tomada");
+      await loadConversations();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No fue posible tomar la conversación",
+      );
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  async function handleReopen() {
+    if (!selectedId || reopening) {
+      return;
+    }
+
+    setReopening(true);
+
+    try {
+      await reopenConversation(selectedId);
+      toast.success("Conversación reabierta");
+      await loadConversations();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No fue posible reabrir la conversación",
+      );
+    } finally {
+      setReopening(false);
+    }
+  }
 
   async function handleSend(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -537,117 +725,365 @@ export default function Conversations() {
         description="Inbox de WhatsApp, Instagram y chat web"
       />
 
-      <div className="agent-chat agent-chat--tabs">
-        <div className="agent-chat__tabbar">
-          <div
-            className="agent-chat__tabs"
-            role="tablist"
-            aria-label="Filtro por canal"
-          >
-            {visibleChannelFilters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                role="tab"
-                aria-selected={channelFilter === filter}
-                className={
-                  channelFilter === filter
-                    ? "agent-chat__tab agent-chat__tab--active"
-                    : "agent-chat__tab"
-                }
-                onClick={() => {
-                  setChannelFilter(filter);
-                  setSelectedId(null);
-                }}
-              >
-                {FILTER_LABELS[filter]}
+      <div
+        className={
+          showDetailOnMobile && selectedConversation
+            ? "inbox inbox--show-detail"
+            : "inbox"
+        }
+      >
+        {/* ============ PANEL MASTER ============ */}
+        <aside className="inbox__master">
+          <div className="inbox__search">
+            <Search size={16} className="inbox__search-icon" />
 
-                <span className="agent-chat__tab-count">
-                  {counts[filter]}
-                </span>
-              </button>
-            ))}
+            <input
+              type="text"
+              value={searchTerm}
+              placeholder="Buscar conversaciones..."
+              aria-label="Buscar conversaciones"
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+
+            <Button
+              icon="filter"
+              iconOnly
+              className={`btn-filter-trigger ${showFilters ? "active" : ""}`}
+              title="Filtrar conversaciones"
+              onClick={() => {
+                setShowFilters((current) => !current);
+                setOpenChipKey(null);
+              }}
+            >
+              Filtrar
+            </Button>
           </div>
-        </div>
 
-        <div className="agent-chat__body">
-          <aside className="agent-chat__list">
-
-          {listLoading ? (
-            <LoadingOverlay title="Cargando conversaciones..." message="Esto puede tomar unos segundos" />
-          ) : listError ? (
-            <PageState
-              kind="error"
-              title="No fue posible cargar"
-              message={listError}
-            />
-          ) : !conversations || conversations.length === 0 ? (
-            <EmptyState
-              title="No hay conversaciones"
-              message="Los mensajes de tus canales aparecerán aquí"
-            />
-          ) : (
-            <div className="agent-chat__items">
-              {conversations.map((conversation) => (
+          {showFilters && (
+          <div className="filters-bar inbox__filters" ref={filtersBarRef}>
+            <div className="filters-group">
+              {/* Chip Canal */}
+              <div className="chip-wrapper">
                 <button
-                  key={conversation._id}
                   type="button"
-                  className={
-                    selectedId === conversation._id
-                      ? "agent-chat__item agent-chat__item--active"
-                      : "agent-chat__item"
-                  }
-                  onClick={() => {
-                    void selectConversation(conversation._id);
+                  className={`filter-chip ${channelFilter !== "ALL" ? "has-value" : ""}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setOpenChipKey((current) =>
+                      current === "channel" ? null : "channel",
+                    );
                   }}
                 >
-                  <span className="agent-chat__item-top">
-                    <strong>{conversationTitle(conversation)}</strong>
+                  <Filter size={14} className="chip-icon" />
 
-                    <time>
-                      {formatRelativeTime(
-                        conversation.lastMessageAt ??
-                          conversation.lastMessage?.createdAt,
-                      )}
-                    </time>
+                  <span>
+                    Canal
+                    {channelFilter !== "ALL" ? ` · ${channelFilterLabel}` : ""}
                   </span>
 
-                  <span className="agent-chat__item-bottom">
-                    <span className="agent-chat__preview">
-                      {conversation.lastMessage?.content || "Sin mensajes"}
-                    </span>
-
-                    <span className="agent-chat__item-assignee">
-                      {conversation.assignedTo
-                        ? conversation.assignedTo === currentUserId
-                          ? "Tuya"
-                          : (conversation.assignedAgentName ?? "Asignada")
-                        : ""}
-                    </span>
-
-                    <StatusBadge status={conversation.status} />
-                  </span>
-
-                  <span className="agent-chat__item-channel">
-                    {CHANNEL_LABELS[conversation.channel]}
-                  </span>
+                  <ChevronDown size={14} className="chip-arrow" />
                 </button>
-              ))}
+
+                {openChipKey === "channel" && (
+                  <div className="chip-popover">
+                    <div className="chip-popover-header">
+                      <span className="chip-popover-title">Canal</span>
+
+                      {channelFilter !== "ALL" && (
+                        <button
+                          type="button"
+                          className="btn-clear-chip"
+                          title="Limpiar filtro"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setChannelFilter("ALL");
+                            setOpenChipKey(null);
+                          }}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="chip-popover-body">
+                      <select
+                        className="chip-select"
+                        value={channelFilter}
+                        onChange={(event) => {
+                          setChannelFilter(event.target.value as ChannelFilter);
+                          setOpenChipKey(null);
+                        }}
+                        autoFocus
+                      >
+                        {CHANNEL_FILTER_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Chip Asignación */}
+              <div className="chip-wrapper">
+                <button
+                  type="button"
+                  className={`filter-chip ${assigneeFilter !== "ANY" ? "has-value" : ""}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setOpenChipKey((current) =>
+                      current === "assignee" ? null : "assignee",
+                    );
+                  }}
+                >
+                  <Filter size={14} className="chip-icon" />
+
+                  <span>
+                    Asignación
+                    {assigneeFilter !== "ANY"
+                      ? ` · ${assigneeFilterLabel}`
+                      : ""}
+                  </span>
+
+                  <ChevronDown size={14} className="chip-arrow" />
+                </button>
+
+                {openChipKey === "assignee" && (
+                  <div className="chip-popover">
+                    <div className="chip-popover-header">
+                      <span className="chip-popover-title">Asignación</span>
+
+                      {assigneeFilter !== "ANY" && (
+                        <button
+                          type="button"
+                          className="btn-clear-chip"
+                          title="Limpiar filtro"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setAssigneeFilter("ANY");
+                            setOpenChipKey(null);
+                          }}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="chip-popover-body">
+                      <select
+                        className="chip-select"
+                        value={assigneeFilter}
+                        onChange={(event) => {
+                          setAssigneeFilter(
+                            event.target.value as AssigneeFilter,
+                          );
+                          setOpenChipKey(null);
+                        }}
+                        autoFocus
+                      >
+                        {BASE_ASSIGNEE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+
+                        {availableAgents.length > 0 && (
+                          <optgroup label="Asesores">
+                            {availableAgents.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Chip Estado */}
+              <div className="chip-wrapper">
+                <button
+                  type="button"
+                  className={`filter-chip ${statusTab !== "ALL" ? "has-value" : ""}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setOpenChipKey((current) =>
+                      current === "status" ? null : "status",
+                    );
+                  }}
+                >
+                  <Filter size={14} className="chip-icon" />
+
+                  <span>
+                    Estado
+                    {statusTab !== "ALL" ? ` · ${statusFilterLabel}` : ""}
+                  </span>
+
+                  <ChevronDown size={14} className="chip-arrow" />
+                </button>
+
+                {openChipKey === "status" && (
+                  <div className="chip-popover">
+                    <div className="chip-popover-header">
+                      <span className="chip-popover-title">Estado</span>
+
+                      {statusTab !== "ALL" && (
+                        <button
+                          type="button"
+                          className="btn-clear-chip"
+                          title="Limpiar filtro"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setStatusTab("ALL");
+                            setOpenChipKey(null);
+                          }}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="chip-popover-body">
+                      <select
+                        className="chip-select"
+                        value={statusTab}
+                        onChange={(event) => {
+                          setStatusTab(event.target.value as StatusTab);
+                          setOpenChipKey(null);
+                        }}
+                        autoFocus
+                      >
+                        {STATUS_FILTER_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {hasActiveFilters && (
+              <Button
+                icon="trash"
+                iconOnly
+                className="btn-remove-filters"
+                onClick={clearAllFilters}
+              >
+                Remover filtros
+              </Button>
+            )}
+          </div>
           )}
+
+          <div className="inbox__items">
+            {listLoading ? (
+              <div className="inbox__list-state">
+                Cargando conversaciones...
+              </div>
+            ) : listError ? (
+              <PageState
+                kind="error"
+                title="No fue posible cargar"
+                message={listError}
+              />
+            ) : visibleConversations.length === 0 ? (
+              <div className="inbox__list-state">
+                {conversations && conversations.length > 0
+                  ? "Ninguna conversación coincide con los filtros."
+                  : "Los mensajes de tus canales aparecerán aquí."}
+              </div>
+            ) : (
+              visibleConversations.map((conversation) => {
+                const channelIcon = CHANNEL_ICONS[conversation.channel];
+
+                return (
+                  <button
+                    key={conversation._id}
+                    type="button"
+                    className={
+                      selectedId === conversation._id
+                        ? "inbox__item inbox__item--active"
+                        : "inbox__item"
+                    }
+                    onClick={() => {
+                      void selectConversation(conversation._id);
+                    }}
+                  >
+                    <span className="inbox__item-avatar">
+                      {conversationInitial(conversation)}
+
+                      <span
+                        className={`inbox__channel-dot ${channelIcon.className}`}
+                        title={CHANNEL_LABELS[conversation.channel]}
+                      >
+                        <channelIcon.Icon size={10} />
+                      </span>
+                    </span>
+
+                    <span className="inbox__item-body">
+                      <span className="inbox__item-top">
+                        <strong>{conversationTitle(conversation)}</strong>
+
+                        <time>
+                          {formatRelativeTime(
+                            conversation.lastMessageAt ??
+                              conversation.lastMessage?.createdAt,
+                          )}
+                        </time>
+                      </span>
+
+                      <span className="inbox__preview">
+                        {conversation.lastMessage?.content || "Sin mensajes"}
+                      </span>
+
+                      <span className="inbox__item-meta">
+                        <span className="inbox__item-assignee">
+                          {conversation.assignedTo
+                            ? conversation.assignedTo === currentUserId
+                              ? "Tuya"
+                              : (conversation.assignedAgentName ?? "Asignada")
+                            : ""}
+                        </span>
+
+                        <StatusBadge status={conversation.status} />
+                      </span>
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </aside>
 
-        <section className="agent-chat__thread">
+        {/* ============ PANEL DETAIL ============ */}
+        <section className="inbox__detail">
           {!selectedConversation ? (
-            <div className="agent-chat__placeholder">
+            <div className="inbox__placeholder">
               <Icon name="chat" size={40} />
 
               <p>Selecciona una conversación para ver los mensajes</p>
             </div>
           ) : (
             <>
-              <header className="agent-chat__header">
-                <div className="agent-chat__header-info">
+              <header className="inbox__chat-header">
+                <button
+                  type="button"
+                  className="inbox__back"
+                  aria-label="Volver a conversaciones"
+                  title="Volver a conversaciones"
+                  onClick={() => setShowDetailOnMobile(false)}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+
+                <div className="inbox__chat-header-info">
                   <strong>{conversationTitle(selectedConversation)}</strong>
 
                   <small>
@@ -657,139 +1093,249 @@ export default function Conversations() {
                       ? selectedConversation.assignedTo === currentUserId
                         ? " · Asignada a ti"
                         : ` · Asignada a ${selectedConversation.assignedAgentName ?? "otro agente"}`
-                      : ""}
+                      : " · Sin asignar"}
                   </small>
                 </div>
 
-                <StatusBadge status={selectedConversation.status} />
+                <div className="inbox__chat-header-actions">
+                  {canReply && selectedConversation.status === "CLOSED" && (
+                    <button
+                      type="button"
+                      className="inbox__header-action"
+                      title="Reabrir chat"
+                      aria-label="Reabrir chat"
+                      disabled={reopening}
+                      onClick={() => {
+                        void handleReopen();
+                      }}
+                    >
+                      <RotateCcw size={16} />
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    className="inbox__header-action"
+                    title="Ver ficha del cliente"
+                    aria-label="Ver ficha del cliente"
+                    onClick={() => navigate("/customers")}
+                  >
+                    <UserRound size={16} />
+                  </button>
+
+                  <StatusBadge status={selectedConversation.status} />
+                </div>
               </header>
 
-              {threadLoading ? (
-                null
-              ) : threadError ? (
-                <PageState
-                  kind="error"
-                  title="No fue posible cargar"
-                  message={threadError}
-                />
-              ) : (
-                <div className="agent-chat__messages">
-                  {messages.length === 0 && !sending ? (
-                    <p className="agent-chat__empty-thread">
-                      Aún no hay mensajes en esta conversación.
-                    </p>
-                  ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message._id}
-                        className={
-                          message.direction === "INBOUND"
-                            ? "agent-chat__bubble agent-chat__bubble--customer"
-                            : "agent-chat__bubble agent-chat__bubble--ai"
+              <div className="inbox__thread">
+                {threadLoading ? (
+                  <div className="inbox__thread-state">
+                    Cargando mensajes...
+                  </div>
+                ) : threadError ? (
+                  <PageState
+                    kind="error"
+                    title="No fue posible cargar"
+                    message={threadError}
+                  />
+                ) : (
+                  <div className="inbox__messages">
+                    {messages.length === 0 && !sending ? (
+                      <p className="inbox__thread-empty">
+                        Aún no hay mensajes en esta conversación.
+                      </p>
+                    ) : (
+                      messages.map((message) => {
+                        if (message.senderType === "SYSTEM") {
+                          return (
+                            <div
+                              key={message._id}
+                              className="inbox__system-banner"
+                            >
+                              {message.content}
+                            </div>
+                          );
                         }
-                      >
-                        <span className="agent-chat__bubble-meta">
-                          {senderLabel(message)}
-                          {" · "}
-                          {formatRelativeTime(message.createdAt)}
+
+                        return (
+                          <div
+                            key={message._id}
+                            className={
+                              message.direction === "INBOUND"
+                                ? "inbox__bubble inbox__bubble--customer"
+                                : "inbox__bubble inbox__bubble--agent"
+                            }
+                          >
+                            <p>{message.content}</p>
+
+                            <span className="inbox__bubble-meta">
+                              {senderLabel(message)}
+                              {" · "}
+                              {formatClockTime(message.createdAt)}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+
+                    {sending && (
+                      <div className="inbox__bubble inbox__bubble--agent inbox__bubble--typing">
+                        <span
+                          className="inbox__typing"
+                          aria-label="Enviando..."
+                        >
+                          <i />
+                          <i />
+                          <i />
                         </span>
-
-                        <p>{message.content}</p>
                       </div>
-                    ))
-                  )}
+                    )}
 
-                  {sending && (
-                    <div className="agent-chat__bubble agent-chat__bubble--ai agent-chat__bubble--typing">
-                      <span
-                        className="agent-chat__typing"
-                        aria-label="Enviando..."
-                      >
-                        <i />
-                        <i />
-                        <i />
-                      </span>
-                    </div>
-                  )}
+                    <div ref={threadEndRef} />
+                  </div>
+                )}
+              </div>
 
-                  <div ref={threadEndRef} />
+              {selectedConversation.status === "CLOSED" ? (
+                <div className="inbox__composer inbox__composer--locked">
+                  <p className="inbox__composer-hint">
+                    Esta conversación está cerrada. Reábrela para responder al
+                    cliente.
+                  </p>
+
+                  {canReply && (
+                    <Button
+                      variant="primary"
+                      disabled={reopening}
+                      onClick={() => {
+                        void handleReopen();
+                      }}
+                    >
+                      {reopening ? "Reabriendo..." : "Reabrir chat"}
+                    </Button>
+                  )}
                 </div>
-              )}
-
-              {canReply && !assignedToOther ? (
+              ) : canReply && !assignedToOther ? (
                 <form
-                  className="agent-chat__composer"
+                  className="inbox__composer"
                   onSubmit={(event) => {
                     void handleSend(event);
                   }}
                 >
                   {sendError && (
-                    <FormMessage kind="error">{sendError}</FormMessage>
+                    <p className="inbox__composer-error">{sendError}</p>
                   )}
 
                   {notDelivered && (
-                    <FormMessage kind="error">
+                    <p className="inbox__composer-error">
                       La respuesta se guardó, pero el canal no tiene token o
                       configuración de envío, por lo que no se entregó.
-                    </FormMessage>
+                    </p>
                   )}
 
-                  <div className="agent-chat__composer-row">
-                    <input
-                      type="text"
+                  <div className="inbox__composer-row">
+                    <button
+                      type="button"
+                      className="inbox__composer-tool"
+                      title="Adjuntar archivo"
+                      aria-label="Adjuntar archivo"
+                    >
+                      <Paperclip size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="inbox__composer-tool"
+                      title="Emojis"
+                      aria-label="Emojis"
+                    >
+                      <Smile size={18} />
+                    </button>
+
+                    <textarea
                       value={draft}
                       placeholder="Responde como asesor..."
                       aria-label="Respuesta del asesor"
+                      rows={1}
                       onChange={(event) => {
                         setDraft(event.target.value);
                         notifyTyping();
                       }}
-                      disabled={
-                        sending || selectedConversation.status === "CLOSED"
-                      }
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "Enter" &&
+                          !event.shiftKey &&
+                          draft.trim()
+                        ) {
+                          event.preventDefault();
+
+                          const form = event.currentTarget.form;
+
+                          if (form) {
+                            form.requestSubmit();
+                          }
+                        }
+                      }}
                     />
 
-                    <Button
+                    <button
                       type="submit"
-                      variant="primary"
-                      icon="send"
-                      iconOnly
-                      disabled={
-                        sending ||
-                        !draft.trim() ||
-                        selectedConversation.status === "CLOSED"
-                      }
+                      className="inbox__composer-send"
+                      disabled={sending || !draft.trim()}
+                      title="Enviar"
+                      aria-label="Enviar"
                     >
-                      Enviar
-                    </Button>
+                      <Send size={18} />
+                    </button>
                   </div>
 
                   {customerTyping && (
-                    <p className="agent-chat__composer-hint agent-chat__composer-hint--typing">
+                    <p className="inbox__composer-hint inbox__composer-hint--typing">
                       El cliente está escribiendo...
                     </p>
                   )}
                 </form>
+              ) : canClaim ? (
+                <div className="inbox__composer inbox__composer--locked">
+                  <p className="inbox__composer-hint">
+                    Esta conversación no tiene agente asignado.
+                  </p>
+
+                  <Button
+                    variant="primary"
+                    disabled={claiming}
+                    onClick={() => {
+                      void handleClaim();
+                    }}
+                  >
+                    {claiming
+                      ? "Tomando..."
+                      : "Tomar control de la conversación"}
+                  </Button>
+                </div>
               ) : canReply && assignedToOther ? (
-                <div className="agent-chat__composer agent-chat__composer--readonly">
-                  <p className="agent-chat__composer-hint">
+                <div className="inbox__composer inbox__composer--locked">
+                  <p className="inbox__composer-hint">
                     Esta conversación fue asignada a{" "}
                     {selectedConversation?.assignedAgentName ?? "otro agente"}.
                     Solo él puede responder al cliente.
                   </p>
                 </div>
               ) : (
-                <div className="agent-chat__composer agent-chat__composer--readonly">
-                  <p className="agent-chat__composer-hint">
-                    Estás viendo el inbox en modo lectura. Solo los agentes
-                    pueden responder mensajes.
+                <div className="inbox__composer inbox__composer--locked">
+                  <p className="inbox__composer-hint">
+                    Estás viendo el inbox en modo lectura.
                   </p>
+
+                  <span className="inbox__composer-locked-icon">
+                    <UserRound size={14} />
+                    Solo los agentes pueden responder mensajes
+                  </span>
                 </div>
               )}
             </>
           )}
         </section>
-        </div>
       </div>
     </main>
   );
