@@ -41,14 +41,13 @@ export async function getPublicMessages(
   conversationId: string,
   token: string,
 ): Promise<ChatMessage[]> {
-  const params = new URLSearchParams({
-    token,
-  });
-
   return apiRequest<ChatMessage[]>(
-    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/messages?${params.toString()}`,
+    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/messages`,
     {
       method: "GET",
+      headers: {
+        "X-Chat-Token": token,
+      },
     },
   );
 }
@@ -59,14 +58,13 @@ export async function sendPublicMessage(
   token: string,
   content: string,
 ): Promise<SendChatMessageResponse> {
-  const params = new URLSearchParams({
-    token,
-  });
-
   return apiRequest<SendChatMessageResponse>(
-    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/messages?${params.toString()}`,
+    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/messages`,
     {
       method: "POST",
+      headers: {
+        "X-Chat-Token": token,
+      },
       body: JSON.stringify({
         content,
       }),
@@ -86,14 +84,13 @@ export async function getPublicTyping(
   conversationId: string,
   token: string,
 ): Promise<PublicTypingStatus> {
-  const params = new URLSearchParams({
-    token,
-  });
-
   return apiRequest<PublicTypingStatus>(
-    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/typing?${params.toString()}`,
+    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/typing`,
     {
       method: "GET",
+      headers: {
+        "X-Chat-Token": token,
+      },
     },
   );
 }
@@ -104,14 +101,13 @@ export async function setPublicTyping(
   token: string,
   isTyping: boolean,
 ): Promise<void> {
-  const params = new URLSearchParams({
-    token,
-  });
-
   return apiRequest<void>(
-    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/typing?${params.toString()}`,
+    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/typing`,
     {
       method: "POST",
+      headers: {
+        "X-Chat-Token": token,
+      },
       body: JSON.stringify({ isTyping }),
     },
   );
@@ -122,14 +118,13 @@ export async function closePublicChat(
   conversationId: string,
   token: string,
 ): Promise<void> {
-  const params = new URLSearchParams({
-    token,
-  });
-
   return apiRequest<void>(
-    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/close?${params.toString()}`,
+    `/api/agent/public/chat/${tenantId}/conversations/${conversationId}/close`,
     {
       method: "POST",
+      headers: {
+        "X-Chat-Token": token,
+      },
     },
   );
 }

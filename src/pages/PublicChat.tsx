@@ -20,6 +20,8 @@ import type {
   PublicChatConfigResponse,
 } from "../types/agent-conversation.js";
 import { isValidEmail, isValidPhone, normalizePhoneInput } from "../lib/validation.js";
+import { sanitizeChatContent } from "../lib/sanitize.js";
+import { contrastTextFor } from "../lib/contrast.js";
 
 interface StoredChat {
   conversationId: string;
@@ -49,6 +51,29 @@ function isOptimisticMessageId(id: string): boolean {
   return id.startsWith("optimistic-") || id.startsWith("seeded-");
 }
 
+const SENDER_LABELS: Record<
+  ChatMessage["senderType"],
+  { name: string; initial: string; role: string }
+> = {
+  AI: { name: "Demito", initial: "D", role: "Asistente virtual" },
+  AGENT: { name: "Agente humano", initial: "M", role: "Atención humana" },
+  CUSTOMER: { name: "Tú", initial: "", role: "Tú" },
+  SYSTEM: { name: "Sistema", initial: "", role: "Notificación" },
+};
+
+function bubbleClassName(senderType: ChatMessage["senderType"]): string {
+  switch (senderType) {
+    case "CUSTOMER":
+      return "public-chat__bubble public-chat__bubble--user";
+    case "AGENT":
+      return "public-chat__bubble public-chat__bubble--agent";
+    case "SYSTEM":
+      return "public-chat__bubble public-chat__bubble--system";
+    default:
+      return "public-chat__bubble public-chat__bubble--ai";
+  }
+}
+
 function widgetAccentStyle(color?: string): CSSProperties | undefined {
   const trimmed = color?.trim();
 
@@ -64,6 +89,7 @@ function widgetAccentStyle(color?: string): CSSProperties | undefined {
   return {
     "--accent": hex,
     "--accent-bg": `rgba(${r}, ${g}, ${b}, 0.1)`,
+    "--accent-text": contrastTextFor(hex),
   } as CSSProperties;
 }
 
@@ -127,6 +153,18 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
   const threadEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<StoredChat | null>(null);
   const typingTimerRef = useRef<number | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  function resizeComposer() {
+    const element = composerRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    element.style.height = "auto";
+    element.style.height = `${Math.min(element.scrollHeight, 120)}px`;
+  }
 
   useEffect(() => {
     chatRef.current = chat;
@@ -544,7 +582,9 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
     <div className="public-chat" style={accentStyle}>
       <div className="public-chat__card">
         <header className="public-chat__header">
-          <Icon name="brand" size={22} className="public-chat__brand" />
+          <div className="public-chat__avatar" aria-hidden="true">
+            <Icon name="brand" size={18} />
+          </div>
 
           <div className="public-chat__header-info">
             <strong>
@@ -559,6 +599,20 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 : (chatConfig?.channelName ?? "Asistente virtual")}
             </small>
           </div>
+
+          {chat && (
+            <div
+              className={
+                closed
+                  ? "public-chat__presence public-chat__presence--off"
+                  : "public-chat__presence"
+              }
+              role="status"
+            >
+              <i aria-hidden="true" />
+              <span>{closed ? "Cerrado" : "En línea"}</span>
+            </div>
+          )}
 
           {chat && !closed && (
             <button
@@ -576,63 +630,77 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
 
         {!chat ? (
           <form className="public-chat__form" onSubmit={handleStart}>
-            <p className="public-chat__intro">{DEFAULT_INTRO}</p>
+            <div className="public-chat__form-head">
+              <div className="public-chat__form-avatar" aria-hidden="true">
+                <Icon name="brand" size={20} />
+              </div>
 
-            <Field
-              id="public-chat-name"
-              label="Nombre"
-              type="text"
-              value={name}
-              error={nameError}
-              required
-              onChange={(event) => {
-                setName(event.target.value);
-                setNameError("");
-              }}
-              placeholder="Tu nombre y apellido"
-              autoComplete="name"
-            />
+              <div>
+                <h2 className="public-chat__form-title">
+                  Cuéntanos quién eres
+                </h2>
 
-            <Field
-              id="public-chat-email"
-              label="Email"
-              type="email"
-              value={email}
-              error={emailError}
-              required
-              onChange={(event) => {
-                setEmail(event.target.value);
-                setEmailError("");
-              }}
-              placeholder="tu@correo.com"
-              autoComplete="email"
-            />
+                <p className="public-chat__intro">{DEFAULT_INTRO}</p>
+              </div>
+            </div>
 
-            <Field
-              id="public-chat-phone"
-              label="Teléfono (WhatsApp)"
-              type="tel"
-              value={phone}
-              error={phoneError}
-              required
-              helper="Con indicativo de país, ej: +57 300 000 0000"
-              onChange={(event) => {
-                setPhone(normalizePhoneInput(event.target.value));
-                setPhoneError("");
-              }}
-              placeholder="+573001234567"
-              autoComplete="tel"
-            />
+            <div className="public-chat__form-grid">
+              <Field
+                id="public-chat-name"
+                label="Nombre"
+                type="text"
+                value={name}
+                error={nameError}
+                required
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setNameError("");
+                }}
+                placeholder="Tu nombre y apellido"
+                autoComplete="name"
+              />
 
-            <Field
-              id="public-chat-company"
-              label="Empresa (opcional)"
-              type="text"
-              value={company}
-              onChange={(event) => setCompany(event.target.value)}
-              placeholder="Nombre de tu empresa"
-              autoComplete="organization"
-            />
+              <Field
+                id="public-chat-email"
+                label="Email"
+                type="email"
+                value={email}
+                error={emailError}
+                required
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setEmailError("");
+                }}
+                placeholder="tu@correo.com"
+                autoComplete="email"
+              />
+
+              <Field
+                id="public-chat-phone"
+                label="Teléfono (WhatsApp)"
+                type="tel"
+                value={phone}
+                error={phoneError}
+                required
+                helper="Con indicativo de país, ej: +57 300 000 0000"
+                onChange={(event) => {
+                  setPhone(normalizePhoneInput(event.target.value));
+                  setPhoneError("");
+                }}
+                placeholder="+573001234567"
+                autoComplete="tel"
+              />
+
+              <Field
+                id="public-chat-company"
+                label="Empresa (opcional)"
+                type="text"
+                value={company}
+                onChange={(event) => setCompany(event.target.value)}
+                placeholder="Nombre de tu empresa"
+                autoComplete="organization"
+              />
+            </div>
 
             <div className="form-field">
               <label
@@ -687,7 +755,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               type="submit"
               variant="primary"
               icon="send"
-              iconOnly
+              className="public-chat__form-submit"
               disabled={starting}
             >
               {starting ? "Iniciando..." : "Iniciar conversación"}
@@ -714,27 +782,60 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                   messages.map((message) => (
                     <div
                       key={message._id}
-                      className={
-                        message.direction === "INBOUND"
-                          ? "public-chat__bubble public-chat__bubble--user"
-                          : "public-chat__bubble public-chat__bubble--ai"
-                      }
+                      className={bubbleClassName(message.senderType)}
                     >
-                      <p>{message.content}</p>
+                      {(message.senderType === "AI" ||
+                        message.senderType === "AGENT") && (
+                        <span
+                          className="public-chat__sender"
+                          aria-label={`${SENDER_LABELS[message.senderType].role}: ${SENDER_LABELS[message.senderType].name}`}
+                        >
+                          <i
+                            className="public-chat__sender-avatar"
+                            aria-hidden="true"
+                          >
+                            {SENDER_LABELS[message.senderType].initial}
+                          </i>
+
+                          <em>{SENDER_LABELS[message.senderType].name}</em>
+                        </span>
+                      )}
+
+                      {message.senderType === "SYSTEM" ? (
+                        <span className="public-chat__system">
+                          <Icon name="brand" size={14} />
+
+                          {sanitizeChatContent(message.content)}
+                        </span>
+                      ) : (
+                        <p>{sanitizeChatContent(message.content)}</p>
+                      )}
                     </div>
                   ))
                 )}
 
                 {agentTyping && !sending && (
-                  <div className="public-chat__bubble public-chat__bubble--advisor">
+                  <div className="public-chat__bubble public-chat__bubble--agent">
+                    <span className="public-chat__sender">
+                      <i
+                        className="public-chat__sender-avatar"
+                        aria-hidden="true"
+                      >
+                        {SENDER_LABELS.AGENT.initial}
+                      </i>
+
+                      <em>{SENDER_LABELS.AGENT.name}</em>
+                    </span>
+
                     <span className="public-chat__advisor-typing">
-                      <span className="public-chat__typing" aria-hidden="true">
+                      <span
+                        className="public-chat__typing"
+                        aria-label="Escribiendo..."
+                      >
                         <i />
                         <i />
                         <i />
                       </span>
-
-                      El asesor está escribiendo...
                     </span>
                   </div>
                 )}
@@ -757,13 +858,21 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             )}
 
             {closed && (
-              <p className="public-chat__closed">
-                Esta conversación ha sido cerrada. ¡Gracias por escribirnos!
-              </p>
+              <div className="public-chat__closed" role="status">
+                <Icon name="info" size={16} />
+
+                <p>
+                  Esta conversación ha sido cerrada. ¡Gracias por escribirnos!
+                </p>
+              </div>
             )}
 
             <form
-              className="public-chat__composer"
+              className={
+                closed
+                  ? "public-chat__composer public-chat__composer--closed"
+                  : "public-chat__composer"
+              }
               onSubmit={(event) => {
                 void handleSend(event);
               }}
@@ -773,14 +882,22 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               )}
 
               <div className="public-chat__composer-row">
-                <input
-                  type="text"
+                <textarea
+                  ref={composerRef}
                   value={draft}
+                  rows={1}
                   placeholder="Escribe tu mensaje..."
                   aria-label="Tu mensaje"
                   onChange={(event) => {
                     setDraft(event.target.value);
+                    resizeComposer();
                     notifyTyping();
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      event.currentTarget.form?.requestSubmit();
+                    }
                   }}
                   disabled={sending || closed}
                 />
@@ -791,10 +908,31 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                   icon="send"
                   iconOnly
                   disabled={sending || closed || !draft.trim()}
+                  title={closed ? "La conversación está cerrada" : "Enviar"}
                 >
                   Enviar
                 </Button>
               </div>
+
+              {closed && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon="plus"
+                  onClick={() => {
+                    sessionStorage.removeItem(storageKey(tenantId));
+                    setChat(null);
+                    setClosed(false);
+                    setMessages([]);
+                    setDraft("");
+                    setSendError("");
+                    setEscalated(false);
+                    setAgentTyping(false);
+                  }}
+                >
+                  Iniciar nueva conversación
+                </Button>
+              )}
             </form>
           </>
         )}
