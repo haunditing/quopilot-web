@@ -233,6 +233,18 @@
   background-color: #f8fafc;
 }
 
+.data-table tbody tr.data-table__row--clickable {
+  cursor: pointer;
+}
+
+.data-table tbody tr.data-table__row--clickable .row-actions {
+  cursor: default;
+}
+
+.data-table tbody tr.data-table__row--clickable .row-actions button {
+  cursor: pointer;
+}
+
 .row-actions {
   display: flex;
   align-items: center;
@@ -359,6 +371,14 @@
 
 .data-list-mobile__item:last-child {
   border-bottom: none;
+}
+
+.data-list-mobile__item--clickable {
+  cursor: pointer;
+}
+
+.data-list-mobile__item--clickable:active {
+  background-color: #f8fafc;
 }
 
 .data-list-mobile__title {

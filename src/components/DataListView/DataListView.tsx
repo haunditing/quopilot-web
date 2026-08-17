@@ -21,6 +21,7 @@ export default function DataListView<T extends object>({
   pageSize: initialPageSize = DEFAULT_PAGE_SIZE,
   onFilterChange,
   onPageChange,
+  onRowClick,
   totalItems,
   loading = false,
   emptyState = "No hay datos disponibles",
@@ -274,7 +275,11 @@ export default function DataListView<T extends object>({
                 paginatedItems.map((item) => {
                   const itemRecord = item as Record<string, unknown>;
                   return (
-                    <tr key={rowKey(item)}>
+                    <tr
+                      key={rowKey(item)}
+                      className={onRowClick ? "data-table__row--clickable" : ""}
+                      onClick={onRowClick ? () => onRowClick(item) : undefined}
+                    >
                       {columns.map((col) => (
                         <td
                           key={col.key}
@@ -307,7 +312,15 @@ export default function DataListView<T extends object>({
               );
 
               return (
-                <div key={rowKey(item)} className="data-list-mobile__item">
+                <div
+                  key={rowKey(item)}
+                  className={
+                    onRowClick
+                      ? "data-list-mobile__item data-list-mobile__item--clickable"
+                      : "data-list-mobile__item"
+                  }
+                  onClick={onRowClick ? () => onRowClick(item) : undefined}
+                >
                   {titleColumn && (
                     <div className="data-list-mobile__title">
                       {titleColumn.render

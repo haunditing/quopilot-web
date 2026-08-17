@@ -1,20 +1,14 @@
 import { useCallback, useMemo, useState } from "react";
-import type { FormEvent } from "react";
-import { Edit2, Power, Trash2 } from "lucide-react";
+import { Power, Trash2 } from "lucide-react";
 
 import Button from "../components/Button.js";
-import Field from "../components/Field.js";
-import FormMessage from "../components/FormMessage.js";
-import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
+import ProductQuickModal from "../components/ProductQuickModal.js";
 import DataListView from "../components/DataListView/DataListView.js";
-import type {
-  ColumnSpec,
-  FilterOptionI,
-} from "../components/DataListView/types.js";
+import type { ColumnSpec } from "../components/DataListView/types.js";
 import { PRODUCT_STATUS_OPTIONS } from "../config/filters.js";
-import { CURRENCY_OPTIONS } from "../config/options.js";
+import { PRODUCT_CATEGORY_OPTIONS } from "../config/product-options.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
@@ -25,15 +19,10 @@ import {
   createProduct,
   deleteProduct,
   getProducts,
-  updateProduct,
   updateProductStatus,
 } from "../services/product-service.js";
-import type { Product, ProductStatus } from "../types/product.js";
-
-type ProductModal =
-  | { mode: "create" }
-  | { mode: "edit"; product: Product }
-  | null;
+import type { ItemType, Product, ProductStatus } from "../types/product.js";
+import { useNavigate } from "react-router-dom";
 
 const DEFAULT_CURRENCY = "COP";
 
@@ -48,129 +37,88 @@ const STATUS_LABEL = Object.fromEntries(
   PRODUCT_STATUS_OPTIONS.map((option) => [option.value, option.label]),
 ) as Record<ProductStatus, string>;
 
+const ITEM_TYPE_LABEL: Record<ItemType, string> = {
+  PRODUCT: "Producto",
+  SERVICE: "Servicio",
+  COMBO: "Combo / Kit",
+};
+
 export default function Products() {
+  const navigate = useNavigate();
+
   const buildFetcher = useCallback(
-    (params: { search: string; status: string; currency: string }) => () =>
+    (params: { search: string; status: string; category: string }) => () =>
       getProducts({
         search: params.search || undefined,
         status: params.status || undefined,
-        currency: params.currency || undefined,
+        category: params.category || undefined,
       }),
     [],
   );
   const { data, loading, error, reload, set } = useFilteredList(buildFetcher, {
     status: "",
-    currency: "",
+    category: "",
   });
 
   const role = getUserRole();
   const canCreate = can(role, "products", "create");
   const canChangeStatus = can(role, "products", "changeStatus");
-  const canEdit = can(role, "products", "update");
   const canDelete = can(role, "products", "delete");
 
   const toast = useToast();
   const { confirm } = useConfirm();
 
-  const [modal, setModal] = useState<ProductModal>(null);
-  const [name, setName] = useState("");
-  const [sku, setSku] = useState("");
-  const [description, setDescription] = useState("");
-  const [unitPrice, setUnitPrice] = useState("");
-  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
-
-  const [nameError, setNameError] = useState("");
-  const [unitPriceError, setUnitPriceError] = useState("");
-
+  const [quickOpen, setQuickOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  function openCreate() {
-    setName("");
-    setSku("");
-    setDescription("");
-    setUnitPrice("");
-    setCurrency(DEFAULT_CURRENCY);
-    setNameError("");
-    setUnitPriceError("");
+  function openQuickCreate() {
     setSaveError("");
-    setModal({ mode: "create" });
+    setQuickOpen(true);
   }
 
-  function openEdit(product: Product) {
-    setName(product.name);
-    setSku(product.sku ?? "");
-    setDescription(product.description ?? "");
-    setUnitPrice(String(product.unitPrice));
-    setCurrency(product.currency);
-    setNameError("");
-    setUnitPriceError("");
-    setSaveError("");
-    setModal({ mode: "edit", product });
+  function closeQuickModal() {
+    if (!saving) {
+      setQuickOpen(false);
+      setSaveError("");
+    }
   }
 
-  function closeModal() {
-    setModal(null);
-    setNameError("");
-    setUnitPriceError("");
-    setSaveError("");
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    let hasErrors = false;
-
-    if (name.trim()) {
-      setNameError("");
-    } else {
-      setNameError("El nombre es obligatorio");
-      hasErrors = true;
-    }
-
-    const parsedPrice = Number(unitPrice);
-
-    if (unitPrice === "" || Number.isNaN(parsedPrice)) {
-      setUnitPriceError("Ingresa un precio válido");
-      hasErrors = true;
-    } else if (parsedPrice < 0) {
-      setUnitPriceError("El precio no puede ser negativo");
-      hasErrors = true;
-    } else {
-      setUnitPriceError("");
-    }
-
-    if (hasErrors) {
-      return;
-    }
-
+  async function handleQuickSubmit(input: {
+    itemType: ItemType;
+    name: string;
+    warehouse: string;
+    unitOfMeasure: string;
+    quantity: string;
+    cost: string;
+    basePrice: string;
+    taxRate: string;
+  }) {
     setSaving(true);
     setSaveError("");
 
+    const quantity = Number(input.quantity);
+    const cost = Number(input.cost);
+    const basePrice = Number(input.basePrice);
+    const taxRate = Number(input.taxRate);
+
     try {
-      if (modal?.mode === "edit") {
-        await updateProduct(modal.product._id, {
-          name,
-          ...(sku ? { sku } : {}),
-          ...(description ? { description } : {}),
-          unitPrice: Number(unitPrice),
-          currency,
-        });
+      await createProduct({
+        itemType: input.itemType,
+        name: input.name,
+        unitOfMeasure: input.unitOfMeasure as Product["unitOfMeasure"],
+        basePrice: Number.isFinite(basePrice) && basePrice > 0 ? basePrice : 0,
+        cost: Number.isFinite(cost) && cost > 0 ? cost : 0,
+        taxRate: Number.isFinite(taxRate) && taxRate > 0 ? taxRate : 0,
+        currency: DEFAULT_CURRENCY,
+        warehouses:
+          Number.isFinite(quantity) && quantity > 0
+            ? [{ name: input.warehouse, quantity }]
+            : [],
+      });
 
-        toast.success("Cambios guardados");
-      } else {
-        await createProduct({
-          name,
-          ...(sku ? { sku } : {}),
-          ...(description ? { description } : {}),
-          unitPrice: Number(unitPrice),
-          currency,
-        });
-
-        toast.success("Producto creado");
-      }
-
-      closeModal();
+      toast.success("Producto creado");
+      setQuickOpen(false);
       reload();
     } catch (requestError) {
       setSaveError(
@@ -179,6 +127,23 @@ export default function Products() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleGoAdvanced(draft: {
+    name: string;
+    itemType: ItemType;
+    unitOfMeasure: string;
+    warehouse: string;
+  }) {
+    setQuickOpen(false);
+    navigate("/products/new", {
+      state: {
+        draft: {
+          ...draft,
+          warehouse: draft.warehouse,
+        },
+      },
+    });
   }
 
   const handleStatusChange = useCallback(
@@ -247,22 +212,22 @@ export default function Products() {
     [confirm, reload, toast],
   );
 
-  const productFilters = useMemo<FilterOptionI[]>(
+  const productFilters = useMemo(
     () => [
       {
         key: "status",
         label: "Estado",
-        type: "select",
+        type: "select" as const,
         options: PRODUCT_STATUS_OPTIONS.map((option) => ({
           label: option.label,
           value: option.value,
         })),
       },
       {
-        key: "currency",
-        label: "Moneda",
-        type: "select",
-        options: CURRENCY_OPTIONS.map((option) => ({
+        key: "category",
+        label: "Categoría",
+        type: "select" as const,
+        options: PRODUCT_CATEGORY_OPTIONS.map((option) => ({
           label: option.label,
           value: option.value,
         })),
@@ -279,10 +244,17 @@ export default function Products() {
         render: (product) => (
           <div className="cell-main">
             <strong>{product.name}</strong>
-            {product.description && (
-              <span className="cell-sub">{product.description}</span>
+            {product.reference && (
+              <span className="cell-sub">{product.reference}</span>
             )}
           </div>
+        ),
+      },
+      {
+        key: "itemType",
+        label: "Tipo",
+        render: (product) => (
+          <span className="badge badge-neutral">{ITEM_TYPE_LABEL[product.itemType]}</span>
         ),
       },
       {
@@ -320,25 +292,15 @@ export default function Products() {
                 aria-label={
                   product.status === "ACTIVE" ? "Desactivar" : "Activar"
                 }
-                onClick={() =>
+                onClick={(event) => {
+                  event.stopPropagation();
                   handleStatusChange(
                     product,
                     product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
-                  )
-                }
+                  );
+                }}
               >
                 <Power size={16} />
-              </button>
-            )}
-            {canEdit && (
-              <button
-                type="button"
-                className="btn-icon-action"
-                title="Editar"
-                aria-label="Editar"
-                onClick={() => openEdit(product)}
-              >
-                <Edit2 size={16} />
               </button>
             )}
             {canDelete && (
@@ -347,7 +309,10 @@ export default function Products() {
                 className="btn-icon-action btn-danger"
                 title="Eliminar"
                 aria-label="Eliminar"
-                onClick={() => handleDelete(product)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void handleDelete(product);
+                }}
               >
                 <Trash2 size={16} />
               </button>
@@ -356,7 +321,7 @@ export default function Products() {
         ),
       },
     ],
-    [canChangeStatus, canEdit, canDelete, handleStatusChange, handleDelete],
+    [canChangeStatus, canDelete, handleStatusChange, handleDelete],
   );
 
   if (error) {
@@ -366,11 +331,11 @@ export default function Products() {
   return (
     <main>
       <PageHeader
-        title="Productos"
-        description={`${data?.data.length ?? 0} productos`}
+        title="Productos / Servicios"
+        description={`${data?.data.length ?? 0} ítems de venta`}
         actions={
           canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
+            <Button icon="plus" iconOnly onClick={openQuickCreate}>
               Nuevo producto
             </Button>
           )
@@ -386,92 +351,21 @@ export default function Products() {
         emptyState="Crea tu primer producto para poder cotizarlo"
         onFilterChange={(filters) => {
           set("status", filters.status ?? "");
-          set("currency", filters.currency ?? "");
+          set("category", filters.category ?? "");
         }}
+        onRowClick={(product) => navigate(`/products/${product._id}`)}
       />
 
-      <Modal
-        open={modal !== null}
-        title={modal?.mode === "edit" ? "Editar producto" : "Nuevo producto"}
-        onClose={closeModal}
-      >
-        <form className="modal__form" onSubmit={handleSubmit}>
-          <Field
-            id="product-name"
-            label="Nombre"
-            type="text"
-            value={name}
-            error={nameError}
-            onChange={(event) => {
-              setName(event.target.value);
-              setNameError("");
-            }}
-            required
-          />
-
-          <Field
-            id="product-sku"
-            label="SKU"
-            type="text"
-            value={sku}
-            onChange={(event) => setSku(event.target.value)}
-          />
-
-          <div className="form-field">
-            <label htmlFor="product-description">Descripción</label>
-
-            <textarea
-              id="product-description"
-              rows={3}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </div>
-
-          <div className="form-card__grid">
-            <Field
-              id="product-unit-price"
-              label="Precio"
-              type="number"
-              min="0"
-              step="0.01"
-              value={unitPrice}
-              error={unitPriceError}
-              onChange={(event) => {
-                setUnitPrice(event.target.value);
-                setUnitPriceError("");
-              }}
-              required
-            />
-
-            <div className="form-field">
-              <label htmlFor="product-currency">Moneda</label>
-
-              <select
-                id="product-currency"
-                value={currency}
-                onChange={(event) => setCurrency(event.target.value)}
-              >
-                {CURRENCY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
-
-          <Button type="submit" variant="primary" disabled={saving}>
-            {saving
-              ? "Guardando..."
-              : modal?.mode === "edit"
-                ? "Guardar cambios"
-                : "Crear producto"}
-          </Button>
-        </form>
-      </Modal>
+      <ProductQuickModal
+        open={quickOpen}
+        defaultItemType="PRODUCT"
+        currency={DEFAULT_CURRENCY}
+        saving={saving}
+        error={saveError}
+        onCancel={closeQuickModal}
+        onGoAdvanced={handleGoAdvanced}
+        onSubmit={handleQuickSubmit}
+      />
     </main>
   );
 }

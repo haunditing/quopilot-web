@@ -114,6 +114,9 @@ function lineFromItem(item: QuoteItem): QuoteLineDraft {
     status: "ACTIVE",
     createdAt: "",
     updatedAt: "",
+    itemType: "PRODUCT",
+    basePrice: 0,
+    taxRate: 0,
   };
 
   return {
@@ -158,12 +161,14 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   const [nextNumber, setNextNumber] = useState("Q-000001");
   const [hydrated, setHydrated] = useState(false);
 
-  const { data: tenant, loading: loadingTenant } = useAsyncData(getCurrentTenant);
+  const { data: tenant, loading: loadingTenant } =
+    useAsyncData(getCurrentTenant);
 
-  const detailFetcher = useCallback(async (): Promise<QuoteDetailResponse | null> => {
-    if (!isEdit || !quoteId) return null;
-    return getQuoteDetail(quoteId);
-  }, [isEdit, quoteId]);
+  const detailFetcher =
+    useCallback(async (): Promise<QuoteDetailResponse | null> => {
+      if (!isEdit || !quoteId) return null;
+      return getQuoteDetail(quoteId);
+    }, [isEdit, quoteId]);
 
   const {
     data: detail,
@@ -173,7 +178,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   } = useAsyncData(detailFetcher);
 
   const quote = isEdit ? detail?.quote : undefined;
-  const events = isEdit ? detail?.events ?? [] : [];
+  const events = isEdit ? (detail?.events ?? []) : [];
   const readOnly = Boolean(isEdit && quote && quote.status !== "DRAFT");
   const role = getUserRole();
 
@@ -256,7 +261,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     );
   }, [quoteItems]);
 
-  const docNumber = isEdit ? quote?.number ?? "" : nextNumber;
+  const docNumber = isEdit ? (quote?.number ?? "") : nextNumber;
 
   if (!isEdit && !can(role, "quotes", "create")) {
     return (
@@ -294,9 +299,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
 
   function updateLine(id: string, updates: Partial<QuoteLineDraft>) {
     setLines((current) =>
-      current.map((line) =>
-        line.id === id ? { ...line, ...updates } : line,
-      ),
+      current.map((line) => (line.id === id ? { ...line, ...updates } : line)),
     );
   }
 
@@ -432,9 +435,9 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     }
   }
 
-if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
+  if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
     return <LoadingOverlay title="Cargando..." />;
-}
+  }
 
   if (loadError || detailError) {
     return (
@@ -517,7 +520,11 @@ if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
   if (!readOnly && (isEdit ? can(role, "quotes", "update") : true)) {
     actions.push({
       icon: "check",
-      ariaLabel: saving ? "Guardando..." : isEdit ? "Guardar cambios" : "Guardar",
+      ariaLabel: saving
+        ? "Guardando..."
+        : isEdit
+          ? "Guardar cambios"
+          : "Guardar",
       variant: isEdit && quote?.status === "SENT" ? "secondary" : "primary",
       type: "submit",
       disabled: saving,
@@ -618,9 +625,7 @@ if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
 
             <section className="quote-erp__card">
               <div className="quote-erp__table-header">
-                <h3 className="quote-erp__card-title">
-                  Productos y servicios
-                </h3>
+                <h3 className="quote-erp__card-title">Productos y servicios</h3>
                 {!readOnly && (
                   <Button
                     type="button"
@@ -938,9 +943,7 @@ if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
 
               {!readOnly && (
                 <div className="quote-erp__bulk">
-                  <span>
-                    {selectedLineIds.size} línea(s) seleccionada(s)
-                  </span>
+                  <span>{selectedLineIds.size} línea(s) seleccionada(s)</span>
                   <div className="quote-erp__bulk-action">
                     <input
                       type="number"
@@ -948,7 +951,9 @@ if (loadingCustomers || loadingTenant || (isEdit && loadingDetail)) {
                       max={100}
                       step={0.01}
                       value={globalDiscount}
-                      onChange={(e) => setGlobalDiscount(Number(e.target.value))}
+                      onChange={(e) =>
+                        setGlobalDiscount(Number(e.target.value))
+                      }
                       aria-label="Descuento global %"
                     />
                     <span>%</span>

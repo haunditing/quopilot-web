@@ -24,6 +24,7 @@ export interface DataListViewProps<T = Record<string, unknown>> {
   onPageChange?: (page: number) => void;
   onPrimaryAction?: () => void;
   onExport?: () => void;
+  onRowClick?: (item: T) => void;
   totalItems?: number;
   loading?: boolean;
   emptyState?: React.ReactNode;

@@ -1,8 +1,11 @@
 import { apiRequest } from "../lib/api.js";
 import type {
+  ItemType,
   Product,
   ProductListResponse,
   ProductStatus,
+  UnitOfMeasure,
+  WarehouseStock,
 } from "../types/product.js";
 
 export interface GetProductsParams {
@@ -10,25 +13,71 @@ export interface GetProductsParams {
   limit?: number;
   status?: string;
   search?: string;
+  category?: string;
+  itemType?: ItemType;
   currency?: string;
   minPrice?: number;
   maxPrice?: number;
 }
 
 export interface CreateProductInput {
+  itemType: ItemType;
   name: string;
   description?: string;
+  reference?: string;
+  category?: string;
+  unitOfMeasure?: UnitOfMeasure;
+  code?: string;
   sku?: string;
-  unitPrice: number;
+  barcode?: string;
+  basePrice: number;
+  cost?: number;
+  taxRate: number;
   currency: string;
+  priceLists?: Array<{
+    priceListId: string;
+    priceListName: string;
+    price: number;
+  }>;
+  accountingAccount?: string;
+  incomeAccount?: string;
+  inventoryAccount?: string;
+  fiscalCode?: string;
+  image?: {
+    url: string;
+    publicId?: string;
+    filename?: string;
+  };
+  warehouses?: WarehouseStock[];
+  minStock?: number;
+  maxStock?: number;
+  lowStockAlert?: boolean;
 }
 
 export interface UpdateProductInput {
+  itemType?: ItemType;
   name?: string;
   description?: string;
+  reference?: string;
+  category?: string;
+  unitOfMeasure?: UnitOfMeasure;
+  code?: string;
   sku?: string;
-  unitPrice?: number;
+  barcode?: string;
+  basePrice?: number;
+  cost?: number;
+  taxRate?: number;
   currency?: string;
+  priceLists?: CreateProductInput["priceLists"];
+  accountingAccount?: string;
+  incomeAccount?: string;
+  inventoryAccount?: string;
+  fiscalCode?: string;
+  image?: CreateProductInput["image"];
+  warehouses?: WarehouseStock[];
+  minStock?: number;
+  maxStock?: number;
+  lowStockAlert?: boolean;
 }
 
 export async function getProducts({
@@ -36,6 +85,8 @@ export async function getProducts({
   limit = 20,
   status,
   search,
+  category,
+  itemType,
   currency,
   minPrice,
   maxPrice,
@@ -53,6 +104,14 @@ export async function getProducts({
     params.set("search", search);
   }
 
+  if (category) {
+    params.set("category", category);
+  }
+
+  if (itemType) {
+    params.set("itemType", itemType);
+  }
+
   if (currency) {
     params.set("currency", currency);
   }
@@ -66,6 +125,12 @@ export async function getProducts({
   }
 
   return apiRequest<ProductListResponse>(`/api/products?${params.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function getProduct(productId: string): Promise<Product> {
+  return apiRequest<Product>(`/api/products/${productId}`, {
     method: "GET",
   });
 }
