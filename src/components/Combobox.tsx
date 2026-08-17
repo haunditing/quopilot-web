@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import Icon from "./Icon.js";
+import type { IconName } from "./Icon.js";
 
 export interface ComboboxOption {
   value: string;
   label: string;
+  icon?: IconName;
 }
 
 interface ComboboxProps {
@@ -122,12 +124,18 @@ export default function Combobox({
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : openCombobox())}
       >
-        <span
-          className={
-            selected ? "combobox__value" : "combobox__placeholder"
-          }
-        >
-          {selected?.label ?? placeholder}
+        <span className="combobox__trigger-main">
+          {selected?.icon && (
+            <Icon name={selected.icon} size={16} className="combobox__option-icon" />
+          )}
+
+          <span
+            className={
+              selected ? "combobox__value" : "combobox__placeholder"
+            }
+          >
+            {selected?.label ?? placeholder}
+          </span>
         </span>
 
         <Icon name="chevron-down" size={16} className="combobox__chevron" />
@@ -184,7 +192,13 @@ export default function Combobox({
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => selectOption(option)}
                   >
-                    <span>{option.label}</span>
+                    <span className="combobox__option-main">
+                      {option.icon && (
+                        <Icon name={option.icon} size={16} className="combobox__option-icon" />
+                      )}
+
+                      <span>{option.label}</span>
+                    </span>
 
                     {isSelected && <Icon name="check" size={16} />}
                   </li>

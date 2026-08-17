@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import AgentConfigCard from "../components/AgentConfigCard.js";
 import AssistantChat from "../components/AssistantChat.js";
 import Button from "../components/Button.js";
-import FloatingPanel from "../components/FloatingPanel.js";
+import Combobox from "../components/Combobox.js";
+import type { ComboboxOption } from "../components/Combobox.js";
+import EmptyState from "../components/EmptyState.js";
 import Field from "../components/Field.js";
+import FloatingPanel from "../components/FloatingPanel.js";
 import FormMessage from "../components/FormMessage.js";
+import Icon from "../components/Icon.js";
+import type { IconName } from "../components/Icon.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
-import Section from "../components/Section.js";
-import { AGENT_TONE_OPTIONS } from "../config/options.js";
+import Switch from "../components/Switch.js";
 import { useAgentConfig } from "../hooks/useAgentConfig.js";
 import { useToast } from "../hooks/useToast.js";
 import { getProducts } from "../services/product-service.js";
@@ -21,8 +27,6 @@ import type {
   AgentTool,
 } from "../types/agent.js";
 import type { Product } from "../types/product.js";
-import EmptyState from "../components/EmptyState.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 
 interface AgentForm {
   name: string;
@@ -55,6 +59,7 @@ interface ToolOption {
   value: AgentTool;
   label: string;
   description: string;
+  icon: IconName;
 }
 
 const TOOL_OPTIONS: ToolOption[] = [
@@ -62,51 +67,79 @@ const TOOL_OPTIONS: ToolOption[] = [
     value: "PRODUCT_SEARCH",
     label: "Búsqueda de productos",
     description: "Buscar y recomendar productos del catálogo",
+    icon: "cart",
   },
   {
     value: "PRODUCT_DETAILS",
     label: "Detalles de producto",
     description: "Consultar precios, descripciones y disponibilidad",
+    icon: "tag",
   },
   {
     value: "CUSTOMER_LOOKUP",
     label: "Identificar cliente",
     description: "Buscar clientes por nombre, email o teléfono",
+    icon: "user-check",
   },
   {
     value: "CUSTOMER_HISTORY",
     label: "Historial del cliente",
     description: "Consultar compras y cotizaciones del cliente",
+    icon: "history",
   },
   {
     value: "QUOTE_HISTORY",
     label: "Historial de cotizaciones",
     description: "Revisar cotizaciones previas del cliente",
+    icon: "quotes",
   },
   {
     value: "QUOTE_DRAFT",
     label: "Crear cotización",
     description: "Elaborar cotizaciones en borrador",
+    icon: "edit",
   },
   {
     value: "SALES_HISTORY",
     label: "Historial de ventas",
     description: "Consultar ventas realizadas",
+    icon: "sales",
   },
   {
     value: "HUMAN_HANDOFF",
     label: "Transferir a un humano",
     description: "Derivar la conversación a un asesor",
+    icon: "phone",
   },
 ];
 
-const TONE_OPTIONS = AGENT_TONE_OPTIONS;
+const TONE_OPTIONS: ComboboxOption[] = [
+  { value: "PROFESSIONAL", label: "Profesional", icon: "briefcase" },
+  { value: "FRIENDLY", label: "Amigable", icon: "smile" },
+  { value: "FORMAL", label: "Formal", icon: "star" },
+  { value: "CASUAL", label: "Casual", icon: "coffee" },
+  { value: "EMPATHETIC", label: "Empático", icon: "heart" },
+];
 
-const LANGUAGE_OPTIONS: { value: string; label: string }[] = [
-  { value: "es", label: "Español" },
-  { value: "en", label: "Inglés" },
-  { value: "pt", label: "Portugués" },
-  { value: "fr", label: "Francés" },
+const LANGUAGE_OPTIONS: ComboboxOption[] = [
+  { value: "es", label: "Español", icon: "globe" },
+  { value: "en", label: "Inglés", icon: "globe" },
+  { value: "pt", label: "Portugués", icon: "globe" },
+  { value: "fr", label: "Francés", icon: "globe" },
+];
+
+interface SectionTab {
+  id: string;
+  label: string;
+}
+
+const SECTION_TABS: SectionTab[] = [
+  { id: "agent-modelo", label: "Modelo" },
+  { id: "agent-informacion", label: "Información general" },
+  { id: "agent-comportamiento", label: "Comportamiento" },
+  { id: "agent-herramientas", label: "Herramientas" },
+  { id: "agent-escalacion", label: "Escalación" },
+  { id: "agent-memoria", label: "Memoria" },
 ];
 
 function agentToForm(agent: AgentConfig): AgentForm {
@@ -219,6 +252,10 @@ export default function AgentConfig() {
   const [productsLoading, setProductsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [activeSection, setActiveSection] = useState("agent-modelo");
+
+  const formReady = form !== null;
 
   if (agent !== seededAgent) {
     setSeededAgent(agent);
@@ -261,6 +298,38 @@ export default function AgentConfig() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!formReady) {
+      return;
+    }
+
+    const sections = SECTION_TABS.map((tab) =>
+      document.getElementById(tab.id),
+    ).filter((element): element is HTMLElement => element !== null);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-120px 0px -70% 0px", threshold: 0 },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [formReady]);
+
+  function scrollToSection(id: string): void {
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   function setField<K extends keyof AgentForm>(
     key: K,
@@ -373,18 +442,24 @@ export default function AgentConfig() {
       <PageHeader
         title="Agente de IA"
         description="Configura el asistente comercial virtual de tu empresa"
-        actions={
-          <Button
-            type="submit"
-            form="agent-config-form"
-            icon="check"
-            iconOnly
-            disabled={saving}
-          >
-            {saving ? "Guardando..." : "Guardar cambios"}
-          </Button>
-        }
       />
+
+      <nav className="agent-config__tabs" aria-label="Secciones del agente">
+        {SECTION_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={
+              activeSection === tab.id
+                ? "agent-config__tab agent-config__tab--active"
+                : "agent-config__tab"
+            }
+            onClick={() => scrollToSection(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
@@ -410,21 +485,41 @@ export default function AgentConfig() {
           className="agent-config__form"
           onSubmit={handleSubmit}
         >
-          <Section
+          <AgentConfigCard
+            id="agent-modelo"
+            icon="cpu"
             title="Modelo de IA"
             description="Clave de API y modelo que usa el agente de este tenant"
           >
-            <Field
-              id="agent-llm-key"
-              label="API Key"
-              type="password"
-              value={form.llmApiKey}
-              onChange={(event) => setField("llmApiKey", event.target.value)}
-              placeholder="sk-..."
-              autoComplete="off"
-            />
+            <div className="form-field">
+              <label htmlFor="agent-llm-key">API Key</label>
 
-            <div className="form-card__grid">
+              <div className="agent-config__password">
+                <input
+                  id="agent-llm-key"
+                  type={showApiKey ? "text" : "password"}
+                  value={form.llmApiKey}
+                  onChange={(event) => setField("llmApiKey", event.target.value)}
+                  placeholder="sk-..."
+                  autoComplete="off"
+                />
+
+                <button
+                  type="button"
+                  className="agent-config__password-toggle"
+                  aria-label={
+                    showApiKey ? "Ocultar API Key" : "Mostrar API Key"
+                  }
+                  onClick={() => setShowApiKey((current) => !current)}
+                >
+                  <Icon name={showApiKey ? "eye-off" : "eye"} size={16} />
+
+                  {showApiKey ? "Ocultar" : "Ver"}
+                </button>
+              </div>
+            </div>
+
+            <div className="agent-config__grid-3">
               <Field
                 id="agent-llm-model"
                 label="Modelo"
@@ -444,29 +539,31 @@ export default function AgentConfig() {
                   setField("llmMaxTokens", Number(event.target.value))
                 }
               />
-            </div>
 
-            <Field
-              id="agent-llm-base-url"
-              label="URL base de la API"
-              type="text"
-              value={form.llmBaseUrl}
-              onChange={(event) => setField("llmBaseUrl", event.target.value)}
-              placeholder="Ej.: https://api.openai.com/v1"
-            />
+              <Field
+                id="agent-llm-base-url"
+                label="URL base de la API"
+                type="text"
+                value={form.llmBaseUrl}
+                onChange={(event) => setField("llmBaseUrl", event.target.value)}
+                placeholder="Ej.: https://api.openai.com/v1"
+              />
+            </div>
 
             <FormMessage kind="info">
               Si la clave está vacía, el agente funciona en modo demo sin
               conexión. Para respuestas reales debes configurar la API Key de tu
               tenant (no se usa una clave global del servidor).
             </FormMessage>
-          </Section>
+          </AgentConfigCard>
 
-          <Section
+          <AgentConfigCard
+            id="agent-informacion"
+            icon="bot"
             title="Información general"
             description="Nombre, idioma y tono del asistente"
           >
-            <div className="form-card__grid">
+            <div className="agent-config__grid-2">
               <Field
                 id="agent-name"
                 label="Nombre"
@@ -479,35 +576,27 @@ export default function AgentConfig() {
               <div className="form-field">
                 <label htmlFor="agent-language">Idioma</label>
 
-                <select
+                <Combobox
                   id="agent-language"
                   value={form.language}
-                  onChange={(event) => setField("language", event.target.value)}
-                >
-                  {LANGUAGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  options={LANGUAGE_OPTIONS}
+                  onChange={(value) => setField("language", value)}
+                  placeholder="Selecciona un idioma"
+                />
               </div>
 
               <div className="form-field">
                 <label htmlFor="agent-tone">Tono</label>
 
-                <select
+                <Combobox
                   id="agent-tone"
                   value={form.tone}
-                  onChange={(event) =>
-                    setField("tone", event.target.value as AgentTone)
+                  options={TONE_OPTIONS}
+                  onChange={(value) =>
+                    setField("tone", value as AgentTone)
                   }
-                >
-                  {TONE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Selecciona un tono"
+                />
               </div>
 
               <div className="form-field">
@@ -535,9 +624,11 @@ export default function AgentConfig() {
               onChange={(event) => setField("description", event.target.value)}
               placeholder="Breve descripción del asistente"
             />
-          </Section>
+          </AgentConfigCard>
 
-          <Section
+          <AgentConfigCard
+            id="agent-comportamiento"
+            icon="settings"
             title="Comportamiento"
             description="Personalidad, objetivos y reglas que sigue el agente"
           >
@@ -556,12 +647,17 @@ export default function AgentConfig() {
               <textarea
                 id="agent-welcome"
                 rows={2}
+                maxLength={500}
                 value={form.welcomeMessage}
                 onChange={(event) =>
                   setField("welcomeMessage", event.target.value)
                 }
                 placeholder="Ej.: Hola, ¿en qué puedo ayudarte hoy?"
               />
+
+              <span className="agent-config__counter">
+                {form.welcomeMessage.length} / 500
+              </span>
             </div>
 
             <div className="form-field">
@@ -586,12 +682,17 @@ export default function AgentConfig() {
               <textarea
                 id="agent-instructions"
                 rows={4}
+                maxLength={500}
                 value={form.systemInstructions}
                 onChange={(event) =>
                   setField("systemInstructions", event.target.value)
                 }
                 placeholder="Reglas avanzadas que el modelo debe seguir siempre"
               />
+
+              <span className="agent-config__counter">
+                {form.systemInstructions.length} / 500
+              </span>
             </div>
 
             <div className="agent-config__rules">
@@ -601,68 +702,111 @@ export default function AgentConfig() {
                 <p>Reglas adicionales que debe respetar el agente</p>
               </div>
 
-              {form.behaviorRules.length === 0 && (
-                <FormMessage kind="info">
-                  Aún no hay reglas definidas
-                </FormMessage>
-              )}
+              {form.behaviorRules.length === 0 ? (
+                <div className="agent-config__rules-empty">
+                  <span className="agent-config__rules-empty__icon">
+                    <Icon name="settings" size={26} />
+                  </span>
 
-              {form.behaviorRules.map((rule, index) => (
-                <div key={index} className="agent-config__rule-row">
-                  <input
-                    type="text"
-                    value={rule}
-                    onChange={(event) => updateRule(index, event.target.value)}
-                    placeholder="Ej.: nunca inventar precios"
-                    aria-label={`Regla ${index + 1}`}
-                  />
+                  <div className="agent-config__rules-empty__text">
+                    <strong>No hay reglas de comportamiento</strong>
+
+                    <p>
+                      Agrega reglas para delimitar cómo responde el agente.
+                    </p>
+                  </div>
 
                   <Button
                     type="button"
-                    variant="danger"
-                    icon="trash"
-                    iconOnly
-                    onClick={() => removeRule(index)}
+                    variant="primary"
+                    icon="plus"
+                    onClick={addRule}
                   >
-                    Eliminar regla
+                    Agregar regla
                   </Button>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {form.behaviorRules.map((rule, index) => (
+                    <div key={index} className="agent-config__rule-row">
+                      <input
+                        type="text"
+                        value={rule}
+                        onChange={(event) =>
+                          updateRule(index, event.target.value)
+                        }
+                        placeholder="Ej.: nunca inventar precios"
+                        aria-label={`Regla ${index + 1}`}
+                      />
 
-              <div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  icon="plus"
-                  iconOnly
-                  onClick={addRule}
-                >
-                  Agregar regla
-                </Button>
-              </div>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        icon="trash"
+                        iconOnly
+                        onClick={() => removeRule(index)}
+                      >
+                        Eliminar regla
+                      </Button>
+                    </div>
+                  ))}
+
+                  <div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      icon="plus"
+                      iconOnly
+                      onClick={addRule}
+                    >
+                      Agregar regla
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
-          </Section>
+          </AgentConfigCard>
 
-          <Section
+          <AgentConfigCard
+            id="agent-herramientas"
+            icon="channels"
             title="Herramientas"
             description="Capacidades que el agente puede usar para atender clientes"
           >
-            <div className="agent-config__options">
-              {TOOL_OPTIONS.map((option) => (
-                <label key={option.value} className="agent-config__option">
-                  <input
-                    type="checkbox"
-                    checked={form.enabledTools.includes(option.value)}
-                    onChange={() => toggleTool(option.value)}
-                  />
+            <div className="agent-config__tools">
+              {TOOL_OPTIONS.map((option) => {
+                const enabled = form.enabledTools.includes(option.value);
 
-                  <span>
-                    <strong>{option.label}</strong>
+                return (
+                  <div
+                    key={option.value}
+                    className={
+                      enabled
+                        ? "agent-config__tool agent-config__tool--active"
+                        : "agent-config__tool"
+                    }
+                    onClick={() => toggleTool(option.value)}
+                  >
+                    <span className="agent-config__tool-icon">
+                      <Icon name={option.icon} size={20} />
+                    </span>
 
-                    <small>{option.description}</small>
-                  </span>
-                </label>
-              ))}
+                    <span className="agent-config__tool-text">
+                      <strong>{option.label}</strong>
+
+                      <small>{option.description}</small>
+                    </span>
+
+                    <span onClick={(event) => event.stopPropagation()}>
+                      <Switch
+                        checked={enabled}
+                        onChange={() => toggleTool(option.value)}
+                        label={option.label}
+                      />
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             <FormMessage kind="info">
@@ -716,23 +860,23 @@ export default function AgentConfig() {
                 ))}
               </div>
             )}
-          </Section>
+          </AgentConfigCard>
 
-          <Section
+          <AgentConfigCard
+            id="agent-escalacion"
+            icon="phone"
             title="Escalación"
             description="Transferencia automática de la conversación a un asesor humano"
           >
-            <label className="agent-config__switch">
-              <input
-                type="checkbox"
-                checked={form.escalationEnabled}
-                onChange={(event) =>
-                  setField("escalationEnabled", event.target.checked)
-                }
-              />
-
+            <div className="agent-config__toggle-row">
               <span>Habilitar escalación</span>
-            </label>
+
+              <Switch
+                checked={form.escalationEnabled}
+                onChange={(checked) => setField("escalationEnabled", checked)}
+                label="Habilitar escalación"
+              />
+            </div>
 
             <Field
               id="agent-escalation-keywords"
@@ -762,25 +906,25 @@ export default function AgentConfig() {
                 disabled={!form.escalationEnabled}
               />
             </div>
-          </Section>
+          </AgentConfigCard>
 
-          <Section
+          <AgentConfigCard
+            id="agent-memoria"
+            icon="history"
             title="Memoria"
             description="Contexto que el agente recuerda de la conversación"
           >
-            <label className="agent-config__switch">
-              <input
-                type="checkbox"
-                checked={form.memoryEnabled}
-                onChange={(event) =>
-                  setField("memoryEnabled", event.target.checked)
-                }
-              />
-
+            <div className="agent-config__toggle-row">
               <span>Habilitar memoria</span>
-            </label>
 
-            <div className="form-card__grid">
+              <Switch
+                checked={form.memoryEnabled}
+                onChange={(checked) => setField("memoryEnabled", checked)}
+                label="Habilitar memoria"
+              />
+            </div>
+
+            <div className="agent-config__grid-2">
               <Field
                 id="agent-memory-window"
                 label="Ventana de mensajes"
@@ -806,20 +950,33 @@ export default function AgentConfig() {
               />
             </div>
 
-            <label className="agent-config__switch">
-              <input
-                type="checkbox"
+            <div className="agent-config__toggle-row">
+              <span>Resumir conversaciones largas</span>
+
+              <Switch
                 checked={form.summarizationEnabled}
-                onChange={(event) =>
-                  setField("summarizationEnabled", event.target.checked)
+                onChange={(checked) =>
+                  setField("summarizationEnabled", checked)
                 }
                 disabled={!form.memoryEnabled}
+                label="Resumir conversaciones largas"
               />
-
-              <span>Resumir conversaciones largas</span>
-            </label>
-          </Section>
+            </div>
+          </AgentConfigCard>
         </form>
+      )}
+
+      {formReady && (
+        <div className="agent-config__savebar">
+          <Button
+            type="submit"
+            form="agent-config-form"
+            icon="check"
+            disabled={saving}
+          >
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </Button>
+        </div>
       )}
 
       <FloatingPanel icon="bot" ariaLabel="Abrir asistente de configuración">
