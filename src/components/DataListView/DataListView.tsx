@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useMemo,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -15,6 +9,7 @@ import {
 } from "lucide-react";
 import "./DataListView.css";
 import type { DataListViewProps } from "./types";
+import Button from "../Button";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -57,19 +52,17 @@ export default function DataListView<T extends object>({
 
   const handleFilterChange = useCallback(
     (key: string, value: string) => {
-      setActiveFilters((prev) => {
-        const next = { ...prev };
-        if (!value || value.trim() === "") {
-          delete next[key];
-        } else {
-          next[key] = value;
-        }
-        onFilterChange?.(next);
-        return next;
-      });
+      const next = { ...activeFilters };
+      if (!value || value.trim() === "") {
+        delete next[key];
+      } else {
+        next[key] = value;
+      }
+      setActiveFilters(next);
+      onFilterChange?.(next);
       setPage(1);
     },
-    [onFilterChange],
+    [activeFilters, onFilterChange],
   );
 
   const clearAllFilters = useCallback(() => {
@@ -144,13 +137,14 @@ export default function DataListView<T extends object>({
             />
           </div>
           {initialFilters.length > 0 && (
-            <button
-              type="button"
+            <Button
+              icon="filter"
+              iconOnly
               className={`btn-filter-trigger ${showFilters ? "active" : ""}`}
               onClick={() => setShowFilters((prev) => !prev)}
             >
-              <Filter size={16} /> Filtrar
-            </button>
+              Filtrar
+            </Button>
           )}
         </div>
 

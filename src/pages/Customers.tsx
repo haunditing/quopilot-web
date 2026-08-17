@@ -165,30 +165,33 @@ export default function Customers() {
     }
   }
 
-  async function handleDelete(customer: Customer) {
-    const confirmed = await confirm({
-      title: "Eliminar cliente",
-      message: `¿Eliminar a "${customer.name}"? Esta acción no se puede deshacer.`,
-      confirmLabel: "Eliminar",
-      danger: true,
-    });
+  const handleDelete = useCallback(
+    async (customer: Customer) => {
+      const confirmed = await confirm({
+        title: "Eliminar cliente",
+        message: `¿Eliminar a "${customer.name}"? Esta acción no se puede deshacer.`,
+        confirmLabel: "Eliminar",
+        danger: true,
+      });
 
-    if (!confirmed) {
-      return;
-    }
+      if (!confirmed) {
+        return;
+      }
 
-    try {
-      await deleteCustomer(customer._id);
-      reload();
-      toast.success("Cliente eliminado");
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible eliminar el cliente",
-      );
-    }
-  }
+      try {
+        await deleteCustomer(customer._id);
+        reload();
+        toast.success("Cliente eliminado");
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible eliminar el cliente",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
 
   const columns = useMemo<ColumnSpec<Customer>[]>(
     () => [
@@ -244,7 +247,7 @@ export default function Customers() {
         ),
       },
     ],
-    [canEdit, canDelete],
+    [canEdit, canDelete, handleDelete],
   );
 
   if (error) {
@@ -273,9 +276,7 @@ export default function Customers() {
         loading={loading}
         emptyState="No hay clientes registrados"
         onFilterChange={(filters) => {
-          if (filters.country !== undefined) {
-            set("country", String(filters.country));
-          }
+          set("country", filters.country ?? "");
         }}
       />
 
