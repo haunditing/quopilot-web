@@ -1,17 +1,14 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { Edit2, Trash2 } from "lucide-react";
+
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
-import EntityCard from "../components/EntityCard.js";
-import type { EntityAction } from "../components/EntityCard.js";
 import Field from "../components/Field.js";
-import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
-import { CUSTOMER_FILTER_FIELDS } from "../config/filters.js";
+
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
@@ -25,6 +22,11 @@ import {
 } from "../services/customer-service.js";
 import type { Customer } from "../types/customer.js";
 import { isValidEmail } from "../lib/validation.js";
+import type {
+  ColumnSpec,
+  FilterOptionI,
+} from "../components/DataListView/types.js";
+import DataListView from "../components/DataListView/DataListView.js";
 
 type CustomerModal =
   | { mode: "create" }
@@ -32,6 +34,14 @@ type CustomerModal =
   | null;
 
 const SAVE_MESSAGE = "No fue posible guardar el cliente";
+
+const CUSTOMER_FILTERS: FilterOptionI[] = [
+  {
+    key: "country",
+    label: "País",
+    type: "text",
+  },
+];
 
 export default function Customers() {
   const buildFetcher = useCallback(
@@ -42,8 +52,10 @@ export default function Customers() {
       }),
     [],
   );
-  const { data, loading, error, reload, search, setSearch, values, set, clear } =
-    useFilteredList(buildFetcher, { country: "" });
+
+  const { data, loading, error, reload, set } = useFilteredList(buildFetcher, {
+    country: "",
+  });
 
   const role = getUserRole();
   const canCreate = can(role, "customers", "create");
@@ -178,28 +190,67 @@ export default function Customers() {
     }
   }
 
-  function customerActions(customer: Customer): EntityAction[] {
-    const actions: EntityAction[] = [];
+  const columns = useMemo<ColumnSpec<Customer>[]>(
+    () => [
+      {
+        key: "name",
+        label: "Nombre",
+        render: (customer) => <strong>{customer.name}</strong>,
+      },
+      {
+        key: "email",
+        label: "Email",
+        render: (customer) => customer.email || "—",
+      },
+      {
+        key: "phone",
+        label: "Teléfono",
+        render: (customer) => customer.phone || "—",
+      },
+      {
+        key: "country",
+        label: "País",
+        render: (customer) => customer.country || "—",
+      },
+      {
+        key: "actions",
+        label: "",
+        align: "right",
+        render: (customer) => (
+          <div className="row-actions">
+            {canEdit && (
+              <button
+                type="button"
+                className="btn-icon-action"
+                title="Editar"
+                aria-label="Editar"
+                onClick={() => openEdit(customer)}
+              >
+                <Edit2 size={16} />
+              </button>
+            )}
+            {canDelete && (
+              <button
+                type="button"
+                className="btn-icon-action btn-danger"
+                title="Eliminar"
+                aria-label="Eliminar"
+                onClick={() => handleDelete(customer)}
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [canEdit, canDelete],
+  );
 
-    if (canEdit) {
-      actions.push({
-        icon: "edit",
-        ariaLabel: "Editar",
-        onClick: () => openEdit(customer),
-        variant: "secondary",
-      });
-    }
-
-    if (canDelete) {
-      actions.push({
-        icon: "trash",
-        ariaLabel: "Eliminar",
-        onClick: () => handleDelete(customer),
-        variant: "danger",
-      });
-    }
-
-    return actions;
+  if (error) {
+    return (
+      <PageState kind="error" title="No fue posible cargar" message={error} />
+    );
   }
 
   return (
@@ -209,61 +260,24 @@ export default function Customers() {
         description={`${data?.data.length ?? 0} clientes`}
         actions={
           canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
-              Nuevo cliente
-            </Button>
+            <Button icon="plus" iconOnly onClick={openCreate}>Nuevo cliente</Button>
           )
         }
       />
 
-      <FilterPanel
-        fields={CUSTOMER_FILTER_FIELDS}
-        values={values}
-        onSet={set}
-        onClear={clear}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nombre, teléfono o email..."
+      <DataListView<Customer>
+        items={data?.data ?? []}
+        columns={columns}
+        rowKey={(customer) => customer._id}
+        filters={CUSTOMER_FILTERS}
+        loading={loading}
+        emptyState="No hay clientes registrados"
+        onFilterChange={(filters) => {
+          if (filters.country !== undefined) {
+            set("country", String(filters.country));
+          }
+        }}
       />
-
-      {loading ? (
-        <LoadingOverlay title="Cargando clientes..." message="Esto puede tomar unos segundos" />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : !data || data.data.length === 0 ? (
-        <EmptyState
-          title="No hay clientes"
-          message="Crea tu primer cliente para poder cotizarle"
-        >
-          {canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
-              Nuevo cliente
-            </Button>
-          )}
-        </EmptyState>
-      ) : (
-        <section className="entity-grid">
-          {data.data.map((customer) => (
-            <EntityCard
-              key={customer._id}
-              eyebrow="Cliente"
-              title={customer.name}
-              fields={[
-                ...(customer.email
-                  ? [{ label: "Email", value: customer.email }]
-                  : []),
-                ...(customer.phone
-                  ? [{ label: "Teléfono", value: customer.phone }]
-                  : []),
-                ...(customer.country
-                  ? [{ label: "País", value: customer.country }]
-                  : []),
-              ]}
-              actions={customerActions(customer)}
-            />
-          ))}
-        </section>
-      )}
 
       <Modal
         open={modal !== null}
@@ -324,13 +338,7 @@ export default function Customers() {
 
           {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-          <Button
-            type="submit"
-            variant="primary"
-            icon="check"
-            iconOnly
-            disabled={saving}
-          >
+          <Button type="submit" variant="primary" disabled={saving}>
             {saving
               ? "Guardando..."
               : modal?.mode === "edit"
