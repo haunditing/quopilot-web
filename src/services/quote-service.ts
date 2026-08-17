@@ -38,6 +38,32 @@ export async function getQuotes({
   });
 }
 
+export interface CreateQuoteItemInput {
+  productId: string;
+  quantity: number;
+  unitPrice?: number;
+  discountPercent?: number;
+  taxRate?: number;
+}
+
+export interface CreateQuoteInput {
+  customerId: string;
+  conversationId?: string;
+  items: CreateQuoteItemInput[];
+  validUntil?: string;
+  notes?: string;
+  terms?: string;
+}
+
+export async function createQuote(
+  input: CreateQuoteInput,
+): Promise<{ quote: Quote }> {
+  return apiRequest<{ quote: Quote }>(`/api/quotes`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 export async function sendQuote(quoteId: string): Promise<Quote> {
   return apiRequest<Quote>(`/api/quotes/${quoteId}/send`, {
     method: "POST",
@@ -53,12 +79,17 @@ export async function acceptQuote(quoteId: string): Promise<Quote> {
 export interface UpdateQuoteItemInput {
   productId: string;
   quantity: number;
+  unitPrice?: number;
+  discountPercent?: number;
+  taxRate?: number;
 }
 
 export interface UpdateQuoteInput {
   customerId: string;
   items: UpdateQuoteItemInput[];
   validUntil?: string;
+  notes?: string;
+  terms?: string;
 }
 
 export async function updateQuote(
@@ -69,4 +100,9 @@ export async function updateQuote(
     method: "PATCH",
     body: JSON.stringify(input),
   });
+}
+
+export async function getNextQuoteNumber(): Promise<string> {
+  const response = await apiRequest<{ number: string }>("/api/quotes/next-number");
+  return response.number;
 }

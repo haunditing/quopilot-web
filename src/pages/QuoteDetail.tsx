@@ -70,6 +70,13 @@ export default function QuoteDetail({ quoteId }: QuoteDetailProps) {
 
   const actions: EntityAction[] = [];
 
+  actions.push({
+    icon: "print",
+    ariaLabel: "Imprimir / PDF",
+    onClick: () => navigate(`/quotes/${quoteId}/print`),
+    variant: "secondary",
+  });
+
   if (can(role, "quotes", "update") && isDraft) {
     actions.push({
       icon: "edit",

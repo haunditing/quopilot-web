@@ -70,7 +70,7 @@ const navigationGroups: NavigationGroup[] = [
         to: "/products",
         label: "Productos",
         icon: "products",
-        roles: ["TENANT_ADMIN"],
+        roles: ["TENANT_ADMIN", "AGENT"],
       },
     ],
   },

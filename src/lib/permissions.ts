@@ -6,7 +6,8 @@ export type CrudEntity =
   | "quotes"
   | "products"
   | "customers"
-  | "channels";
+  | "channels"
+  | "sales";
 
 export type CrudOperation =
   | "view"
@@ -25,6 +26,7 @@ const PERMISSIONS: Record<UserRole, Record<CrudEntity, CrudOperation[]>> = {
     products: [],
     customers: [],
     channels: [],
+    sales: [],
   },
 
   TENANT_ADMIN: {
@@ -34,6 +36,7 @@ const PERMISSIONS: Record<UserRole, Record<CrudEntity, CrudOperation[]>> = {
     products: ["view", "create", "update", "delete", "changeStatus"],
     customers: ["view", "create", "update", "delete"],
     channels: ["view", "create", "update", "delete", "changeStatus"],
+    sales: ["view", "delete"],
   },
 
   AGENT: {
@@ -41,8 +44,9 @@ const PERMISSIONS: Record<UserRole, Record<CrudEntity, CrudOperation[]>> = {
     users: [],
     quotes: ["view", "create", "update", "send"],
     products: ["view"],
-    customers: ["view"],
+    customers: ["view", "create", "update"],
     channels: [],
+    sales: ["view"],
   },
 };
 

@@ -7,9 +7,11 @@ export interface Tenant {
   taxId?: string;
   email?: string;
   phone?: string;
+  address?: string;
   country?: string;
   currency: string;
   timezone: string;
+  logoUrl?: string;
   status: TenantStatus;
   createdAt: string;
   updatedAt: string;

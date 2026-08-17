@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Button from "../components/Button.js";
 import EmptyState from "../components/EmptyState.js";
 import EntityCard from "../components/EntityCard.js";
 import FilterPanel from "../components/FilterPanel.js";
@@ -47,7 +48,9 @@ export default function Quotes() {
     };
   }, []);
 
-  const canView = can(getUserRole(), "quotes", "view");
+  const role = getUserRole();
+  const canView = can(role, "quotes", "view");
+  const canCreate = can(role, "quotes", "create");
 
   if (loading) {
     return <PageState kind="loading" title="Cargando cotizaciones..." />;
@@ -66,6 +69,13 @@ export default function Quotes() {
       <PageHeader
         title="Cotizaciones"
         description={`${quotes.length} cotizaciones`}
+        actions={
+          canCreate && (
+            <Button icon="plus" iconOnly onClick={() => navigate("/quotes/new")}>
+              Nueva cotización
+            </Button>
+          )
+        }
       />
 
       <FilterPanel
@@ -87,7 +97,13 @@ export default function Quotes() {
         <EmptyState
           title="No hay cotizaciones"
           message="Todavía no existen cotizaciones para mostrar."
-        />
+        >
+          {canCreate && (
+            <Button icon="plus" iconOnly onClick={() => navigate("/quotes/new")}>
+              Nueva cotización
+            </Button>
+          )}
+        </EmptyState>
       ) : (
         <section className="entity-grid">
           {quotes.map((quote) => (

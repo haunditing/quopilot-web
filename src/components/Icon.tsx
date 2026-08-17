@@ -33,7 +33,8 @@ export type IconName =
   | "bot"
   | "settings"
   | "channels"
-  | "inbox";
+  | "inbox"
+  | "print";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -289,6 +290,14 @@ const iconPaths: Record<IconName, ReactNode> = {
     <>
       <path d="M22 12h-6l-2 3h-4l-2-3H2" />
       <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+    </>
+  ),
+
+  print: (
+    <>
+      <path d="M6 9V2h12v7" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <path d="M6 14h12v8H6z" />
     </>
   ),
 };

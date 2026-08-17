@@ -24,6 +24,12 @@ export interface UpdateCustomerInput {
   country?: string;
 }
 
+export async function getCustomer(customerId: string): Promise<Customer> {
+  return apiRequest<Customer>(`/api/customers/${customerId}`, {
+    method: "GET",
+  });
+}
+
 export async function getCustomers({
   page = 1,
   limit = 20,

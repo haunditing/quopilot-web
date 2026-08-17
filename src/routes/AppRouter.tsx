@@ -7,6 +7,8 @@ import ChangePassword from "../pages/ChangePassword.js";
 import Dashboard from "../pages/Dashboard.js";
 import Quotes from "../pages/Quotes.js";
 import QuoteDetail from "../pages/QuoteDetail.js";
+import CreateQuote from "../pages/CreateQuote.js";
+import QuotePrint from "../pages/QuotePrint.js";
 import Sales from "../pages/Sales.js";
 import SaleDetail from "../pages/SaleDetail.js";
 import Customers from "../pages/Customers.js";
@@ -39,6 +41,10 @@ export default function AppRouter() {
         <Route path="/tenants" element={<Tenants />} />
 
         <Route path="/quotes" element={<Quotes />} />
+
+        <Route path="/quotes/new" element={<CreateQuote />} />
+
+        <Route path="/quotes/:quoteId/print" element={<QuotePrintRoute />} />
 
         <Route path="/quotes/:quoteId" element={<QuoteDetailRoute />} />
 
@@ -93,6 +99,18 @@ function QuoteDetailRoute() {
   }
 
   return <QuoteDetail quoteId={quoteId} />;
+}
+
+function QuotePrintRoute() {
+  const { quoteId } = useParams<{
+    quoteId: string;
+  }>();
+
+  if (!quoteId) {
+    return <Navigate to="/quotes" replace />;
+  }
+
+  return <QuotePrint quoteId={quoteId} />;
 }
 
 function SaleDetailRoute() {

@@ -49,6 +49,10 @@ export async function getTenant(tenantId: string): Promise<Tenant> {
   return apiRequest<Tenant>(`/api/tenants/${tenantId}`);
 }
 
+export async function getCurrentTenant(): Promise<Tenant> {
+  return apiRequest<Tenant>("/api/tenants/me");
+}
+
 export interface GetTenantUsersParams {
   page?: number;
   limit?: number;

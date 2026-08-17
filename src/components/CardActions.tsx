@@ -5,8 +5,10 @@ export interface EntityAction {
   icon?: IconName;
   label?: string;
   ariaLabel?: string;
-  onClick: () => void;
+  onClick?: () => void;
   variant?: "primary" | "secondary" | "danger";
+  type?: "button" | "submit";
+  disabled?: boolean;
 }
 
 interface CardActionsProps {
@@ -41,11 +43,12 @@ export default function CardActions({ actions }: CardActionsProps) {
         return (
           <button
             key={accessibleLabel}
-            type="button"
+            type={action.type ?? "button"}
             className={className}
             onClick={action.onClick}
             aria-label={accessibleLabel}
             title={hasLabel ? undefined : accessibleLabel}
+            disabled={action.disabled}
           >
             {action.icon && <Icon name={action.icon} size={18} />}
 
