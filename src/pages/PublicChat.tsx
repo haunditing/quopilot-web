@@ -19,9 +19,14 @@ import type {
   ChatMessage,
   PublicChatConfigResponse,
 } from "../types/agent-conversation.js";
-import { isValidEmail, isValidPhone, normalizePhoneInput } from "../lib/validation.js";
+import {
+  isValidEmail,
+  isValidPhone,
+  normalizePhoneInput,
+} from "../lib/validation.js";
 import { sanitizeChatContent } from "../lib/sanitize.js";
 import { contrastTextFor } from "../lib/contrast.js";
+import { useConfirm } from "../hooks/useConfirm.js";
 
 interface StoredChat {
   conversationId: string;
@@ -93,7 +98,12 @@ function widgetAccentStyle(color?: string): CSSProperties | undefined {
   } as CSSProperties;
 }
 
-export type ChatTopic = "PRICING" | "PRODUCT_INFO" | "SUPPORT" | "DEMO" | "OTHER";
+export type ChatTopic =
+  | "PRICING"
+  | "PRODUCT_INFO"
+  | "SUPPORT"
+  | "DEMO"
+  | "OTHER";
 
 const TOPIC_OPTIONS: Array<{ value: ChatTopic; label: string }> = [
   { value: "PRICING", label: "Precios y planes" },
@@ -102,6 +112,13 @@ const TOPIC_OPTIONS: Array<{ value: ChatTopic; label: string }> = [
   { value: "DEMO", label: "Agendar demostración" },
   { value: "OTHER", label: "Otro asunto" },
 ];
+
+const TOPIC_MESSAGE_TEMPLATES: Partial<Record<ChatTopic, string>> = {
+  PRICING: "Quiero información sobre precios y planes.",
+  PRODUCT_INFO: "Quiero información sobre los productos y servicios.",
+  SUPPORT: "Necesito soporte o ayuda con un tema.",
+  DEMO: "Me gustaría agendar una demostración.",
+};
 
 function storageKey(tenantId: string): string {
   return `public-chat:${tenantId}`;
@@ -124,6 +141,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const { confirm } = useConfirm();
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
   const [topic, setTopic] = useState<ChatTopic | "">("");
@@ -132,6 +150,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [topicError, setTopicError] = useState("");
+  const [initialMessageError, setInitialMessageError] = useState("");
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState("");
 
@@ -246,11 +265,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
       setLoadError("");
 
       try {
-        const result = await getPublicMessages(
-          tenantId,
-          conversationId,
-          token,
-        );
+        const result = await getPublicMessages(tenantId, conversationId, token);
 
         if (!cancelled) {
           setMessages(result);
@@ -345,8 +360,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             setEscalated(false);
           } else {
             setAgentTyping(
-              typingResult.isTyping &&
-                typingResult.senderType === "AGENT",
+              typingResult.isTyping && typingResult.senderType === "AGENT",
             );
 
             setEscalated(typingResult.escalated);
@@ -394,9 +408,13 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
       hasError = true;
     }
 
+    if (topic === "OTHER" && !initialMessage.trim()) {
+      setInitialMessageError("Escribe tu mensaje");
+      hasError = true;
+    }
+
     if (hasError) {
       return;
-
     }
 
     setStarting(true);
@@ -474,7 +492,9 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
       setChat(nextChat);
     } catch (error) {
       setStartError(
-        error instanceof Error ? error.message : "No fue posible iniciar el chat",
+        error instanceof Error
+          ? error.message
+          : "No fue posible iniciar el chat",
       );
     } finally {
       setStarting(false);
@@ -545,8 +565,13 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
     if (!chat || closed || sending) {
       return;
     }
+    const confirmed = await confirm({
+      title: "Salir",
+      message: "¿Desea finalizar el chat?",
+      confirmLabel: "Finalizar",
+    });
 
-    if (!window.confirm("¿Deseas terminar este chat?")) {
+    if (!confirmed) {
       return;
     }
 
@@ -580,55 +605,52 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
 
   return (
     <div className="public-chat" style={accentStyle}>
-      <div className="public-chat__card">
-        <header className="public-chat__header">
-          <div className="public-chat__avatar" aria-hidden="true">
-            <Icon name="brand" size={18} />
-          </div>
+      {!chat ? (
+        <div className="public-chat__landing">
+          <aside className="public-chat__hero">
+            <div className="public-chat__hero-brand">
+              <span className="public-chat__hero-logo" aria-hidden="true">
+                <Icon name="brand" size={22} />
+              </span>
 
-          <div className="public-chat__header-info">
-            <strong>
-              {chatConfig?.widget?.title ??
-                chat?.tenantName ??
-                "QuoPilot"}
-            </strong>
-
-            <small>
-              {chat?.channelName
-                ? chat.channelName
-                : (chatConfig?.channelName ?? "Asistente virtual")}
-            </small>
-          </div>
-
-          {chat && (
-            <div
-              className={
-                closed
-                  ? "public-chat__presence public-chat__presence--off"
-                  : "public-chat__presence"
-              }
-              role="status"
-            >
-              <i aria-hidden="true" />
-              <span>{closed ? "Cerrado" : "En línea"}</span>
+              <strong>
+                {chatConfig?.widget?.title ??
+                  chatConfig?.tenantName ??
+                  "QuoPilot"}
+              </strong>
             </div>
-          )}
 
-          {chat && !closed && (
-            <button
-              type="button"
-              className="public-chat__close"
-              onClick={() => void handleClose()}
-              disabled={closing || sending}
-              aria-label="Terminar chat"
-              title="Terminar chat"
-            >
-              <Icon name="close" size={16} />
-            </button>
-          )}
-        </header>
+            <h1 className="public-chat__hero-title">
+              Cuéntanos quién eres y en qué te ayudamos
+            </h1>
 
-        {!chat ? (
+            <p className="public-chat__intro">{DEFAULT_INTRO}</p>
+
+            <ul className="public-chat__hero-points">
+              <li>
+                <Icon name="check" size={16} />
+                <span>Asistente virtual disponible 24/7</span>
+              </li>
+
+              <li>
+                <Icon name="check" size={16} />
+                <span>Respuesta inmediata a tu consulta</span>
+              </li>
+
+              <li>
+                <Icon name="check" size={16} />
+                <span>Un agente humano se une si lo necesitas</span>
+              </li>
+            </ul>
+
+            <div className="public-chat__hero-presence">
+              <i aria-hidden="true" />
+              <span>
+                En línea · {chatConfig?.channelName ?? "Asistente virtual"}
+              </span>
+            </div>
+          </aside>
+
           <form className="public-chat__form" onSubmit={handleStart}>
             <div className="public-chat__form-head">
               <div className="public-chat__form-avatar" aria-hidden="true">
@@ -636,11 +658,11 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               </div>
 
               <div>
-                <h2 className="public-chat__form-title">
-                  Cuéntanos quién eres
-                </h2>
+                <h2 className="public-chat__form-title">Escríbenos ahora</h2>
 
-                <p className="public-chat__intro">{DEFAULT_INTRO}</p>
+                <p className="public-chat__form-subtitle">
+                  Completa tus datos y te responderemos de inmediato.
+                </p>
               </div>
             </div>
 
@@ -703,10 +725,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             </div>
 
             <div className="form-field">
-              <label
-                className="form-field__label"
-                htmlFor="public-chat-topic"
-              >
+              <label className="form-field__label" htmlFor="public-chat-topic">
                 Asunto
               </label>
 
@@ -714,8 +733,18 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 id="public-chat-topic"
                 value={topic}
                 onChange={(event) => {
-                  setTopic(event.target.value as ChatTopic);
+                  const nextTopic = event.target.value as ChatTopic;
+
+                  setTopic(nextTopic);
                   setTopicError("");
+
+                  if (nextTopic === "OTHER") {
+                    setInitialMessage("");
+                    setInitialMessageError("");
+                  } else {
+                    setInitialMessage(TOPIC_MESSAGE_TEMPLATES[nextTopic] ?? "");
+                    setInitialMessageError("");
+                  }
                 }}
               >
                 <option value="" disabled>
@@ -735,7 +764,10 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             </div>
 
             <div className="form-field">
-              <label className="form-field__label" htmlFor="public-chat-message">
+              <label
+                className="form-field__label"
+                htmlFor="public-chat-message"
+              >
                 Mensaje
               </label>
 
@@ -744,9 +776,21 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 className="form-field__input"
                 rows={3}
                 value={initialMessage}
-                onChange={(event) => setInitialMessage(event.target.value)}
-                placeholder="Cuéntanos brevemente en qué te podemos ayudar"
+                readOnly={topic !== "" && topic !== "OTHER"}
+                onChange={(event) => {
+                  setInitialMessage(event.target.value);
+                  setInitialMessageError("");
+                }}
+                placeholder={
+                  topic === "OTHER"
+                    ? "Cuéntanos brevemente en qué te podemos ayudar"
+                    : "Se generará un mensaje según el asunto seleccionado"
+                }
               />
+
+              {initialMessageError && (
+                <span className="form-field__error">{initialMessageError}</span>
+              )}
             </div>
 
             {startError && <FormMessage kind="error">{startError}</FormMessage>}
@@ -761,10 +805,59 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               {starting ? "Iniciando..." : "Iniciar conversación"}
             </Button>
           </form>
-        ) : (
+        </div>
+      ) : (
+        <div className="public-chat__card">
+          <header className="public-chat__header">
+            <div className="public-chat__avatar" aria-hidden="true">
+              <Icon name="brand" size={18} />
+            </div>
+
+            <div className="public-chat__header-info">
+              <strong>
+                {chatConfig?.widget?.title ?? chat?.tenantName ?? "QuoPilot"}
+              </strong>
+
+              <small>
+                {chat?.channelName
+                  ? chat.channelName
+                  : (chatConfig?.channelName ?? "Asistente virtual")}
+              </small>
+            </div>
+
+            {chat && (
+              <div
+                className={
+                  closed
+                    ? "public-chat__presence public-chat__presence--off"
+                    : "public-chat__presence"
+                }
+                role="status"
+              >
+                <i aria-hidden="true" />
+                <span>{closed ? "Cerrado" : "En línea"}</span>
+              </div>
+            )}
+
+            {chat && !closed && (
+              <button
+                type="button"
+                className="public-chat__close"
+                onClick={() => void handleClose()}
+                disabled={closing || sending}
+                aria-label="Terminar chat"
+                title="Terminar chat"
+              >
+                <Icon name="close" size={16} />
+              </button>
+            )}
+          </header>
           <>
             {loading ? (
-              <LoadingOverlay title="Cargando conversación..." message="Esto puede tomar unos segundos" />
+              <LoadingOverlay
+                title="Cargando conversación..."
+                message="Esto puede tomar unos segundos"
+              />
             ) : loadError ? (
               <PageState
                 kind="error"
@@ -877,9 +970,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 void handleSend(event);
               }}
             >
-              {sendError && (
-                <FormMessage kind="error">{sendError}</FormMessage>
-              )}
+              {sendError && <FormMessage kind="error">{sendError}</FormMessage>}
 
               <div className="public-chat__composer-row">
                 <textarea
@@ -935,8 +1026,8 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               )}
             </form>
           </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

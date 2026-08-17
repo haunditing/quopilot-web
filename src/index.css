@@ -43,10 +43,62 @@
   color: var(--text);
   background: var(--bg);
 
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+div,
+section,
+main,
+aside,
+form,
+table {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.app-sidebar,
+.public-chat__card {
+  scrollbar-color: var(--shell-border) transparent;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb,
+.public-chat__card::-webkit-scrollbar-thumb {
+  background-color: var(--shell-border);
+}
+
+.app-sidebar::-webkit-scrollbar-thumb:hover,
+.public-chat__card::-webkit-scrollbar-thumb:hover {
+  background-color: var(--shell-text-muted);
 }
 
 * {
@@ -3661,7 +3713,10 @@ p {
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
 }
 
 .inbox__header-action:hover {
@@ -3831,7 +3886,9 @@ p {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .inbox__composer-tool:hover {
@@ -3970,6 +4027,102 @@ p {
   background: linear-gradient(160deg, var(--shell-bg), var(--shell-border));
 }
 
+.public-chat__landing {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  width: 100%;
+  max-width: 960px;
+  min-height: min(640px, calc(100vh - 48px));
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.public-chat__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: var(--accent);
+  color: white;
+}
+
+.public-chat__hero-brand {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.public-chat__hero-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+}
+
+.public-chat__hero-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: white;
+}
+
+.public-chat__hero .public-chat__intro {
+  color: currentColor;
+  opacity: 0.9;
+  font-size: 15px;
+}
+
+.public-chat__hero-points {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.public-chat__hero-points li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.public-chat__hero-points li svg {
+  flex-shrink: 0;
+}
+
+.public-chat__hero-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.public-chat__hero-presence i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: public-chat-pulse 2s infinite;
+}
+
 .public-chat__card {
   display: flex;
   flex-direction: column;
@@ -4078,7 +4231,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px;
+  padding: 32px;
   overflow-y: auto;
   background: var(--surface);
 }
@@ -4107,9 +4260,16 @@ p {
 .public-chat__form-title {
   margin: 0;
   color: var(--text-h);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
+}
+
+.public-chat__form-subtitle {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .public-chat__form-grid {
@@ -4132,12 +4292,6 @@ p {
   justify-content: center;
 }
 
-@media (max-width: 380px) {
-  .public-chat__form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .public-chat__intro {
   margin: 0;
   color: var(--text);
@@ -4149,6 +4303,42 @@ p {
   resize: none;
   min-height: 72px;
   font-family: var(--sans);
+}
+
+.public-chat__form textarea[readonly] {
+  background: var(--accent-bg);
+  border-color: var(--border);
+  color: var(--text-h);
+  cursor: default;
+}
+
+@media (max-width: 767px) {
+  .public-chat__landing {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .public-chat__hero {
+    padding: 24px;
+  }
+
+  .public-chat__hero-title {
+    font-size: 22px;
+  }
+
+  .public-chat__hero-presence {
+    margin-top: 0;
+  }
+
+  .public-chat__form {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 380px) {
+  .public-chat__form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .public-chat__messages {
@@ -5558,7 +5748,9 @@ input[type="number"] {
   font-size: 14px;
   line-height: 1.4;
   background: #fff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .quote-erp__input-sm:focus,
@@ -6106,7 +6298,9 @@ input[type="number"] {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .customer-type__check {
@@ -6118,7 +6312,10 @@ input[type="number"] {
   border-radius: 50%;
   border: 1.5px solid #cbd5e1;
   color: transparent;
-  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
 }
 
 .customer-type__pill--active {
@@ -6241,7 +6438,9 @@ input[type="number"] {
   outline: none;
   background: var(--surface);
   color: var(--text-h);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .customer-field-with-action input:focus {
@@ -6262,7 +6461,9 @@ input[type="number"] {
   background: transparent;
   color: #64748b;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .customer-field-with-action__btn:hover {
