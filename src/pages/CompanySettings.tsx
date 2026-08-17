@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { NavLink, Navigate } from "react-router-dom";
+import { Link, NavLink, Navigate } from "react-router-dom";
+import Combobox from "../components/Combobox.js";
 import Icon from "../components/Icon.js";
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
@@ -9,15 +10,14 @@ import ImageUploader from "../components/ImageUploader.js";
 import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
-import { CURRENCY_OPTIONS, TIMEZONE_OPTIONS } from "../config/options.js";
+import { AGENT_TONE_OPTIONS, CURRENCY_OPTIONS, TIMEZONE_OPTIONS } from "../config/options.js";
+import { useAgentConfig } from "../hooks/useAgentConfig.js";
 import { useToast } from "../hooks/useToast.js";
 import { getUserRole } from "../services/auth-storage.js";
-import { getAgentConfig, updateAgentConfig } from "../services/agent-service.js";
 import {
   getCurrentTenant,
   updateCurrentTenant,
 } from "../services/tenant-service.js";
-import type { AgentTone } from "../types/agent.js";
 import type { Tenant } from "../types/tenant.js";
 
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
@@ -34,13 +34,19 @@ const COLOR_PRESETS = [
   "#0f172a",
 ];
 
-const TONE_OPTIONS: Array<{ value: AgentTone; label: string }> = [
-  { value: "PROFESSIONAL", label: "Profesional" },
-  { value: "FRIENDLY", label: "Amigable" },
-  { value: "FORMAL", label: "Formal" },
-  { value: "CASUAL", label: "Casual" },
-  { value: "EMPATHETIC", label: "Empático" },
-];
+function companyInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) {
+    return "Q";
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
 
 const FISCAL_FIELDS: Array<{
   key: "legalName" | "taxId" | "personType" | "taxLiability" | "taxRegime";
@@ -69,14 +75,6 @@ interface BrandingState {
   documentLogoUrl: string;
   brandColor: string;
   footerText: string;
-}
-
-interface AgentIdentityState {
-  name: string;
-  avatarData: string;
-  welcomeMessage: string;
-  tone: AgentTone;
-  systemInstructions: string;
 }
 
 interface ContactState {
@@ -109,6 +107,7 @@ export default function CompanySettings() {
 
 function CompanySettingsPanel() {
   const toast = useToast();
+  const { agent } = useAgentConfig();
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -121,14 +120,6 @@ function CompanySettingsPanel() {
     documentLogoUrl: "",
     brandColor: "",
     footerText: "",
-  });
-
-  const [identity, setIdentity] = useState<AgentIdentityState>({
-    name: "",
-    avatarData: "",
-    welcomeMessage: "",
-    tone: "PROFESSIONAL",
-    systemInstructions: "",
   });
 
   const [contact, setContact] = useState<ContactState>({
@@ -150,12 +141,10 @@ function CompanySettingsPanel() {
   });
 
   const [savingBranding, setSavingBranding] = useState(false);
-  const [savingIdentity, setSavingIdentity] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [savingRegional, setSavingRegional] = useState(false);
 
   const [brandingError, setBrandingError] = useState("");
-  const [identityError, setIdentityError] = useState("");
   const [contactError, setContactError] = useState("");
   const [regionalError, setRegionalError] = useState("");
 
@@ -167,10 +156,7 @@ function CompanySettingsPanel() {
       setLoadError("");
 
       try {
-        const [tenantData, agentData] = await Promise.all([
-          getCurrentTenant(),
-          getAgentConfig(),
-        ]);
+        const tenantData = await getCurrentTenant();
 
         if (!active) {
           return;
@@ -183,14 +169,6 @@ function CompanySettingsPanel() {
           documentLogoUrl: tenantData.documentLogoUrl ?? "",
           brandColor: tenantData.brandColor ?? "",
           footerText: tenantData.footerText ?? "",
-        });
-
-        setIdentity({
-          name: agentData.name,
-          avatarData: agentData.avatarData ?? "",
-          welcomeMessage: agentData.welcomeMessage ?? "",
-          tone: agentData.tone,
-          systemInstructions: agentData.systemInstructions ?? "",
         });
 
         setContact({
@@ -244,11 +222,11 @@ function CompanySettingsPanel() {
 
   const effectiveBrandColor = swatchColor(branding.brandColor);
 
-  const identityAvatar = identity.avatarData;
-
-  const toneLabel =
-    TONE_OPTIONS.find((option) => option.value === identity.tone)?.label ??
-    identity.tone;
+  const agentAvatar = agent?.avatarData;
+  const agentToneLabel =
+    AGENT_TONE_OPTIONS.find((option) => option.value === agent?.tone)?.label ??
+    agent?.tone ??
+    "—";
 
   async function saveBranding(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -285,38 +263,6 @@ function CompanySettingsPanel() {
       );
     } finally {
       setSavingBranding(false);
-    }
-  }
-
-  async function saveIdentity(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIdentityError("");
-
-    if (!identity.name.trim()) {
-      setIdentityError("El nombre comercial del agente es obligatorio");
-      return;
-    }
-
-    setSavingIdentity(true);
-
-    try {
-      await updateAgentConfig({
-        name: identity.name.trim(),
-        avatarData: identity.avatarData || undefined,
-        welcomeMessage: identity.welcomeMessage.trim() || undefined,
-        tone: identity.tone,
-        systemInstructions: identity.systemInstructions.trim() || undefined,
-      });
-
-      toast.success("Configuración del agente actualizada correctamente");
-    } catch (requestError) {
-      setIdentityError(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible guardar el agente",
-      );
-    } finally {
-      setSavingIdentity(false);
     }
   }
 
@@ -516,58 +462,6 @@ function CompanySettingsPanel() {
                 />
 
                 <div className="form-field">
-                  <label>Logo para cotizaciones / documentos</label>
-
-                  <div className="settings-radio">
-                    <label className="settings-radio__option">
-                      <input
-                        type="radio"
-                        name="document-logo-mode"
-                        checked={branding.documentLogoMode === "main"}
-                        onChange={() =>
-                          setBranding((current) => ({
-                            ...current,
-                            documentLogoMode: "main",
-                          }))
-                        }
-                      />
-                      <span>Usar el logo principal</span>
-                    </label>
-
-                    <label className="settings-radio__option">
-                      <input
-                        type="radio"
-                        name="document-logo-mode"
-                        checked={branding.documentLogoMode === "custom"}
-                        onChange={() =>
-                          setBranding((current) => ({
-                            ...current,
-                            documentLogoMode: "custom",
-                          }))
-                        }
-                      />
-                      <span>Subir variante horizontal / monocromática</span>
-                    </label>
-                  </div>
-
-                  {branding.documentLogoMode === "custom" && (
-                    <ImageUploader
-                      label=""
-                      value={branding.documentLogoUrl || undefined}
-                      onChange={(value) =>
-                        setBranding((current) => ({
-                          ...current,
-                          documentLogoUrl: value ?? "",
-                        }))
-                      }
-                      hint="PNG o SVG, máximo 2 MB."
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="settings-card__grid">
-                <div className="form-field">
                   <label htmlFor="company-brand-color">
                     Color primario de marca
                   </label>
@@ -651,6 +545,58 @@ function CompanySettingsPanel() {
                     Personaliza el encabezado de las propuestas exportadas.
                   </div>
                 </div>
+              </div>
+
+              <div className="settings-card__grid">
+                <div className="form-field">
+                  <label>Logo para cotizaciones / documentos</label>
+
+                  <div className="settings-radio">
+                    <label className="settings-radio__option">
+                      <input
+                        type="radio"
+                        name="document-logo-mode"
+                        checked={branding.documentLogoMode === "main"}
+                        onChange={() =>
+                          setBranding((current) => ({
+                            ...current,
+                            documentLogoMode: "main",
+                          }))
+                        }
+                      />
+                      <span>Usar el logo principal</span>
+                    </label>
+
+                    <label className="settings-radio__option">
+                      <input
+                        type="radio"
+                        name="document-logo-mode"
+                        checked={branding.documentLogoMode === "custom"}
+                        onChange={() =>
+                          setBranding((current) => ({
+                            ...current,
+                            documentLogoMode: "custom",
+                          }))
+                        }
+                      />
+                      <span>Subir variante horizontal / monocromática</span>
+                    </label>
+                  </div>
+
+                  {branding.documentLogoMode === "custom" && (
+                    <ImageUploader
+                      label=""
+                      value={branding.documentLogoUrl || undefined}
+                      onChange={(value) =>
+                        setBranding((current) => ({
+                          ...current,
+                          documentLogoUrl: value ?? "",
+                        }))
+                      }
+                      hint="PNG o SVG, máximo 2 MB."
+                    />
+                  )}
+                </div>
 
                 <div className="form-field">
                   <label htmlFor="company-footer">
@@ -690,127 +636,71 @@ function CompanySettingsPanel() {
             </form>
           </section>
 
-          {/* Sección 3: Identidad del agente */}
+          {/* Sección 3: Agente de IA (solo lectura) */}
           <section className="settings-card">
             <header className="settings-card__header">
               <div>
-                <h2>Identidad y configuración del agente de IA</h2>
+                <h2>Agente de IA</h2>
                 <p>
-                  Nombre, avatar y comportamiento del agente QuoPilot en el chat
-                  operativo.
+                  El asistente comercial de QuoPilot. Su identidad, personalidad
+                  y comportamiento se configuran en la página del Agente.
                 </p>
               </div>
+
+              <span className="settings-card__badge">
+                <Icon name="bot" size={14} />
+                Gestionado en /agent
+              </span>
             </header>
 
-            <form
-              className="settings-card__form"
-              onSubmit={saveIdentity}
-              id="company-agent-form"
-            >
-              <div className="settings-card__grid">
-                <Field
-                  id="agent-name"
-                  label="Nombre comercial del agente"
-                  type="text"
-                  value={identity.name}
-                  required
-                  onChange={(event) =>
-                    setIdentity((current) => ({
-                      ...current,
-                      name: event.target.value,
-                    }))
-                  }
-                  placeholder="Ej.: Demito, QuoPilot Bot"
-                />
+            <div className="settings-card__form">
+              <div className="settings-agent-card">
+                <div className="settings-agent-card__summary">
+                  {agentAvatar ? (
+                    <img
+                      className="settings-agent-card__avatar"
+                      src={agentAvatar}
+                      alt="Avatar del agente"
+                    />
+                  ) : (
+                    <span className="settings-agent-card__avatar">
+                      <Icon name="bot" size={22} />
+                    </span>
+                  )}
 
-                <div className="form-field">
-                  <label>Avatar del agente</label>
-
-                  <ImageUploader
-                    label=""
-                    value={identityAvatar || undefined}
-                    onChange={(value) =>
-                      setIdentity((current) => ({
-                        ...current,
-                        avatarData: value ?? "",
-                      }))
-                    }
-                    round
-                    hint="Imagen circular que verán los usuarios en el chat operativo."
-                  />
+                  <div className="settings-agent-card__info">
+                    <strong>{agent?.name ?? "Agente QuoPilot"}</strong>
+                    <span>Tono: {agentToneLabel}</span>
+                    <span className="settings-agent-card__status">
+                      <span
+                        className={
+                          agent?.status === "ACTIVE"
+                            ? "settings-agent-card__dot settings-agent-card__dot--active"
+                            : "settings-agent-card__dot"
+                        }
+                      />
+                      {agent?.status === "ACTIVE" ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="settings-card__grid">
-                <div className="form-field">
-                  <label htmlFor="agent-tone">Tono del agente</label>
+                {agent?.welcomeMessage && (
+                  <div className="settings-preview__bubble">
+                    {agent.welcomeMessage}
+                  </div>
+                )}
 
-                  <select
-                    id="agent-tone"
-                    value={identity.tone}
-                    onChange={(event) =>
-                      setIdentity((current) => ({
-                        ...current,
-                        tone: event.target.value as AgentTone,
-                      }))
-                    }
+                <div className="settings-card__footer">
+                  <Link
+                    to="/agent"
+                    className="button button--secondary"
                   >
-                    {TONE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    <Icon name="bot" size={16} />
+                    Ir a configurar Agente
+                  </Link>
                 </div>
-
-                <Field
-                  id="agent-welcome"
-                  label="Mensaje de bienvenida predeterminado"
-                  type="text"
-                  value={identity.welcomeMessage}
-                  onChange={(event) =>
-                    setIdentity((current) => ({
-                      ...current,
-                      welcomeMessage: event.target.value,
-                    }))
-                  }
-                  placeholder="¡Hola! ¿En qué puedo ayudarte hoy?"
-                />
               </div>
-
-              <div className="form-field">
-                <label htmlFor="agent-prompt">
-                  Prompt base / Reglas del tenant
-                </label>
-
-                <textarea
-                  id="agent-prompt"
-                  rows={5}
-                  value={identity.systemInstructions}
-                  placeholder="Ej.: No ofrecer descuentos mayores al 10%…"
-                  onChange={(event) =>
-                    setIdentity((current) => ({
-                      ...current,
-                      systemInstructions: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              {identityError && (
-                <FormMessage kind="error">{identityError}</FormMessage>
-              )}
-
-              <div className="settings-card__footer">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={savingIdentity}
-                >
-                  {savingIdentity ? "Guardando..." : "Guardar cambios"}
-                </Button>
-              </div>
-            </form>
+            </div>
           </section>
 
           {/* Sección 4: Contacto y ubicación */}
@@ -982,22 +872,19 @@ function CompanySettingsPanel() {
                 <div className="form-field">
                   <label htmlFor="company-timezone">Zona horaria</label>
 
-                  <select
+                  <Combobox
                     id="company-timezone"
                     value={regional.timezone}
-                    onChange={(event) =>
+                    options={TIMEZONE_OPTIONS}
+                    onChange={(value) =>
                       setRegional((current) => ({
                         ...current,
-                        timezone: event.target.value,
+                        timezone: value,
                       }))
                     }
-                  >
-                    {TIMEZONE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Selecciona una zona horaria"
+                    searchPlaceholder="Buscar ciudad o zona horaria..."
+                  />
                 </div>
 
                 <Field
@@ -1016,37 +903,35 @@ function CompanySettingsPanel() {
                   }
                 />
 
-                <div className="settings-card__grid--two">
-                  <Field
-                    id="company-thousands-separator"
-                    label="Separador de miles"
-                    type="text"
-                    maxLength={1}
-                    value={regional.thousandsSeparator}
-                    onChange={(event) =>
-                      setRegional((current) => ({
-                        ...current,
-                        thousandsSeparator: event.target.value,
-                      }))
-                    }
-                    placeholder="."
-                  />
+                <Field
+                  id="company-thousands-separator"
+                  label="Separador de miles"
+                  type="text"
+                  maxLength={1}
+                  value={regional.thousandsSeparator}
+                  onChange={(event) =>
+                    setRegional((current) => ({
+                      ...current,
+                      thousandsSeparator: event.target.value,
+                    }))
+                  }
+                  placeholder="."
+                />
 
-                  <Field
-                    id="company-decimal-separator"
-                    label="Separador de decimales"
-                    type="text"
-                    maxLength={1}
-                    value={regional.decimalSeparator}
-                    onChange={(event) =>
-                      setRegional((current) => ({
-                        ...current,
-                        decimalSeparator: event.target.value,
-                      }))
-                    }
-                    placeholder=","
-                  />
-                </div>
+                <Field
+                  id="company-decimal-separator"
+                  label="Separador de decimales"
+                  type="text"
+                  maxLength={1}
+                  value={regional.decimalSeparator}
+                  onChange={(event) =>
+                    setRegional((current) => ({
+                      ...current,
+                      decimalSeparator: event.target.value,
+                    }))
+                  }
+                  placeholder=","
+                />
               </div>
 
               {regionalError && (
@@ -1076,11 +961,21 @@ function CompanySettingsPanel() {
                 className="settings-preview__doc-header"
                 style={{ background: effectiveBrandColor }}
               >
-                <img
-                  className="settings-preview__doc-logo"
-                  src={effectiveDocumentLogo || undefined}
-                  alt="Logo de la empresa"
-                />
+                {effectiveDocumentLogo ? (
+                  <img
+                    className="settings-preview__doc-logo"
+                    src={effectiveDocumentLogo}
+                    alt="Logo de la empresa"
+                  />
+                ) : (
+                  <span
+                    className="settings-preview__doc-avatar"
+                    aria-hidden="true"
+                  >
+                    {companyInitials(companyName)}
+                  </span>
+                )}
+
                 <span className="settings-preview__doc-name">{companyName}</span>
               </div>
 
@@ -1097,10 +992,10 @@ function CompanySettingsPanel() {
             </div>
 
             <div className="settings-preview__agent">
-              {identityAvatar ? (
+              {agentAvatar ? (
                 <img
                   className="settings-preview__agent-avatar"
-                  src={identityAvatar}
+                  src={agentAvatar}
                   alt="Avatar del agente"
                 />
               ) : (
@@ -1110,14 +1005,14 @@ function CompanySettingsPanel() {
               )}
 
               <div>
-                <strong>{identity.name.trim() || "Agente QuoPilot"}</strong>
-                <span>Tono {toneLabel.toLowerCase()}</span>
+                <strong>{agent?.name ?? "Agente QuoPilot"}</strong>
+                <span>Tono {agentToneLabel.toLowerCase()}</span>
               </div>
             </div>
 
-            {identity.welcomeMessage.trim() && (
+            {agent?.welcomeMessage && (
               <div className="settings-preview__bubble">
-                {identity.welcomeMessage}
+                {agent.welcomeMessage}
               </div>
             )}
           </div>

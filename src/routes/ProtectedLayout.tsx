@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 import AppLayout from "../components/AppLayout.js";
+import AgentConfigProvider from "../components/AgentConfigProvider.js";
 import { getAccessToken, getUser } from "../services/auth-storage.js";
 
 export default function ProtectedLayout() {
@@ -15,8 +16,10 @@ export default function ProtectedLayout() {
   }
 
   return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
+    <AgentConfigProvider>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    </AgentConfigProvider>
   );
 }

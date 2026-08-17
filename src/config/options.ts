@@ -1,3 +1,5 @@
+import type { AgentTone } from "../types/agent.js";
+
 export interface Option {
   value: string;
   label: string;
@@ -19,3 +21,16 @@ export const CURRENCY_OPTIONS: Option[] = supportsSupportedValuesOf
 export const TIMEZONE_OPTIONS: Option[] = supportsSupportedValuesOf
   ? toOptions(Intl.supportedValuesOf("timeZone"))
   : toOptions(FALLBACK_TIMEZONES);
+
+export interface AgentToneOption {
+  value: AgentTone;
+  label: string;
+}
+
+export const AGENT_TONE_OPTIONS: AgentToneOption[] = [
+  { value: "PROFESSIONAL", label: "Profesional" },
+  { value: "FRIENDLY", label: "Amigable" },
+  { value: "FORMAL", label: "Formal" },
+  { value: "CASUAL", label: "Casual" },
+  { value: "EMPATHETIC", label: "Empático" },
+];

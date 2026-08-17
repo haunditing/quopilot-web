@@ -36,7 +36,8 @@ export type IconName =
   | "inbox"
   | "print"
   | "lock"
-  | "upload";
+  | "upload"
+  | "chevron-down";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -317,6 +318,8 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M12 3v12" />
     </>
   ),
+
+  "chevron-down": <path d="M6 9l6 6 6-6" />,
 };
 
 export default function Icon({ name, size = 20, ...props }: IconProps) {

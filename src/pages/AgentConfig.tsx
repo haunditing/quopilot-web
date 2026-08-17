@@ -8,12 +8,10 @@ import FormMessage from "../components/FormMessage.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
 import Section from "../components/Section.js";
+import { AGENT_TONE_OPTIONS } from "../config/options.js";
+import { useAgentConfig } from "../hooks/useAgentConfig.js";
 import { useToast } from "../hooks/useToast.js";
 import { getProducts } from "../services/product-service.js";
-import {
-  getAgentConfig,
-  updateAgentConfig,
-} from "../services/agent-service.js";
 import type {
   AgentConfig,
   AgentConfigInput,
@@ -102,13 +100,7 @@ const TOOL_OPTIONS: ToolOption[] = [
   },
 ];
 
-const TONE_OPTIONS: { value: AgentTone; label: string }[] = [
-  { value: "PROFESSIONAL", label: "Profesional" },
-  { value: "FRIENDLY", label: "Amigable" },
-  { value: "FORMAL", label: "Formal" },
-  { value: "CASUAL", label: "Casual" },
-  { value: "EMPATHETIC", label: "Empático" },
-];
+const TONE_OPTIONS = AGENT_TONE_OPTIONS;
 
 const LANGUAGE_OPTIONS: { value: string; label: string }[] = [
   { value: "es", label: "Español" },
@@ -219,41 +211,46 @@ function formToInput(form: AgentForm): AgentConfigInput {
 export default function AgentConfig() {
   const toast = useToast();
 
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  const { agent, loading, error, saveAgentConfig } = useAgentConfig();
+
   const [form, setForm] = useState<AgentForm | null>(null);
+  const [seededAgent, setSeededAgent] = useState<AgentConfig | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  if (agent !== seededAgent) {
+    setSeededAgent(agent);
+
+    if (agent) {
+      setForm(agentToForm(agent));
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      setLoading(true);
-      setLoadError("");
+      setProductsLoading(true);
 
       try {
-        const [agent, productResponse] = await Promise.all([
-          getAgentConfig(),
-          loadAllProducts(),
-        ]);
+        const productResponse = await loadAllProducts();
 
         if (!cancelled) {
-          setForm(agentToForm(agent));
           setProducts(productResponse);
         }
       } catch (error) {
         if (!cancelled) {
-          setLoadError(
+          setSaveError(
             error instanceof Error
               ? error.message
-              : "No fue posible cargar la configuración",
+              : "No fue posible cargar los productos",
           );
         }
       } finally {
         if (!cancelled) {
-          setLoading(false);
+          setProductsLoading(false);
         }
       }
     }
@@ -357,7 +354,7 @@ export default function AgentConfig() {
     setSaveError("");
 
     try {
-      await updateAgentConfig(formToInput(form));
+      await saveAgentConfig(formToInput(form));
 
       toast.success("Configuración del agente guardada");
     } catch (error) {
@@ -391,16 +388,16 @@ export default function AgentConfig() {
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-      {loading ? (
+      {loading || productsLoading ? (
         <LoadingOverlay
-          title="Cargando canales..."
+          title="Cargando configuración del agente..."
           message="Esto puede tomar unos segundos"
         />
-      ) : loadError ? (
+      ) : error ? (
         <PageState
           kind="error"
           title="No fue posible cargar"
-          message={loadError}
+          message={error}
         />
       ) : !form ? (
         <EmptyState
