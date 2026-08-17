@@ -1,17 +1,19 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { Edit2, Power, Trash2 } from "lucide-react";
+
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
-import EntityCard from "../components/EntityCard.js";
-import type { EntityAction } from "../components/EntityCard.js";
 import Field from "../components/Field.js";
-import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
-import { PRODUCT_FILTER_FIELDS } from "../config/filters.js";
+import DataListView from "../components/DataListView/DataListView.js";
+import type {
+  ColumnSpec,
+  FilterOptionI,
+} from "../components/DataListView/types.js";
+import { PRODUCT_STATUS_OPTIONS } from "../config/filters.js";
 import { CURRENCY_OPTIONS } from "../config/options.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
@@ -37,31 +39,29 @@ const DEFAULT_CURRENCY = "COP";
 
 const SAVE_MESSAGE = "No fue posible guardar el producto";
 
+const STATUS_BADGE_CLASS: Record<ProductStatus, string> = {
+  ACTIVE: "badge badge-success",
+  INACTIVE: "badge badge-danger",
+};
+
+const STATUS_LABEL = Object.fromEntries(
+  PRODUCT_STATUS_OPTIONS.map((option) => [option.value, option.label]),
+) as Record<ProductStatus, string>;
+
 export default function Products() {
   const buildFetcher = useCallback(
-    (params: {
-      search: string;
-      status: string;
-      currency: string;
-      priceFrom: string;
-      priceTo: string;
-    }) => () =>
+    (params: { search: string; status: string; currency: string }) => () =>
       getProducts({
         search: params.search || undefined,
         status: params.status || undefined,
         currency: params.currency || undefined,
-        minPrice: params.priceFrom ? Number(params.priceFrom) : undefined,
-        maxPrice: params.priceTo ? Number(params.priceTo) : undefined,
       }),
     [],
   );
-  const { data, loading, error, reload, search, setSearch, values, set, clear } =
-    useFilteredList(buildFetcher, {
-      status: "",
-      currency: "",
-      priceFrom: "",
-      priceTo: "",
-    });
+  const { data, loading, error, reload, set } = useFilteredList(buildFetcher, {
+    status: "",
+    currency: "",
+  });
 
   const role = getUserRole();
   const canCreate = can(role, "products", "create");
@@ -121,7 +121,9 @@ export default function Products() {
 
     let hasErrors = false;
 
-    if (!name.trim()) {
+    if (name.trim()) {
+      setNameError("");
+    } else {
       setNameError("El nombre es obligatorio");
       hasErrors = true;
     }
@@ -134,6 +136,8 @@ export default function Products() {
     } else if (parsedPrice < 0) {
       setUnitPriceError("El precio no puede ser negativo");
       hasErrors = true;
+    } else {
+      setUnitPriceError("");
     }
 
     if (hasErrors) {
@@ -177,102 +181,186 @@ export default function Products() {
     }
   }
 
-  async function handleStatusChange(product: Product, status: ProductStatus) {
-    const statusAction =
-      status === "ACTIVE"
-        ? { label: "Activar", message: "El producto volverá a estar disponible." }
-        : {
-            label: "Desactivar",
-            message: "El producto dejará de estar disponible para nuevas cotizaciones.",
-          };
-    const confirmed = await confirm({
-      title: `${statusAction.label} producto`,
-      message: `¿${statusAction.label} "${product.name}"? ${statusAction.message}`,
-      confirmLabel: statusAction.label,
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await updateProductStatus(product._id, status);
-      reload();
-      toast.success(`Producto ${statusAction.label.toLowerCase()}`);
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible cambiar el estado del producto",
-      );
-    }
-  }
-
-  async function handleDelete(product: Product) {
-    const confirmed = await confirm({
-      title: "Eliminar producto",
-      message: `¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`,
-      confirmLabel: "Eliminar",
-      danger: true,
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await deleteProduct(product._id);
-      reload();
-      toast.success("Producto eliminado");
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible eliminar el producto",
-      );
-    }
-  }
-
-  function productActions(product: Product): EntityAction[] {
-    const actions: EntityAction[] = [];
-
-    if (canChangeStatus) {
-      actions.push(
-        product.status === "ACTIVE"
+  const handleStatusChange = useCallback(
+    async (product: Product, status: ProductStatus) => {
+      const statusAction =
+        status === "ACTIVE"
           ? {
-              icon: "power",
-              ariaLabel: "Desactivar",
-              onClick: () => handleStatusChange(product, "INACTIVE"),
-              variant: "secondary",
+              label: "Activar",
+              message: "El producto volverá a estar disponible.",
             }
           : {
-              icon: "power",
-              ariaLabel: "Activar",
-              onClick: () => handleStatusChange(product, "ACTIVE"),
-              variant: "primary",
-            },
-      );
-    }
-
-    if (canEdit) {
-      actions.push({
-        icon: "edit",
-        ariaLabel: "Editar",
-        onClick: () => openEdit(product),
-        variant: "secondary",
+              label: "Desactivar",
+              message:
+                "El producto dejará de estar disponible para nuevas cotizaciones.",
+            };
+      const confirmed = await confirm({
+        title: `${statusAction.label} producto`,
+        message: `¿${statusAction.label} "${product.name}"? ${statusAction.message}`,
+        confirmLabel: statusAction.label,
       });
-    }
 
-    if (canDelete) {
-      actions.push({
-        icon: "trash",
-        ariaLabel: "Eliminar",
-        onClick: () => handleDelete(product),
-        variant: "danger",
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await updateProductStatus(product._id, status);
+        reload();
+        toast.success(`Producto ${statusAction.label.toLowerCase()}`);
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible cambiar el estado del producto",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
+
+  const handleDelete = useCallback(
+    async (product: Product) => {
+      const confirmed = await confirm({
+        title: "Eliminar producto",
+        message: `¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`,
+        confirmLabel: "Eliminar",
+        danger: true,
       });
-    }
 
-    return actions;
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await deleteProduct(product._id);
+        reload();
+        toast.success("Producto eliminado");
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible eliminar el producto",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
+
+  const productFilters = useMemo<FilterOptionI[]>(
+    () => [
+      {
+        key: "status",
+        label: "Estado",
+        type: "select",
+        options: PRODUCT_STATUS_OPTIONS.map((option) => ({
+          label: option.label,
+          value: option.value,
+        })),
+      },
+      {
+        key: "currency",
+        label: "Moneda",
+        type: "select",
+        options: CURRENCY_OPTIONS.map((option) => ({
+          label: option.label,
+          value: option.value,
+        })),
+      },
+    ],
+    [],
+  );
+
+  const columns = useMemo<ColumnSpec<Product>[]>(
+    () => [
+      {
+        key: "name",
+        label: "Nombre",
+        render: (product) => (
+          <div className="cell-main">
+            <strong>{product.name}</strong>
+            {product.description && (
+              <span className="cell-sub">{product.description}</span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "sku",
+        label: "SKU",
+        render: (product) => product.sku || "—",
+      },
+      {
+        key: "unitPrice",
+        label: "Precio",
+        align: "right",
+        render: (product) =>
+          formatCurrency(product.unitPrice, product.currency),
+      },
+      {
+        key: "status",
+        label: "Estado",
+        render: (product) => (
+          <span className={STATUS_BADGE_CLASS[product.status]}>
+            {STATUS_LABEL[product.status]}
+          </span>
+        ),
+      },
+      {
+        key: "actions",
+        label: "",
+        align: "right",
+        render: (product) => (
+          <div className="row-actions">
+            {canChangeStatus && (
+              <button
+                type="button"
+                className="btn-icon-action"
+                title={product.status === "ACTIVE" ? "Desactivar" : "Activar"}
+                aria-label={
+                  product.status === "ACTIVE" ? "Desactivar" : "Activar"
+                }
+                onClick={() =>
+                  handleStatusChange(
+                    product,
+                    product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
+                  )
+                }
+              >
+                <Power size={16} />
+              </button>
+            )}
+            {canEdit && (
+              <button
+                type="button"
+                className="btn-icon-action"
+                title="Editar"
+                aria-label="Editar"
+                onClick={() => openEdit(product)}
+              >
+                <Edit2 size={16} />
+              </button>
+            )}
+            {canDelete && (
+              <button
+                type="button"
+                className="btn-icon-action btn-danger"
+                title="Eliminar"
+                aria-label="Eliminar"
+                onClick={() => handleDelete(product)}
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [canChangeStatus, canEdit, canDelete, handleStatusChange, handleDelete],
+  );
+
+  if (error) {
+    return <PageState kind="error" title="No fue posible cargar" message={error} />;
   }
 
   return (
@@ -289,57 +377,18 @@ export default function Products() {
         }
       />
 
-      <FilterPanel
-        fields={PRODUCT_FILTER_FIELDS}
-        values={values}
-        onSet={set}
-        onClear={clear}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nombre, SKU o descripción..."
+      <DataListView<Product>
+        items={data?.data ?? []}
+        columns={columns}
+        rowKey={(product) => product._id}
+        filters={productFilters}
+        loading={loading}
+        emptyState="Crea tu primer producto para poder cotizarlo"
+        onFilterChange={(filters) => {
+          set("status", filters.status ?? "");
+          set("currency", filters.currency ?? "");
+        }}
       />
-
-      {loading ? (
-        <LoadingOverlay title="Cargando productos..." message="Esto puede tomar unos segundos" />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : !data || data.data.length === 0 ? (
-        <EmptyState
-          title="No hay productos"
-          message="Crea tu primer producto para poder cotizarlo"
-        >
-          {canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
-              Nuevo producto
-            </Button>
-          )}
-        </EmptyState>
-      ) : (
-        <section className="entity-grid">
-          {data.data.map((product) => (
-            <EntityCard
-              key={product._id}
-              eyebrow="Producto"
-              title={product.name}
-              status={product.status}
-              fields={[
-                ...(product.sku
-                  ? [{ label: "SKU", value: product.sku }]
-                  : []),
-                {
-                  label: "Precio",
-                  value: formatCurrency(product.unitPrice, product.currency),
-                },
-              ]}
-              actions={productActions(product)}
-            >
-              {product.description && (
-                <p className="product-description">{product.description}</p>
-              )}
-            </EntityCard>
-          ))}
-        </section>
-      )}
 
       <Modal
         open={modal !== null}
@@ -414,13 +463,7 @@ export default function Products() {
 
           {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-          <Button
-            type="submit"
-            variant="primary"
-            icon="check"
-            iconOnly
-            disabled={saving}
-          >
+          <Button type="submit" variant="primary" disabled={saving}>
             {saving
               ? "Guardando..."
               : modal?.mode === "edit"

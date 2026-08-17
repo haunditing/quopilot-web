@@ -1,18 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { Copy, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
-import EntityCard from "../components/EntityCard.js";
-import type { EntityAction } from "../components/EntityCard.js";
 import Field from "../components/Field.js";
-import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
-import PageState from "../components/PageState.js";
+import DataListView from "../components/DataListView/DataListView.js";
+import type {
+  ColumnSpec,
+  FilterOptionI,
+} from "../components/DataListView/types.js";
 import {
-  CHANNEL_FILTER_FIELDS,
+  CHANNEL_STATUS_OPTIONS,
   CHANNEL_TYPE_OPTIONS,
 } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
@@ -36,7 +37,6 @@ import type {
   ChannelType,
   ChatWidgetPosition,
 } from "../types/channel.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 
 type ChannelModal =
   | { mode: "create" }
@@ -48,6 +48,15 @@ const TYPE_LABELS: Record<ChannelType, string> = {
   WEB_CHAT: "Chat Web",
   INSTAGRAM: "Instagram",
 };
+
+const STATUS_BADGE_CLASS: Record<ChannelStatus, string> = {
+  ACTIVE: "badge badge-success",
+  INACTIVE: "badge badge-danger",
+};
+
+const STATUS_LABEL = Object.fromEntries(
+  CHANNEL_STATUS_OPTIONS.map((option) => [option.value, option.label]),
+) as Record<ChannelStatus, string>;
 
 const POSITION_OPTIONS: Array<{ value: ChatWidgetPosition; label: string }> = [
   { value: "bottom-right", label: "Inferior derecha" },
@@ -90,17 +99,7 @@ export default function Channels() {
     [],
   );
 
-  const {
-    data,
-    loading,
-    error,
-    reload,
-    search,
-    setSearch,
-    values,
-    set,
-    clear,
-  } = useFilteredList(buildFetcher, {
+  const { data, loading, reload, set } = useFilteredList(buildFetcher, {
     type: "",
     status: "",
   });
@@ -511,109 +510,6 @@ export default function Channels() {
     }
   }
 
-  function channelActions(channel: Channel): EntityAction[] {
-    const actions: EntityAction[] = [];
-
-    if (canChangeStatus) {
-      actions.push(
-        channel.status === "ACTIVE"
-          ? {
-              icon: "power",
-              ariaLabel: "Desactivar",
-              onClick: () => handleStatusChange(channel, "INACTIVE"),
-              variant: "secondary",
-            }
-          : {
-              icon: "power",
-              ariaLabel: "Activar",
-              onClick: () => handleStatusChange(channel, "ACTIVE"),
-              variant: "primary",
-            },
-      );
-    }
-
-    if (canEdit) {
-      actions.push({
-        icon: "edit",
-        ariaLabel: "Editar",
-        onClick: () => openEdit(channel),
-        variant: "secondary",
-      });
-    }
-
-    if (canDelete) {
-      actions.push({
-        icon: "trash",
-        ariaLabel: "Eliminar",
-        onClick: () => handleDelete(channel),
-        variant: "danger",
-      });
-    }
-
-    return actions;
-  }
-
-  function channelFields(channel: Channel): Array<{
-    label: string;
-    value: string;
-  }> {
-    const fields: Array<{ label: string; value: string }> = [];
-
-    if (channel.type === "WHATSAPP") {
-      fields.push({
-        label: "Teléfono",
-        value: channel.config.phoneNumber ?? "—",
-      });
-
-      if (channel.config.phoneNumberId) {
-        fields.push({
-          label: "ID de número",
-          value: channel.config.phoneNumberId,
-        });
-      }
-    }
-
-    if (channel.type === "INSTAGRAM") {
-      fields.push({
-        label: "Cuenta",
-        value: channel.config.instagramAccountId ?? "—",
-      });
-    }
-
-    if (channel.type === "WEB_CHAT") {
-      fields.push({
-        label: "Widget",
-        value: channel.config.widget?.title ?? "Configurado",
-      });
-    }
-
-    fields.push(
-      {
-        label: "Token",
-        value: channel.credentialsConfigured.accessToken
-          ? "Configurado"
-          : "No configurado",
-      },
-      {
-        label: "Webhook",
-        value: channel.credentialsConfigured.webhookSecret
-          ? "Configurado"
-          : "No configurado",
-      },
-    );
-
-    const webhookUrl = webhookUrlFor(channel);
-
-    if (webhookUrl) {
-      fields.push({
-        label: "URL del webhook",
-        value: webhookUrl,
-      });
-    }
-
-    return fields;
-  }
-
   const isEdit = modal?.mode === "edit";
   const modalChannel = isEdit
     ? (modal as { mode: "edit"; channel: Channel }).channel
@@ -621,6 +517,137 @@ export default function Channels() {
   const modalWebhookUrl = modalChannel
     ? webhookUrlFor(modalChannel)
     : undefined;
+
+  const channelFilters = useMemo<FilterOptionI[]>(
+    () => [
+      {
+        key: "type",
+        label: "Canal",
+        type: "select",
+        options: CHANNEL_TYPE_OPTIONS.map((option) => ({
+          label: option.label,
+          value: option.value,
+        })),
+      },
+      {
+        key: "status",
+        label: "Estado",
+        type: "select",
+        options: CHANNEL_STATUS_OPTIONS.map((option) => ({
+          label: option.label,
+          value: option.value,
+        })),
+      },
+    ],
+    [],
+  );
+
+  const columns: ColumnSpec<Channel>[] = [
+    {
+      key: "name",
+      label: "Nombre",
+      render: (channel) => (
+        <div className="cell-main">
+          <strong>{channel.name}</strong>
+          <span className="cell-sub">{TYPE_LABELS[channel.type]}</span>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Estado",
+      render: (channel) => (
+        <span className={STATUS_BADGE_CLASS[channel.status]}>
+          {STATUS_LABEL[channel.status]}
+        </span>
+      ),
+    },
+    {
+      key: "webhook",
+      label: "Webhook / Enlace",
+      render: (channel) => {
+        const url = webhookUrlFor(channel) ?? publicChatUrl();
+
+        if (!url) {
+          return "—";
+        }
+
+        const isPublicLink = !webhookUrlFor(channel);
+
+        return (
+          <div className="cell-webhook">
+            <code className="cell-webhook__url" title={url}>
+              {url}
+            </code>
+            <button
+              type="button"
+              className="btn-icon-action"
+              title="Copiar URL"
+              aria-label="Copiar URL"
+              onClick={() => {
+                if (isPublicLink) {
+                  void handleCopyPublicLink(url);
+                } else {
+                  void handleCopyWebhook(url);
+                }
+              }}
+            >
+              <Copy size={14} />
+            </button>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "",
+      align: "right",
+      render: (channel) => (
+        <div className="row-actions">
+          {canChangeStatus && (
+            <button
+              type="button"
+              className="btn-icon-action"
+              title={channel.status === "ACTIVE" ? "Desactivar" : "Activar"}
+              aria-label={
+                channel.status === "ACTIVE" ? "Desactivar" : "Activar"
+              }
+              onClick={() =>
+                handleStatusChange(
+                  channel,
+                  channel.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
+                )
+              }
+            >
+              <Power size={16} />
+            </button>
+          )}
+          {canEdit && (
+            <button
+              type="button"
+              className="btn-icon-action"
+              title="Editar"
+              aria-label="Editar"
+              onClick={() => openEdit(channel)}
+            >
+              <Edit2 size={16} />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              className="btn-icon-action btn-danger"
+              title="Eliminar"
+              aria-label="Eliminar"
+              onClick={() => handleDelete(channel)}
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <main>
@@ -636,90 +663,18 @@ export default function Channels() {
         }
       />
 
-      <FilterPanel
-        fields={CHANNEL_FILTER_FIELDS}
-        values={values}
-        onSet={set}
-        onClear={clear}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nombre..."
+      <DataListView<Channel>
+        items={data?.data ?? []}
+        columns={columns}
+        rowKey={(channel) => channel.id}
+        filters={channelFilters}
+        loading={loading}
+        emptyState="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
+        onFilterChange={(filters) => {
+          set("type", filters.type ?? "");
+          set("status", filters.status ?? "");
+        }}
       />
-
-      {loading ? (
-        <LoadingOverlay
-          title="Cargando canales..."
-          message="Esto puede tomar unos segundos"
-        />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : !data || data.data.length === 0 ? (
-        <EmptyState
-          title="No hay canales"
-          message="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
-        >
-          {canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
-              Nuevo canal
-            </Button>
-          )}
-        </EmptyState>
-      ) : (
-        <section className="entity-grid">
-          {data.data.map((channel) => (
-            <EntityCard
-              key={channel.id}
-              eyebrow={TYPE_LABELS[channel.type]}
-              title={channel.name}
-              status={channel.status}
-              fields={channelFields(channel)}
-              actions={channelActions(channel)}
-            >
-              {webhookUrlFor(channel) && (
-                <div className="channel-webhook">
-                  <span className="channel-webhook__label">Webhook</span>
-                  <code className="channel-webhook__url">
-                    {webhookUrlFor(channel)}
-                  </code>
-                  <Button
-                    icon="link"
-                    variant="secondary"
-                    onClick={() => {
-                      const url = webhookUrlFor(channel);
-                      if (url) {
-                        void handleCopyWebhook(url);
-                      }
-                    }}
-                  >
-                    Copiar
-                  </Button>
-                </div>
-              )}
-
-              {channel.type === "WEB_CHAT" && publicChatUrl() && (
-                <div className="channel-webhook">
-                  <span className="channel-webhook__label">Enlace público</span>
-                  <code className="channel-webhook__url">
-                    {publicChatUrl()}
-                  </code>
-                  <Button
-                    icon="link"
-                    variant="secondary"
-                    onClick={() => {
-                      const url = publicChatUrl();
-                      if (url) {
-                        void handleCopyPublicLink(url);
-                      }
-                    }}
-                  >
-                    Copiar
-                  </Button>
-                </div>
-              )}
-            </EntityCard>
-          ))}
-        </section>
-      )}
 
       <Modal
         open={modal !== null}

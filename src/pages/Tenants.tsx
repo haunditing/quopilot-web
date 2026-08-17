@@ -1,20 +1,18 @@
 import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
+import { Ban, Eye, Power } from "lucide-react";
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
-import EntityCard from "../components/EntityCard.js";
-import type { EntityAction } from "../components/EntityCard.js";
 import Field from "../components/Field.js";
-import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import PasswordStrength from "../components/PasswordStrength.js";
 import StatusBadge from "../components/StatusBadge.js";
 import Tabs from "../components/Tabs.js";
-import { TENANT_FILTER_FIELDS } from "../config/filters.js";
+import DataListView from "../components/DataListView/DataListView.js";
+import type { ColumnSpec } from "../components/DataListView/types.js";
+import { USER_STATUS_OPTIONS } from "../config/filters.js";
 import { CURRENCY_OPTIONS, TIMEZONE_OPTIONS } from "../config/options.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
@@ -77,6 +75,16 @@ const STATUS_ACTIONS: Record<
   },
 };
 
+const STATUS_BADGE_CLASS: Record<TenantStatus, string> = {
+  ACTIVE: "badge badge-success",
+  INACTIVE: "badge badge-danger",
+  SUSPENDED: "badge badge-warning",
+};
+
+const STATUS_LABEL = Object.fromEntries(
+  USER_STATUS_OPTIONS.map((option) => [option.value, option.label]),
+) as Record<TenantStatus, string>;
+
 export default function Tenants() {
   const buildFetcher = useCallback(
     (params: { search: string; status: string }) => () =>
@@ -86,17 +94,9 @@ export default function Tenants() {
       }),
     [],
   );
-  const {
-    data,
-    loading,
-    error,
-    reload,
-    search,
-    setSearch,
-    values,
-    set,
-    clear,
-  } = useFilteredList(buildFetcher, { status: "" });
+  const { data, loading, error, reload, set } = useFilteredList(buildFetcher, {
+    status: "",
+  });
 
   const role = getUserRole();
   const canCreate = can(role, "tenants", "create");
@@ -329,78 +329,136 @@ export default function Tenants() {
     }
   }
 
-  async function handleStatusChange(tenant: Tenant, nextStatus: TenantStatus) {
-    const statusAction = STATUS_ACTIONS[nextStatus];
-    const confirmed = await confirm({
-      title: `${statusAction.label} tenant`,
-      message: `¿${statusAction.label} a "${tenant.name}"? ${statusAction.message}`,
-      confirmLabel: statusAction.label,
-      danger: statusAction.danger,
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await updateTenantStatus(tenant._id, nextStatus);
-
-      reload();
-      toast.success(`Tenant ${statusAction.label.toLowerCase()}`);
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible cambiar el estado",
-      );
-    }
-  }
-
-  function buildActions(tenant: Tenant): EntityAction[] {
-    const actions: EntityAction[] = [
-      {
-        icon: "eye",
-        ariaLabel: "Ver",
-        variant: "secondary",
-        onClick: () => openView(tenant),
-      },
-    ];
-
-    if (!canChangeStatus) {
-      return actions;
-    }
-
-    if (tenant.status === "ACTIVE") {
-      actions.push(
-        {
-          icon: "power",
-          ariaLabel: "Desactivar",
-          variant: "secondary",
-          onClick: () => handleStatusChange(tenant, "INACTIVE"),
-        },
-        {
-          icon: "block",
-          ariaLabel: "Suspender",
-          variant: "danger",
-          onClick: () => handleStatusChange(tenant, "SUSPENDED"),
-        },
-      );
-    } else {
-      actions.push({
-        icon: "power",
-        ariaLabel: "Activar",
-        onClick: () => handleStatusChange(tenant, "ACTIVE"),
+  const handleStatusChange = useCallback(
+    async (tenant: Tenant, nextStatus: TenantStatus) => {
+      const statusAction = STATUS_ACTIONS[nextStatus];
+      const confirmed = await confirm({
+        title: `${statusAction.label} tenant`,
+        message: `¿${statusAction.label} a "${tenant.name}"? ${statusAction.message}`,
+        confirmLabel: statusAction.label,
+        danger: statusAction.danger,
       });
-    }
 
-    return actions;
-  }
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await updateTenantStatus(tenant._id, nextStatus);
+
+        reload();
+        toast.success(`Tenant ${statusAction.label.toLowerCase()}`);
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible cambiar el estado",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
 
   if (error) {
     return <PageState kind="error" title="Error en tenants" message={error} />;
   }
 
   const tenants = data?.data ?? [];
+
+  const columns: ColumnSpec<Tenant>[] = [
+    {
+      key: "name",
+      label: "Tenant",
+      render: (tenant) => (
+        <div className="cell-main">
+          <strong>{tenant.name}</strong>
+          {tenant.legalName && (
+            <span className="cell-sub">{tenant.legalName}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "email",
+      label: "Email",
+      render: (tenant) => tenant.email || "—",
+    },
+    {
+      key: "country",
+      label: "País",
+      render: (tenant) => tenant.country || "—",
+    },
+    {
+      key: "currency",
+      label: "Moneda",
+      render: (tenant) => tenant.currency,
+    },
+    {
+      key: "status",
+      label: "Estado",
+      render: (tenant) => (
+        <span className={STATUS_BADGE_CLASS[tenant.status]}>
+          {STATUS_LABEL[tenant.status]}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      label: "Registro",
+      render: (tenant) => formatDate(tenant.createdAt),
+    },
+    {
+      key: "actions",
+      label: "",
+      align: "right",
+      render: (tenant) => (
+        <div className="row-actions">
+          <button
+            type="button"
+            className="btn-icon-action"
+            title="Ver"
+            aria-label="Ver"
+            onClick={() => openView(tenant)}
+          >
+            <Eye size={16} />
+          </button>
+          {canChangeStatus && tenant.status === "ACTIVE" && (
+            <>
+              <button
+                type="button"
+                className="btn-icon-action"
+                title="Desactivar"
+                aria-label="Desactivar"
+                onClick={() => handleStatusChange(tenant, "INACTIVE")}
+              >
+                <Power size={16} />
+              </button>
+              <button
+                type="button"
+                className="btn-icon-action btn-danger"
+                title="Suspender"
+                aria-label="Suspender"
+                onClick={() => handleStatusChange(tenant, "SUSPENDED")}
+              >
+                <Ban size={16} />
+              </button>
+            </>
+          )}
+          {canChangeStatus && tenant.status !== "ACTIVE" && (
+            <button
+              type="button"
+              className="btn-icon-action"
+              title="Activar"
+              aria-label="Activar"
+              onClick={() => handleStatusChange(tenant, "ACTIVE")}
+            >
+              <Power size={16} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <main>
@@ -416,57 +474,27 @@ export default function Tenants() {
         }
       />
 
-      <FilterPanel
-        fields={TENANT_FILTER_FIELDS}
-        values={values}
-        onSet={set}
-        onClear={clear}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nombre, email o NIT..."
+      <DataListView<Tenant>
+        items={tenants}
+        columns={columns}
+        rowKey={(tenant) => tenant._id}
+        filters={[
+          {
+            key: "status",
+            label: "Estado",
+            type: "select",
+            options: USER_STATUS_OPTIONS.map((option) => ({
+              label: option.label,
+              value: option.value,
+            })),
+          },
+        ]}
+        loading={loading}
+        emptyState="Todavía no existen tenants para mostrar con los filtros actuales"
+        onFilterChange={(filters) => {
+          set("status", filters.status ?? "");
+        }}
       />
-
-      {loading ? (
-        <LoadingOverlay
-          title="Cargando tenants..."
-          message="Esto puede tomar unos segundos"
-        />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : tenants.length === 0 ? (
-        <EmptyState
-          title="No hay tenants"
-          message="Todavía no existen tenants para mostrar con los filtros actuales."
-        />
-      ) : (
-        <section className="entity-grid">
-          {tenants.map((tenant) => (
-            <EntityCard
-              key={tenant._id}
-              eyebrow="Tenant"
-              title={tenant.name}
-              status={tenant.status}
-              fields={[
-                ...(tenant.email
-                  ? [{ label: "Email", value: tenant.email }]
-                  : []),
-                ...(tenant.country
-                  ? [{ label: "País", value: tenant.country }]
-                  : []),
-                { label: "Moneda", value: tenant.currency },
-                { label: "Zona horaria", value: tenant.timezone },
-                ...(tenant.taxId
-                  ? [{ label: "NIT", value: tenant.taxId }]
-                  : []),
-                ...(tenant.legalName
-                  ? [{ label: "Razón social", value: tenant.legalName }]
-                  : []),
-              ]}
-              actions={buildActions(tenant)}
-            />
-          ))}
-        </section>
-      )}
 
       <Modal open={createOpen} title="Nuevo tenant" onClose={closeCreate}>
         <form className="modal__form" onSubmit={handleCreate}>
@@ -777,13 +805,12 @@ export default function Tenants() {
                           <StatusBadge status={user.status} />
                         </div>
                       </li>
-                    ))}
-                  </ul>
+                     ))}
+                   </ul>
                 ) : (
-                  <EmptyState
-                    title="Sin usuarios"
-                    message="Este tenant todavía no tiene usuarios registrados."
-                  />
+                  <FormMessage kind="info">
+                    Este tenant todavía no tiene usuarios registrados.
+                  </FormMessage>
                 ))}
             </div>
           </div>

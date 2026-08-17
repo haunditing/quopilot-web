@@ -70,7 +70,7 @@ if (loading) {
   return (
     <main className="quote-print-page">
       <div className="quote-print-page__toolbar">
-        <Button icon="print" onClick={() => handlePrint()}>
+        <Button icon="print" iconOnly onClick={() => handlePrint()}>
           Imprimir / Guardar PDF
         </Button>
       </div>

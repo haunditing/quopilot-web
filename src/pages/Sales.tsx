@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import EmptyState from "../components/EmptyState.js";
-import EntityCard from "../components/EntityCard.js";
-import type { EntityAction } from "../components/EntityCard.js";
-import FilterPanel from "../components/FilterPanel.js";
+import { Eye, Trash2 } from "lucide-react";
+
 import PageHeader from "../components/PageHeader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
 import StatCard from "../components/StatCard.js";
-import { SALE_FILTER_FIELDS } from "../config/filters.js";
+import DataListView from "../components/DataListView/DataListView.js";
+import type {
+  ColumnSpec,
+  FilterOptionI,
+} from "../components/DataListView/types.js";
+import { SALE_STATUS_OPTIONS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
@@ -18,7 +20,16 @@ import { getProducts } from "../services/product-service.js";
 import { deleteSale, getSales } from "../services/sale-service.js";
 import type { Customer } from "../types/customer.js";
 import type { Product } from "../types/product.js";
-import type { Sale } from "../types/sale.js";
+import type { Sale, SaleStatus } from "../types/sale.js";
+
+const STATUS_BADGE_CLASS: Record<SaleStatus, string> = {
+  CONFIRMED: "badge badge-success",
+  CANCELLED: "badge badge-danger",
+};
+
+const STATUS_LABEL = Object.fromEntries(
+  SALE_STATUS_OPTIONS.map((option) => [option.value, option.label]),
+) as Record<SaleStatus, string>;
 
 export default function Sales() {
   const navigate = useNavigate();
@@ -32,33 +43,20 @@ export default function Sales() {
       status: string;
       customerId: string;
       productId: string;
-      totalFrom: string;
-      totalTo: string;
-      dateFrom: string;
-      dateTo: string;
     }) => () =>
       getSales({
         search: params.search || undefined,
         status: params.status || undefined,
         customerId: params.customerId || undefined,
         productId: params.productId || undefined,
-        minTotal: params.totalFrom ? Number(params.totalFrom) : undefined,
-        maxTotal: params.totalTo ? Number(params.totalTo) : undefined,
-        dateFrom: params.dateFrom || undefined,
-        dateTo: params.dateTo || undefined,
       }),
     [],
   );
-  const { data, loading, error, reload, search, setSearch, values, set, clear } =
-    useFilteredList(buildFetcher, {
-      status: "",
-      customerId: "",
-      productId: "",
-      totalFrom: "",
-      totalTo: "",
-      dateFrom: "",
-      dateTo: "",
-    });
+  const { data, loading, error, reload, set } = useFilteredList(buildFetcher, {
+    status: "",
+    customerId: "",
+    productId: "",
+  });
 
   const toast = useToast();
   const { confirm } = useConfirm();
@@ -83,46 +81,138 @@ export default function Sales() {
     };
   }, []);
 
-  async function handleDelete(sale: Sale) {
-    const confirmed = await confirm({
-      title: "Eliminar venta",
-      message: `¿Eliminar la venta ${sale.number}? Esta acción no se puede deshacer.`,
-      confirmLabel: "Eliminar",
-      danger: true,
-    });
+  const handleDelete = useCallback(
+    async (sale: Sale) => {
+      const confirmed = await confirm({
+        title: "Eliminar venta",
+        message: `¿Eliminar la venta ${sale.number}? Esta acción no se puede deshacer.`,
+        confirmLabel: "Eliminar",
+        danger: true,
+      });
 
-    if (!confirmed) {
-      return;
-    }
+      if (!confirmed) {
+        return;
+      }
 
-    try {
-      await deleteSale(sale._id);
-      reload();
-      toast.success("Venta eliminada");
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible eliminar la venta",
-      );
-    }
-  }
+      try {
+        await deleteSale(sale._id);
+        reload();
+        toast.success("Venta eliminada");
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible eliminar la venta",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
 
-  function saleActions(sale: Sale): EntityAction[] {
-    return [
+  const customerNameById = useMemo(
+    () => new Map(customers.map((customer) => [customer._id, customer.name])),
+    [customers],
+  );
+
+  const saleFilters = useMemo<FilterOptionI[]>(
+    () => [
       {
-        icon: "eye",
-        ariaLabel: "Ver detalle",
-        onClick: () => navigate(`/sales/${sale._id}`),
-        variant: "secondary",
+        key: "status",
+        label: "Estado",
+        type: "select",
+        options: SALE_STATUS_OPTIONS.map((option) => ({
+          label: option.label,
+          value: option.value,
+        })),
       },
       {
-        icon: "trash",
-        ariaLabel: "Eliminar",
-        onClick: () => handleDelete(sale),
-        variant: "danger",
+        key: "customerId",
+        label: "Cliente",
+        type: "select",
+        options: customers.map((customer) => ({
+          label: customer.name,
+          value: customer._id,
+        })),
       },
-    ];
+      {
+        key: "productId",
+        label: "Producto",
+        type: "select",
+        options: products.map((product) => ({
+          label: product.name,
+          value: product._id,
+        })),
+      },
+    ],
+    [customers, products],
+  );
+
+  const columns = useMemo<ColumnSpec<Sale>[]>(
+    () => [
+      {
+        key: "number",
+        label: "Número",
+        render: (sale) => <strong>{sale.number}</strong>,
+      },
+      {
+        key: "customerId",
+        label: "Cliente",
+        render: (sale) =>
+          customerNameById.get(sale.customerId) ?? "Cliente eliminado",
+      },
+      {
+        key: "status",
+        label: "Estado",
+        render: (sale) => (
+          <span className={STATUS_BADGE_CLASS[sale.status]}>
+            {STATUS_LABEL[sale.status]}
+          </span>
+        ),
+      },
+      {
+        key: "total",
+        label: "Total",
+        align: "right",
+        render: (sale) => formatCurrency(sale.total, sale.currency),
+      },
+      {
+        key: "soldAt",
+        label: "Fecha",
+        render: (sale) => formatDate(sale.soldAt),
+      },
+      {
+        key: "actions",
+        label: "",
+        align: "right",
+        render: (sale) => (
+          <div className="row-actions">
+            <button
+              type="button"
+              className="btn-icon-action"
+              title="Ver detalle"
+              aria-label="Ver detalle"
+              onClick={() => navigate(`/sales/${sale._id}`)}
+            >
+              <Eye size={16} />
+            </button>
+            <button
+              type="button"
+              className="btn-icon-action btn-danger"
+              title="Eliminar"
+              aria-label="Eliminar"
+              onClick={() => handleDelete(sale)}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [customerNameById, navigate, handleDelete],
+  );
+
+  if (error) {
+    return <PageState kind="error" title="No fue posible cargar" message={error} />;
   }
 
   const sales = data?.data ?? [];
@@ -134,29 +224,7 @@ export default function Sales() {
 
   return (
     <main>
-      <PageHeader
-        title="Ventas"
-        description={`${sales.length} ventas`}
-      />
-
-      <FilterPanel
-        fields={SALE_FILTER_FIELDS({
-          customers: customers.map((customer) => ({
-            value: customer._id,
-            label: customer.name,
-          })),
-          products: products.map((product) => ({
-            value: product._id,
-            label: product.name,
-          })),
-        })}
-        values={values}
-        onSet={set}
-        onClear={clear}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar por número de venta..."
-      />
+      <PageHeader title="Ventas" description={`${sales.length} ventas`} />
 
       <section className="sales-summary">
         <StatCard label="Ventas" value={String(sales.length)} />
@@ -168,35 +236,19 @@ export default function Sales() {
         />
       </section>
 
-      {loading ? (
-        <LoadingOverlay title="Cargando ventas..." message="Esto puede tomar unos segundos" />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : sales.length === 0 ? (
-        <EmptyState
-          title="No hay ventas"
-          message="Todavía no existen ventas para mostrar con los filtros actuales."
-        />
-      ) : (
-        <section className="entity-grid sales-list">
-          {sales.map((sale) => (
-            <EntityCard
-              key={sale._id}
-              eyebrow="Venta"
-              title={sale.number}
-              status={sale.status}
-              fields={[
-                {
-                  label: "Total",
-                  value: formatCurrency(sale.total, sale.currency),
-                },
-                { label: "Fecha", value: formatDate(sale.soldAt) },
-              ]}
-              actions={saleActions(sale)}
-            />
-          ))}
-        </section>
-      )}
+      <DataListView<Sale>
+        items={sales}
+        columns={columns}
+        rowKey={(sale) => sale._id}
+        filters={saleFilters}
+        loading={loading}
+        emptyState="Todavía no existen ventas para mostrar con los filtros actuales"
+        onFilterChange={(filters) => {
+          set("status", filters.status ?? "");
+          set("customerId", filters.customerId ?? "");
+          set("productId", filters.productId ?? "");
+        }}
+      />
     </main>
   );
 }

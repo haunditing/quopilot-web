@@ -32,7 +32,7 @@ export default function DataListView<T extends object>({
     {},
   );
 
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [openChipKey, setOpenChipKey] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);

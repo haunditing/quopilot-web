@@ -1,18 +1,15 @@
 import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
+import { Ban, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
-import EntityCard from "../components/EntityCard.js";
-import type { EntityAction } from "../components/EntityCard.js";
 import Field from "../components/Field.js";
-import FilterPanel from "../components/FilterPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
-import PageState from "../components/PageState.js";
 import PasswordStrength from "../components/PasswordStrength.js";
-import { USER_FILTER_FIELDS } from "../config/filters.js";
+import DataListView from "../components/DataListView/DataListView.js";
+import type { ColumnSpec } from "../components/DataListView/types.js";
+import { USER_STATUS_OPTIONS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
@@ -51,24 +48,28 @@ const STATUS_ACTIONS: Record<
   },
 };
 
+const STATUS_BADGE_CLASS: Record<UserStatus, string> = {
+  ACTIVE: "badge badge-success",
+  INACTIVE: "badge badge-danger",
+  SUSPENDED: "badge badge-warning",
+};
+
+const STATUS_LABEL = Object.fromEntries(
+  USER_STATUS_OPTIONS.map((option) => [option.value, option.label]),
+) as Record<UserStatus, string>;
+
 export default function Users() {
   const buildFetcher = useCallback(
-    (params: {
-      search: string;
-      status: string;
-      dateFrom: string;
-      dateTo: string;
-    }) => () =>
+    (params: { search: string; status: string }) => () =>
       getUsers({
         search: params.search || undefined,
         status: params.status ? (params.status as UserStatus) : undefined,
-        dateFrom: params.dateFrom || undefined,
-        dateTo: params.dateTo || undefined,
       }),
     [],
   );
-  const { data, loading, error, reload, search, setSearch, values, set, clear } =
-    useFilteredList(buildFetcher, { status: "", dateFrom: "", dateTo: "" });
+  const { data, loading, reload, set } = useFilteredList(buildFetcher, {
+    status: "",
+  });
 
   const role = getUserRole();
   const canCreate = can(role, "users", "create");
@@ -198,112 +199,159 @@ export default function Users() {
     }
   }
 
-  async function handleStatusChange(user: User, status: UserStatus) {
-    const statusAction = STATUS_ACTIONS[status];
-    const confirmed = await confirm({
-      title: `${statusAction.label} agente`,
-      message: `¿${statusAction.label} a "${user.name}"? ${statusAction.message}`,
-      confirmLabel: statusAction.label,
-      danger: statusAction.danger,
-    });
+  const handleStatusChange = useCallback(
+    async (user: User, status: UserStatus) => {
+      const statusAction = STATUS_ACTIONS[status];
+      const confirmed = await confirm({
+        title: `${statusAction.label} agente`,
+        message: `¿${statusAction.label} a "${user.name}"? ${statusAction.message}`,
+        confirmLabel: statusAction.label,
+        danger: statusAction.danger,
+      });
 
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await updateUserStatus(user._id, status);
-      reload();
-      toast.success(`Agente ${statusAction.label.toLowerCase()}`);
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible cambiar el estado del agente",
-      );
-    }
-  }
-
-  async function handleDelete(user: User) {
-    const confirmed = await confirm({
-      title: "Eliminar agente",
-      message: `¿Eliminar al agente "${user.name}"? Esta acción no se puede deshacer.`,
-      confirmLabel: "Eliminar",
-      danger: true,
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await deleteUser(user._id);
-      reload();
-      toast.success("Agente eliminado");
-    } catch (requestError) {
-      toast.error(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible eliminar el agente",
-      );
-    }
-  }
-
-  function userActions(user: User): EntityAction[] {
-    const actions: EntityAction[] = [];
-
-    if (canChangeStatus) {
-      if (user.status === "ACTIVE") {
-        actions.push(
-          {
-            icon: "power",
-            ariaLabel: "Desactivar",
-            onClick: () => handleStatusChange(user, "INACTIVE"),
-            variant: "secondary",
-          },
-          {
-            icon: "block",
-            ariaLabel: "Suspender",
-            onClick: () => handleStatusChange(user, "SUSPENDED"),
-            variant: "danger",
-          },
-        );
-      } else {
-        actions.push({
-          icon: "power",
-          ariaLabel: "Activar",
-          onClick: () => handleStatusChange(user, "ACTIVE"),
-          variant: "primary",
-        });
+      if (!confirmed) {
+        return;
       }
-    }
 
-    if (canEdit) {
-      actions.push({
-        icon: "edit",
-        ariaLabel: "Editar",
-        onClick: () => openEdit(user),
-        variant: "secondary",
+      try {
+        await updateUserStatus(user._id, status);
+        reload();
+        toast.success(`Agente ${statusAction.label.toLowerCase()}`);
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible cambiar el estado del agente",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
+
+  const handleDelete = useCallback(
+    async (user: User) => {
+      const confirmed = await confirm({
+        title: "Eliminar agente",
+        message: `¿Eliminar al agente "${user.name}"? Esta acción no se puede deshacer.`,
+        confirmLabel: "Eliminar",
+        danger: true,
       });
-    }
 
-    if (canDelete) {
-      actions.push({
-        icon: "trash",
-        ariaLabel: "Eliminar",
-        onClick: () => handleDelete(user),
-        variant: "danger",
-      });
-    }
+      if (!confirmed) {
+        return;
+      }
 
-    return actions;
-  }
+      try {
+        await deleteUser(user._id);
+        reload();
+        toast.success("Agente eliminado");
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible eliminar el agente",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
+
+  const columns: ColumnSpec<User>[] = [
+    {
+      key: "name",
+      label: "Agente",
+      render: (user) => <strong>{user.name}</strong>,
+    },
+    {
+      key: "email",
+      label: "Email",
+      render: (user) => user.email,
+    },
+    {
+      key: "status",
+      label: "Estado",
+      render: (user) => (
+        <span className={STATUS_BADGE_CLASS[user.status]}>
+          {STATUS_LABEL[user.status]}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      label: "Creado",
+      render: (user) => new Date(user.createdAt).toLocaleDateString("es-CO"),
+    },
+    {
+      key: "actions",
+      label: "",
+      align: "right",
+      render: (user) => (
+        <div className="row-actions">
+          {canChangeStatus && user.status === "ACTIVE" && (
+            <>
+              <button
+                type="button"
+                className="btn-icon-action"
+                title="Desactivar"
+                aria-label="Desactivar"
+                onClick={() => handleStatusChange(user, "INACTIVE")}
+              >
+                <Power size={16} />
+              </button>
+              <button
+                type="button"
+                className="btn-icon-action btn-danger"
+                title="Suspender"
+                aria-label="Suspender"
+                onClick={() => handleStatusChange(user, "SUSPENDED")}
+              >
+                <Ban size={16} />
+              </button>
+            </>
+          )}
+          {canChangeStatus && user.status !== "ACTIVE" && (
+            <button
+              type="button"
+              className="btn-icon-action"
+              title="Activar"
+              aria-label="Activar"
+              onClick={() => handleStatusChange(user, "ACTIVE")}
+            >
+              <Power size={16} />
+            </button>
+          )}
+          {canEdit && (
+            <button
+              type="button"
+              className="btn-icon-action"
+              title="Editar"
+              aria-label="Editar"
+              onClick={() => openEdit(user)}
+            >
+              <Edit2 size={16} />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              className="btn-icon-action btn-danger"
+              title="Eliminar"
+              aria-label="Eliminar"
+              onClick={() => handleDelete(user)}
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <main>
       <PageHeader
         title="Usuarios"
-        description="Gestiona los agentes de tu empresa"
+        description="Gestiona los usuarios de tu empresa"
         actions={
           canCreate && (
             <Button icon="plus" iconOnly onClick={openCreate}>
@@ -313,51 +361,27 @@ export default function Users() {
         }
       />
 
-      <FilterPanel
-        fields={USER_FILTER_FIELDS}
-        values={values}
-        onSet={set}
-        onClear={clear}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nombre o email..."
+      <DataListView<User>
+        items={data?.data ?? []}
+        columns={columns}
+        rowKey={(user) => user._id}
+        filters={[
+          {
+            key: "status",
+            label: "Estado",
+            type: "select",
+            options: USER_STATUS_OPTIONS.map((option) => ({
+              label: option.label,
+              value: option.value,
+            })),
+          },
+        ]}
+        loading={loading}
+        emptyState="Crea tu primer agente para empezar a operar"
+        onFilterChange={(filters) => {
+          set("status", filters.status ?? "");
+        }}
       />
-
-      {loading ? (
-        <LoadingOverlay title="Cargando agentes..." message="Esto puede tomar unos segundos" />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : !data || data.data.length === 0 ? (
-        <EmptyState
-          title="No hay agentes"
-          message="Crea tu primer agente para empezar a operar"
-        >
-          {canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
-              Nuevo agente
-            </Button>
-          )}
-        </EmptyState>
-      ) : (
-        <section className="entity-grid">
-          {data.data.map((user) => (
-            <EntityCard
-              key={user._id}
-              eyebrow="Agente"
-              title={user.name}
-              status={user.status}
-              fields={[
-                { label: "Email", value: user.email },
-                {
-                  label: "Creado",
-                  value: new Date(user.createdAt).toLocaleDateString("es-CO"),
-                },
-              ]}
-              actions={userActions(user)}
-            />
-          ))}
-        </section>
-      )}
 
       <Modal
         open={modal !== null}
