@@ -5,6 +5,7 @@ import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
+import MaskedValue from "../components/MaskedValue.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
 import DataListView from "../components/DataListView/DataListView.js";
@@ -576,9 +577,17 @@ export default function Channels() {
 
         return (
           <div className="cell-webhook">
-            <code className="cell-webhook__url" title={url}>
-              {url}
-            </code>
+            {isPublicLink ? (
+              <MaskedValue
+                value={url}
+                asLink
+                className="cell-webhook__url cell-webhook__url--link"
+              />
+            ) : (
+              <code className="cell-webhook__url" title={url}>
+                {url}
+              </code>
+            )}
             <button
               type="button"
               className="btn-icon-action"
@@ -971,19 +980,36 @@ export default function Channels() {
           {modalChannel?.type === "WEB_CHAT" && publicChatUrl() && (
             <div className="channel-webhook channel-webhook--modal">
               <span className="channel-webhook__label">Enlace público</span>
-              <code className="channel-webhook__url">{publicChatUrl()}</code>
-              <Button
-                icon="link"
-                variant="secondary"
-                onClick={() => {
-                  const url = publicChatUrl();
-                  if (url) {
-                    void handleCopyPublicLink(url);
-                  }
-                }}
-              >
-                Copiar
-              </Button>
+              <MaskedValue
+                value={publicChatUrl() ?? ""}
+                className="channel-webhook__url"
+              />
+              <div className="channel-webhook__actions">
+                <Button
+                  icon="link"
+                  variant="secondary"
+                  onClick={() => {
+                    const url = publicChatUrl();
+                    if (url) {
+                      window.open(url, "_blank", "noopener,noreferrer");
+                    }
+                  }}
+                >
+                  Abrir
+                </Button>
+                <Button
+                  icon="link"
+                  variant="secondary"
+                  onClick={() => {
+                    const url = publicChatUrl();
+                    if (url) {
+                      void handleCopyPublicLink(url);
+                    }
+                  }}
+                >
+                  Copiar
+                </Button>
+              </div>
             </div>
           )}
 

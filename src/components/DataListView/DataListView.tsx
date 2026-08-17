@@ -293,6 +293,64 @@ export default function DataListView<T extends object>({
           </table>
         </div>
 
+        {/* Vista móvil: lista vertical tipo inbox */}
+        <div className="data-list-mobile">
+          {loading ? (
+            <div className="data-list-mobile__state">Cargando...</div>
+          ) : paginatedItems.length === 0 ? (
+            <div className="data-list-mobile__state">{emptyState}</div>
+          ) : (
+            paginatedItems.map((item) => {
+              const itemRecord = item as Record<string, unknown>;
+              const titleColumn = columns.find(
+                (col) => col.key !== "actions",
+              );
+
+              return (
+                <div key={rowKey(item)} className="data-list-mobile__item">
+                  {titleColumn && (
+                    <div className="data-list-mobile__title">
+                      {titleColumn.render
+                        ? titleColumn.render(item)
+                        : String(itemRecord[titleColumn.key] ?? "—")}
+                    </div>
+                  )}
+
+                  <div className="data-list-mobile__details">
+                    {columns
+                      .filter(
+                        (col) =>
+                          col.key !== "actions" &&
+                          col.key !== titleColumn?.key,
+                      )
+                      .map((col) => (
+                        <div key={col.key} className="data-list-mobile__detail">
+                          <span className="data-list-mobile__detail-label">
+                            {col.label}
+                          </span>
+
+                          <span className="data-list-mobile__detail-value">
+                            {col.render
+                              ? col.render(item)
+                              : String(itemRecord[col.key] ?? "—")}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+
+                  {columns.some((col) => col.key === "actions") && (
+                    <div className="data-list-mobile__actions">
+                      {columns
+                        .find((col) => col.key === "actions")
+                        ?.render?.(item)}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Paginación */}
         <div className="pagination-container">
           <div className="pagination-left">
