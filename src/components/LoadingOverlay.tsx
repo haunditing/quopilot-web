@@ -50,13 +50,13 @@ export default function LoadingOverlay({
   size = "md",
   className,
 }: LoadingOverlayProps) {
-  const spinnerSize = sizeMap[size];
   return (
     <main
       className={`page-state page-state--loading ${className || ""}`}
       style={{
-        width: `${spinnerSize}px`,
-        height: `${spinnerSize}px`,
+        width: "100%",
+        display: "block",
+        margin: "0 auto",
       }}
     >
       <Spinner size={size} className="page-state__spinner" />

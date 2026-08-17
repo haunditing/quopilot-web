@@ -11,7 +11,10 @@ import Icon from "../components/Icon.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
-import { CHANNEL_FILTER_FIELDS, CHANNEL_TYPE_OPTIONS } from "../config/filters.js";
+import {
+  CHANNEL_FILTER_FIELDS,
+  CHANNEL_TYPE_OPTIONS,
+} from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
@@ -33,6 +36,7 @@ import type {
   ChannelType,
   ChatWidgetPosition,
 } from "../types/channel.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 
 type ChannelModal =
   | { mode: "create" }
@@ -86,11 +90,20 @@ export default function Channels() {
     [],
   );
 
-  const { data, loading, error, reload, search, setSearch, values, set, clear } =
-    useFilteredList(buildFetcher, {
-      type: "",
-      status: "",
-    });
+  const {
+    data,
+    loading,
+    error,
+    reload,
+    search,
+    setSearch,
+    values,
+    set,
+    clear,
+  } = useFilteredList(buildFetcher, {
+    type: "",
+    status: "",
+  });
 
   const role = getUserRole();
   const tenantId = getUser()?.tenantId;
@@ -131,7 +144,13 @@ export default function Channels() {
 
   const webChatDefaultsApplied = useRef(false);
   const tenantNamePromiseRef = useRef<Promise<string> | null>(null);
-  const formStateRef = useRef({ modal, type, name, widgetTitle, widgetGreeting });
+  const formStateRef = useRef({
+    modal,
+    type,
+    name,
+    widgetTitle,
+    widgetGreeting,
+  });
 
   useEffect(() => {
     formStateRef.current = {
@@ -334,7 +353,11 @@ export default function Channels() {
       hasErrors = true;
     }
 
-    if (type === "WHATSAPP" && modal?.mode === "create" && !phoneNumber.trim()) {
+    if (
+      type === "WHATSAPP" &&
+      modal?.mode === "create" &&
+      !phoneNumber.trim()
+    ) {
       setConfigError("El número de teléfono es obligatorio");
       hasErrors = true;
     }
@@ -348,7 +371,11 @@ export default function Channels() {
       hasErrors = true;
     }
 
-    if (type === "WEB_CHAT" && widgetColor.trim() && !isValidHexColor(widgetColor)) {
+    if (
+      type === "WEB_CHAT" &&
+      widgetColor.trim() &&
+      !isValidHexColor(widgetColor)
+    ) {
       setColorError("Usa un color hexadecimal válido, por ejemplo #2563eb");
       hasErrors = true;
     }
@@ -367,9 +394,7 @@ export default function Channels() {
           ...(Object.keys(buildConfig()).length > 0
             ? { config: buildConfig() }
             : {}),
-          ...(buildCredentials()
-            ? { credentials: buildCredentials() }
-            : {}),
+          ...(buildCredentials() ? { credentials: buildCredentials() } : {}),
         });
 
         toast.success("Cambios guardados");
@@ -378,9 +403,7 @@ export default function Channels() {
           type,
           name: name.trim(),
           config: buildConfig(),
-          ...(buildCredentials()
-            ? { credentials: buildCredentials() }
-            : {}),
+          ...(buildCredentials() ? { credentials: buildCredentials() } : {}),
         });
 
         toast.success("Canal creado");
@@ -592,8 +615,12 @@ export default function Channels() {
   }
 
   const isEdit = modal?.mode === "edit";
-  const modalChannel = isEdit ? (modal as { mode: "edit"; channel: Channel }).channel : null;
-  const modalWebhookUrl = modalChannel ? webhookUrlFor(modalChannel) : undefined;
+  const modalChannel = isEdit
+    ? (modal as { mode: "edit"; channel: Channel }).channel
+    : null;
+  const modalWebhookUrl = modalChannel
+    ? webhookUrlFor(modalChannel)
+    : undefined;
 
   return (
     <main>
@@ -620,7 +647,10 @@ export default function Channels() {
       />
 
       {loading ? (
-        null
+        <LoadingOverlay
+          title="Cargando canales..."
+          message="Esto puede tomar unos segundos"
+        />
       ) : error ? (
         <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : !data || data.data.length === 0 ? (
@@ -668,10 +698,10 @@ export default function Channels() {
 
               {channel.type === "WEB_CHAT" && publicChatUrl() && (
                 <div className="channel-webhook">
-                  <span className="channel-webhook__label">
-                    Enlace público
-                  </span>
-                  <code className="channel-webhook__url">{publicChatUrl()}</code>
+                  <span className="channel-webhook__label">Enlace público</span>
+                  <code className="channel-webhook__url">
+                    {publicChatUrl()}
+                  </code>
                   <Button
                     icon="link"
                     variant="secondary"
@@ -817,89 +847,89 @@ export default function Channels() {
               </div>
 
               <div className="form-card__grid">
-              <div className="form-field">
-                <label htmlFor="channel-widget-color">Color principal</label>
+                <div className="form-field">
+                  <label htmlFor="channel-widget-color">Color principal</label>
 
-                <div className="color-picker">
-                  <label
-                    className="color-picker__swatch"
-                    style={{
-                      background: swatchColor(widgetColor),
-                    }}
-                    title="Elegir color"
-                  >
+                  <div className="color-picker">
+                    <label
+                      className="color-picker__swatch"
+                      style={{
+                        background: swatchColor(widgetColor),
+                      }}
+                      title="Elegir color"
+                    >
+                      <input
+                        type="color"
+                        value={swatchColor(widgetColor)}
+                        onChange={(event) => {
+                          setWidgetColor(event.target.value);
+                          setColorError("");
+                        }}
+                      />
+                    </label>
+
                     <input
-                      type="color"
-                      value={swatchColor(widgetColor)}
+                      id="channel-widget-color"
+                      className="color-picker__value"
+                      type="text"
+                      value={widgetColor}
+                      placeholder="#2563eb"
+                      spellCheck={false}
+                      autoComplete="off"
                       onChange={(event) => {
                         setWidgetColor(event.target.value);
                         setColorError("");
                       }}
                     />
-                  </label>
 
-                  <input
-                    id="channel-widget-color"
-                    className="color-picker__value"
-                    type="text"
-                    value={widgetColor}
-                    placeholder="#2563eb"
-                    spellCheck={false}
-                    autoComplete="off"
-                    onChange={(event) => {
-                      setWidgetColor(event.target.value);
-                      setColorError("");
-                    }}
-                  />
+                    {widgetColor.trim() && (
+                      <button
+                        type="button"
+                        className="color-picker__clear"
+                        title="Quitar color personalizado"
+                        aria-label="Quitar color personalizado"
+                        onClick={() => {
+                          setWidgetColor("");
+                          setColorError("");
+                        }}
+                      >
+                        <Icon name="close" size={14} />
+                      </button>
+                    )}
+                  </div>
 
-                  {widgetColor.trim() && (
-                    <button
-                      type="button"
-                      className="color-picker__clear"
-                      title="Quitar color personalizado"
-                      aria-label="Quitar color personalizado"
-                      onClick={() => {
-                        setWidgetColor("");
-                        setColorError("");
-                      }}
-                    >
-                      <Icon name="close" size={14} />
-                    </button>
+                  <div className="color-picker__presets">
+                    {COLOR_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        className={
+                          widgetColor.trim().toLowerCase() === preset
+                            ? "color-picker__preset color-picker__preset--active"
+                            : "color-picker__preset"
+                        }
+                        style={{
+                          background: preset,
+                        }}
+                        title={preset}
+                        aria-label={`Usar color ${preset}`}
+                        onClick={() => {
+                          setWidgetColor(preset);
+                          setColorError("");
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {colorError && (
+                    <span className="form-field__error">{colorError}</span>
                   )}
-                </div>
 
-                <div className="color-picker__presets">
-                  {COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      className={
-                        widgetColor.trim().toLowerCase() === preset
-                          ? "color-picker__preset color-picker__preset--active"
-                          : "color-picker__preset"
-                      }
-                      style={{
-                        background: preset,
-                      }}
-                      title={preset}
-                      aria-label={`Usar color ${preset}`}
-                      onClick={() => {
-                        setWidgetColor(preset);
-                        setColorError("");
-                      }}
-                    />
-                  ))}
+                  <div className="form-field__helper">
+                    Color del widget en el chat público. Déjalo vacío para usar
+                    el color por defecto.
+                  </div>
                 </div>
-
-                {colorError && (
-                  <span className="form-field__error">{colorError}</span>
-                )}
-
-                <div className="form-field__helper">
-                  Color del widget en el chat público. Déjalo vacío para usar
-                  el color por defecto.
-                </div>
-              </div>
 
                 <div className="form-field">
                   <label htmlFor="channel-widget-position">Posición</label>
@@ -1011,7 +1041,11 @@ export default function Channels() {
             iconOnly
             disabled={saving}
           >
-            {saving ? "Guardando..." : isEdit ? "Guardar cambios" : "Crear canal"}
+            {saving
+              ? "Guardando..."
+              : isEdit
+                ? "Guardar cambios"
+                : "Crear canal"}
           </Button>
         </form>
       </Modal>

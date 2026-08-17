@@ -53,7 +53,7 @@ export default function Quotes() {
   const canView = can(role, "quotes", "view");
   const canCreate = can(role, "quotes", "create");
 
-if (error) {
+  if (error) {
     return (
       <PageState kind="error" title="Error en cotizaciones" message={error} />
     );
@@ -68,7 +68,11 @@ if (error) {
         description={`${quotes.length} cotizaciones`}
         actions={
           canCreate && (
-            <Button icon="plus" iconOnly onClick={() => navigate("/quotes/new")}>
+            <Button
+              icon="plus"
+              iconOnly
+              onClick={() => navigate("/quotes/new")}
+            >
               Nueva cotización
             </Button>
           )
@@ -91,14 +95,21 @@ if (error) {
       />
 
       {loading ? (
-        <LoadingOverlay title="Cargando cotizaciones..." />
+        <LoadingOverlay
+          title="Cargando cotizaciones..."
+          message="Esto puede tomar unos segundos"
+        />
       ) : quotes.length === 0 ? (
         <EmptyState
           title="No hay cotizaciones"
           message="Todavía no existen cotizaciones para mostrar."
         >
           {canCreate && (
-            <Button icon="plus" iconOnly onClick={() => navigate("/quotes/new")}>
+            <Button
+              icon="plus"
+              iconOnly
+              onClick={() => navigate("/quotes/new")}
+            >
               Nueva cotización
             </Button>
           )}

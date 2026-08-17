@@ -86,8 +86,17 @@ export default function Tenants() {
       }),
     [],
   );
-  const { data, loading, error, reload, search, setSearch, values, set, clear } =
-    useFilteredList(buildFetcher, { status: "" });
+  const {
+    data,
+    loading,
+    error,
+    reload,
+    search,
+    setSearch,
+    values,
+    set,
+    clear,
+  } = useFilteredList(buildFetcher, { status: "" });
 
   const role = getUserRole();
   const canCreate = can(role, "tenants", "create");
@@ -320,10 +329,7 @@ export default function Tenants() {
     }
   }
 
-  async function handleStatusChange(
-    tenant: Tenant,
-    nextStatus: TenantStatus,
-  ) {
+  async function handleStatusChange(tenant: Tenant, nextStatus: TenantStatus) {
     const statusAction = STATUS_ACTIONS[nextStatus];
     const confirmed = await confirm({
       title: `${statusAction.label} tenant`,
@@ -390,10 +396,6 @@ export default function Tenants() {
     return actions;
   }
 
-if (loading) {
-    return <LoadingOverlay title="Cargando tenants..." />;
-}
-
   if (error) {
     return <PageState kind="error" title="Error en tenants" message={error} />;
   }
@@ -407,11 +409,7 @@ if (loading) {
         description={`${tenants.length} tenants`}
         actions={
           canCreate && (
-            <Button
-              icon="plus"
-              iconOnly
-              onClick={() => setCreateOpen(true)}
-            >
+            <Button icon="plus" iconOnly onClick={() => setCreateOpen(true)}>
               Nuevo tenant
             </Button>
           )
@@ -428,10 +426,17 @@ if (loading) {
         searchPlaceholder="Buscar por nombre, email o NIT..."
       />
 
-      {tenants.length === 0 ? (
+      {loading ? (
+        <LoadingOverlay
+          title="Cargando tenants..."
+          message="Esto puede tomar unos segundos"
+        />
+      ) : error ? (
+        <PageState kind="error" title="No fue posible cargar" message={error} />
+      ) : tenants.length === 0 ? (
         <EmptyState
           title="No hay tenants"
-          message="Todavía no existen tenants para mostrar."
+          message="Todavía no existen tenants para mostrar con los filtros actuales."
         />
       ) : (
         <section className="entity-grid">
@@ -635,120 +640,120 @@ if (loading) {
             <div className="tenant-view__tab-content">
               {viewTab === "general" && (
                 <form className="modal__form" onSubmit={handleSaveView}>
-                <div className="form-card__grid">
-                  <Field
-                    id="tenant-view-email"
-                    label="Email"
-                    type="email"
-                    value={viewTenant.email ?? ""}
-                    disabled
-                  />
+                  <div className="form-card__grid">
+                    <Field
+                      id="tenant-view-email"
+                      label="Email"
+                      type="email"
+                      value={viewTenant.email ?? ""}
+                      disabled
+                    />
 
-                  <Field
-                    id="tenant-view-name"
-                    label="Nombre"
-                    type="text"
-                    value={viewForm.name}
-                    error={viewNameError}
-                    onChange={(event) => {
-                      setViewField("name", event.target.value);
-                      setViewNameError("");
-                    }}
-                    required
-                  />
-
-                  <Field
-                    id="tenant-view-legal-name"
-                    label="Razón social"
-                    type="text"
-                    value={viewForm.legalName}
-                    onChange={(event) =>
-                      setViewField("legalName", event.target.value)
-                    }
-                  />
-
-                  <Field
-                    id="tenant-view-tax-id"
-                    label="NIT"
-                    type="text"
-                    value={viewForm.taxId}
-                    onChange={(event) =>
-                      setViewField("taxId", event.target.value)
-                    }
-                  />
-
-                  <Field
-                    id="tenant-view-phone"
-                    label="Teléfono"
-                    type="text"
-                    value={viewForm.phone}
-                    onChange={(event) =>
-                      setViewField("phone", event.target.value)
-                    }
-                  />
-
-                  <Field
-                    id="tenant-view-country"
-                    label="País"
-                    type="text"
-                    value={viewForm.country}
-                    onChange={(event) =>
-                      setViewField("country", event.target.value)
-                    }
-                  />
-
-                  <div className="form-field">
-                    <label htmlFor="tenant-view-currency">Moneda</label>
-
-                    <select
-                      id="tenant-view-currency"
-                      value={viewForm.currency}
-                      onChange={(event) =>
-                        setViewField("currency", event.target.value)
-                      }
+                    <Field
+                      id="tenant-view-name"
+                      label="Nombre"
+                      type="text"
+                      value={viewForm.name}
+                      error={viewNameError}
+                      onChange={(event) => {
+                        setViewField("name", event.target.value);
+                        setViewNameError("");
+                      }}
                       required
-                    >
-                      {CURRENCY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    />
+
+                    <Field
+                      id="tenant-view-legal-name"
+                      label="Razón social"
+                      type="text"
+                      value={viewForm.legalName}
+                      onChange={(event) =>
+                        setViewField("legalName", event.target.value)
+                      }
+                    />
+
+                    <Field
+                      id="tenant-view-tax-id"
+                      label="NIT"
+                      type="text"
+                      value={viewForm.taxId}
+                      onChange={(event) =>
+                        setViewField("taxId", event.target.value)
+                      }
+                    />
+
+                    <Field
+                      id="tenant-view-phone"
+                      label="Teléfono"
+                      type="text"
+                      value={viewForm.phone}
+                      onChange={(event) =>
+                        setViewField("phone", event.target.value)
+                      }
+                    />
+
+                    <Field
+                      id="tenant-view-country"
+                      label="País"
+                      type="text"
+                      value={viewForm.country}
+                      onChange={(event) =>
+                        setViewField("country", event.target.value)
+                      }
+                    />
+
+                    <div className="form-field">
+                      <label htmlFor="tenant-view-currency">Moneda</label>
+
+                      <select
+                        id="tenant-view-currency"
+                        value={viewForm.currency}
+                        onChange={(event) =>
+                          setViewField("currency", event.target.value)
+                        }
+                        required
+                      >
+                        {CURRENCY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="tenant-view-timezone">Zona horaria</label>
+
+                      <select
+                        id="tenant-view-timezone"
+                        value={viewForm.timezone}
+                        onChange={(event) =>
+                          setViewField("timezone", event.target.value)
+                        }
+                        required
+                      >
+                        {TIMEZONE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  <div className="form-field">
-                    <label htmlFor="tenant-view-timezone">Zona horaria</label>
+                  {viewFormError && (
+                    <FormMessage kind="error">{viewFormError}</FormMessage>
+                  )}
 
-                    <select
-                      id="tenant-view-timezone"
-                      value={viewForm.timezone}
-                      onChange={(event) =>
-                        setViewField("timezone", event.target.value)
-                      }
-                      required
-                    >
-                      {TIMEZONE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {viewFormError && (
-                  <FormMessage kind="error">{viewFormError}</FormMessage>
-                )}
-
-                <Button
-                  type="submit"
-                  icon="check"
-                  iconOnly
-                  disabled={viewSaving}
-                >
-                  {viewSaving ? "Guardando..." : "Guardar cambios"}
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    icon="check"
+                    iconOnly
+                    disabled={viewSaving}
+                  >
+                    {viewSaving ? "Guardando..." : "Guardar cambios"}
+                  </Button>
+                </form>
               )}
 
               {viewTab === "users" &&

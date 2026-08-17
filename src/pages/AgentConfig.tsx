@@ -23,6 +23,8 @@ import type {
   AgentTool,
 } from "../types/agent.js";
 import type { Product } from "../types/product.js";
+import EmptyState from "../components/EmptyState.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 
 interface AgentForm {
   name: string;
@@ -208,8 +210,7 @@ function formToInput(form: AgentForm): AgentConfigInput {
     memory: {
       enabled: form.memoryEnabled,
       messageWindow: messageWindow > 0 ? messageWindow : undefined,
-      maxContextTokens:
-        maxContextTokens >= 1000 ? maxContextTokens : undefined,
+      maxContextTokens: maxContextTokens >= 1000 ? maxContextTokens : undefined,
       summarizationEnabled: form.summarizationEnabled,
     },
   };
@@ -268,9 +269,7 @@ export default function AgentConfig() {
     key: K,
     value: AgentForm[K],
   ): void {
-    setForm((current) =>
-      current ? { ...current, [key]: value } : current,
-    );
+    setForm((current) => (current ? { ...current, [key]: value } : current));
   }
 
   function toggleTool(tool: AgentTool): void {
@@ -372,20 +371,6 @@ export default function AgentConfig() {
     }
   }
 
-if (loading) {
-    return null;
-}
-
-  if (loadError || !form) {
-    return (
-      <PageState
-        kind="error"
-        title="No fue posible cargar"
-        message={loadError}
-      />
-    );
-  }
-
   return (
     <main className="agent-config">
       <PageHeader
@@ -406,416 +391,441 @@ if (loading) {
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-      <form id="agent-config-form" className="agent-config__form" onSubmit={handleSubmit}>
-        <Section
-          title="Modelo de IA"
-          description="Clave de API y modelo que usa el agente de este tenant"
+      {loading ? (
+        <LoadingOverlay
+          title="Cargando canales..."
+          message="Esto puede tomar unos segundos"
+        />
+      ) : loadError ? (
+        <PageState
+          kind="error"
+          title="No fue posible cargar"
+          message={loadError}
+        />
+      ) : !form ? (
+        <EmptyState
+          title="No hay canales"
+          message="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
+        ></EmptyState>
+      ) : (
+        <form
+          id="agent-config-form"
+          className="agent-config__form"
+          onSubmit={handleSubmit}
         >
-          <Field
-            id="agent-llm-key"
-            label="API Key"
-            type="password"
-            value={form.llmApiKey}
-            onChange={(event) => setField("llmApiKey", event.target.value)}
-            placeholder="sk-..."
-            autoComplete="off"
-          />
-
-          <div className="form-card__grid">
+          <Section
+            title="Modelo de IA"
+            description="Clave de API y modelo que usa el agente de este tenant"
+          >
             <Field
-              id="agent-llm-model"
-              label="Modelo"
-              type="text"
-              value={form.llmModel}
-              onChange={(event) => setField("llmModel", event.target.value)}
-              placeholder="Ej.: gpt-4o-mini"
+              id="agent-llm-key"
+              label="API Key"
+              type="password"
+              value={form.llmApiKey}
+              onChange={(event) => setField("llmApiKey", event.target.value)}
+              placeholder="sk-..."
+              autoComplete="off"
             />
 
-            <Field
-              id="agent-llm-max-tokens"
-              label="Máximo de tokens"
-              type="number"
-              min={1}
-              value={form.llmMaxTokens}
-              onChange={(event) =>
-                setField("llmMaxTokens", Number(event.target.value))
-              }
-            />
-          </div>
+            <div className="form-card__grid">
+              <Field
+                id="agent-llm-model"
+                label="Modelo"
+                type="text"
+                value={form.llmModel}
+                onChange={(event) => setField("llmModel", event.target.value)}
+                placeholder="Ej.: gpt-4o-mini"
+              />
 
-          <Field
-            id="agent-llm-base-url"
-            label="URL base de la API"
-            type="text"
-            value={form.llmBaseUrl}
-            onChange={(event) => setField("llmBaseUrl", event.target.value)}
-            placeholder="Ej.: https://api.openai.com/v1"
-          />
-
-          <FormMessage kind="info">
-            Si la clave está vacía, el agente funciona en modo demo sin
-            conexión. Para respuestas reales debes configurar la API Key de tu
-            tenant (no se usa una clave global del servidor).
-          </FormMessage>
-        </Section>
-
-        <Section
-          title="Información general"
-          description="Nombre, idioma y tono del asistente"
-        >
-          <div className="form-card__grid">
-            <Field
-              id="agent-name"
-              label="Nombre"
-              type="text"
-              value={form.name}
-              onChange={(event) => setField("name", event.target.value)}
-              required
-            />
-
-            <div className="form-field">
-              <label htmlFor="agent-language">Idioma</label>
-
-              <select
-                id="agent-language"
-                value={form.language}
-                onChange={(event) => setField("language", event.target.value)}
-              >
-                {LANGUAGE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-field">
-              <label htmlFor="agent-tone">Tono</label>
-
-              <select
-                id="agent-tone"
-                value={form.tone}
+              <Field
+                id="agent-llm-max-tokens"
+                label="Máximo de tokens"
+                type="number"
+                min={1}
+                value={form.llmMaxTokens}
                 onChange={(event) =>
-                  setField("tone", event.target.value as AgentTone)
+                  setField("llmMaxTokens", Number(event.target.value))
                 }
-              >
-                {TONE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
-            <div className="form-field">
-              <label htmlFor="agent-status">Estado</label>
-
-              <select
-                id="agent-status"
-                value={form.status}
-                onChange={(event) =>
-                  setField("status", event.target.value as AgentStatus)
-                }
-              >
-                <option value="ACTIVE">Activo</option>
-
-                <option value="INACTIVE">Inactivo</option>
-              </select>
-            </div>
-          </div>
-
-          <Field
-            id="agent-description"
-            label="Descripción"
-            type="text"
-            value={form.description}
-            onChange={(event) => setField("description", event.target.value)}
-            placeholder="Breve descripción del asistente"
-          />
-        </Section>
-
-        <Section
-          title="Comportamiento"
-          description="Personalidad, objetivos y reglas que sigue el agente"
-        >
-          <Field
-            id="agent-personality"
-            label="Personalidad"
-            type="text"
-            value={form.personality}
-            onChange={(event) => setField("personality", event.target.value)}
-            placeholder="Ej.: cercano y orientado a soluciones"
-          />
-
-          <div className="form-field">
-            <label htmlFor="agent-welcome">Mensaje de bienvenida</label>
-
-            <textarea
-              id="agent-welcome"
-              rows={2}
-              value={form.welcomeMessage}
-              onChange={(event) =>
-                setField("welcomeMessage", event.target.value)
-              }
-              placeholder="Ej.: Hola, ¿en qué puedo ayudarte hoy?"
+            <Field
+              id="agent-llm-base-url"
+              label="URL base de la API"
+              type="text"
+              value={form.llmBaseUrl}
+              onChange={(event) => setField("llmBaseUrl", event.target.value)}
+              placeholder="Ej.: https://api.openai.com/v1"
             />
-          </div>
 
-          <div className="form-field">
-            <label htmlFor="agent-objective">Objetivo comercial</label>
+            <FormMessage kind="info">
+              Si la clave está vacía, el agente funciona en modo demo sin
+              conexión. Para respuestas reales debes configurar la API Key de tu
+              tenant (no se usa una clave global del servidor).
+            </FormMessage>
+          </Section>
 
-            <textarea
-              id="agent-objective"
-              rows={2}
-              value={form.commercialObjective}
-              onChange={(event) =>
-                setField("commercialObjective", event.target.value)
-              }
-              placeholder="Ej.: guiar al cliente hacia la compra o la cotización"
-            />
-          </div>
+          <Section
+            title="Información general"
+            description="Nombre, idioma y tono del asistente"
+          >
+            <div className="form-card__grid">
+              <Field
+                id="agent-name"
+                label="Nombre"
+                type="text"
+                value={form.name}
+                onChange={(event) => setField("name", event.target.value)}
+                required
+              />
 
-          <div className="form-field">
-            <label htmlFor="agent-instructions">Instrucciones del sistema</label>
+              <div className="form-field">
+                <label htmlFor="agent-language">Idioma</label>
 
-            <textarea
-              id="agent-instructions"
-              rows={4}
-              value={form.systemInstructions}
-              onChange={(event) =>
-                setField("systemInstructions", event.target.value)
-              }
-              placeholder="Reglas avanzadas que el modelo debe seguir siempre"
-            />
-          </div>
-
-          <div className="agent-config__rules">
-            <div className="section-heading">
-              <h3>Reglas de comportamiento</h3>
-
-              <p>Reglas adicionales que debe respetar el agente</p>
-            </div>
-
-            {form.behaviorRules.length === 0 && (
-              <FormMessage kind="info">Aún no hay reglas definidas</FormMessage>
-            )}
-
-            {form.behaviorRules.map((rule, index) => (
-              <div key={index} className="agent-config__rule-row">
-                <input
-                  type="text"
-                  value={rule}
-                  onChange={(event) => updateRule(index, event.target.value)}
-                  placeholder="Ej.: nunca inventar precios"
-                  aria-label={`Regla ${index + 1}`}
-                />
-
-                <Button
-                  type="button"
-                  variant="danger"
-                  icon="trash"
-                  iconOnly
-                  onClick={() => removeRule(index)}
+                <select
+                  id="agent-language"
+                  value={form.language}
+                  onChange={(event) => setField("language", event.target.value)}
                 >
-                  Eliminar regla
-                </Button>
+                  {LANGUAGE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            ))}
 
-            <div>
-              <Button
-                type="button"
-                variant="secondary"
-                icon="plus"
-                iconOnly
-                onClick={addRule}
-              >
-                Agregar regla
-              </Button>
+              <div className="form-field">
+                <label htmlFor="agent-tone">Tono</label>
+
+                <select
+                  id="agent-tone"
+                  value={form.tone}
+                  onChange={(event) =>
+                    setField("tone", event.target.value as AgentTone)
+                  }
+                >
+                  {TONE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="agent-status">Estado</label>
+
+                <select
+                  id="agent-status"
+                  value={form.status}
+                  onChange={(event) =>
+                    setField("status", event.target.value as AgentStatus)
+                  }
+                >
+                  <option value="ACTIVE">Activo</option>
+
+                  <option value="INACTIVE">Inactivo</option>
+                </select>
+              </div>
             </div>
-          </div>
-        </Section>
 
-        <Section
-          title="Herramientas"
-          description="Capacidades que el agente puede usar para atender clientes"
-        >
-          <div className="agent-config__options">
-            {TOOL_OPTIONS.map((option) => (
-              <label key={option.value} className="agent-config__option">
-                <input
-                  type="checkbox"
-                  checked={form.enabledTools.includes(option.value)}
-                  onChange={() => toggleTool(option.value)}
-                />
+            <Field
+              id="agent-description"
+              label="Descripción"
+              type="text"
+              value={form.description}
+              onChange={(event) => setField("description", event.target.value)}
+              placeholder="Breve descripción del asistente"
+            />
+          </Section>
 
-                <span>
-                  <strong>{option.label}</strong>
+          <Section
+            title="Comportamiento"
+            description="Personalidad, objetivos y reglas que sigue el agente"
+          >
+            <Field
+              id="agent-personality"
+              label="Personalidad"
+              type="text"
+              value={form.personality}
+              onChange={(event) => setField("personality", event.target.value)}
+              placeholder="Ej.: cercano y orientado a soluciones"
+            />
 
-                  <small>{option.description}</small>
-                </span>
+            <div className="form-field">
+              <label htmlFor="agent-welcome">Mensaje de bienvenida</label>
+
+              <textarea
+                id="agent-welcome"
+                rows={2}
+                value={form.welcomeMessage}
+                onChange={(event) =>
+                  setField("welcomeMessage", event.target.value)
+                }
+                placeholder="Ej.: Hola, ¿en qué puedo ayudarte hoy?"
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="agent-objective">Objetivo comercial</label>
+
+              <textarea
+                id="agent-objective"
+                rows={2}
+                value={form.commercialObjective}
+                onChange={(event) =>
+                  setField("commercialObjective", event.target.value)
+                }
+                placeholder="Ej.: guiar al cliente hacia la compra o la cotización"
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="agent-instructions">
+                Instrucciones del sistema
               </label>
-            ))}
-          </div>
 
-          <FormMessage kind="info">
-            Si no seleccionas ninguna herramienta, todas quedan habilitadas.
-          </FormMessage>
+              <textarea
+                id="agent-instructions"
+                rows={4}
+                value={form.systemInstructions}
+                onChange={(event) =>
+                  setField("systemInstructions", event.target.value)
+                }
+                placeholder="Reglas avanzadas que el modelo debe seguir siempre"
+              />
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="agent-scope">Catálogo</label>
+            <div className="agent-config__rules">
+              <div className="section-heading">
+                <h3>Reglas de comportamiento</h3>
 
-            <select
-              id="agent-scope"
-              value={form.productScope}
-              onChange={(event) =>
-                setField(
-                  "productScope",
-                  event.target.value as AgentProductScope,
-                )
-              }
-            >
-              <option value="ALL">Todos los productos</option>
+                <p>Reglas adicionales que debe respetar el agente</p>
+              </div>
 
-              <option value="SELECTED">Solo productos seleccionados</option>
-            </select>
-          </div>
-
-          {form.productScope === "SELECTED" && (
-            <div className="agent-config__options">
-              {products.length === 0 && (
+              {form.behaviorRules.length === 0 && (
                 <FormMessage kind="info">
-                  No hay productos disponibles para seleccionar.
+                  Aún no hay reglas definidas
                 </FormMessage>
               )}
 
-              {products.map((product) => (
-                <label key={product._id} className="agent-config__option">
+              {form.behaviorRules.map((rule, index) => (
+                <div key={index} className="agent-config__rule-row">
+                  <input
+                    type="text"
+                    value={rule}
+                    onChange={(event) => updateRule(index, event.target.value)}
+                    placeholder="Ej.: nunca inventar precios"
+                    aria-label={`Regla ${index + 1}`}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="danger"
+                    icon="trash"
+                    iconOnly
+                    onClick={() => removeRule(index)}
+                  >
+                    Eliminar regla
+                  </Button>
+                </div>
+              ))}
+
+              <div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon="plus"
+                  iconOnly
+                  onClick={addRule}
+                >
+                  Agregar regla
+                </Button>
+              </div>
+            </div>
+          </Section>
+
+          <Section
+            title="Herramientas"
+            description="Capacidades que el agente puede usar para atender clientes"
+          >
+            <div className="agent-config__options">
+              {TOOL_OPTIONS.map((option) => (
+                <label key={option.value} className="agent-config__option">
                   <input
                     type="checkbox"
-                    checked={form.allowedProductIds.includes(product._id)}
-                    onChange={() => toggleProduct(product._id)}
+                    checked={form.enabledTools.includes(option.value)}
+                    onChange={() => toggleTool(option.value)}
                   />
 
                   <span>
-                    <strong>{product.name}</strong>
+                    <strong>{option.label}</strong>
 
-                    <small>
-                      {product.sku ? `${product.sku} · ` : ""}
-                      {product.currency} {product.unitPrice}
-                    </small>
+                    <small>{option.description}</small>
                   </span>
                 </label>
               ))}
             </div>
-          )}
-        </Section>
 
-        <Section
-          title="Escalación"
-          description="Transferencia automática de la conversación a un asesor humano"
-        >
-          <label className="agent-config__switch">
-            <input
-              type="checkbox"
-              checked={form.escalationEnabled}
-              onChange={(event) =>
-                setField("escalationEnabled", event.target.checked)
-              }
-            />
+            <FormMessage kind="info">
+              Si no seleccionas ninguna herramienta, todas quedan habilitadas.
+            </FormMessage>
 
-            <span>Habilitar escalación</span>
-          </label>
+            <div className="form-field">
+              <label htmlFor="agent-scope">Catálogo</label>
 
-          <Field
-            id="agent-escalation-keywords"
-            label="Palabras clave (separadas por coma)"
-            type="text"
-            value={form.escalationKeywords}
-            onChange={(event) =>
-              setField("escalationKeywords", event.target.value)
-            }
-            placeholder="Ej.: asesor, humano, reclamar, gerente"
-            disabled={!form.escalationEnabled}
-          />
+              <select
+                id="agent-scope"
+                value={form.productScope}
+                onChange={(event) =>
+                  setField(
+                    "productScope",
+                    event.target.value as AgentProductScope,
+                  )
+                }
+              >
+                <option value="ALL">Todos los productos</option>
 
-          <div className="form-field">
-            <label htmlFor="agent-escalation-fallback">
-              Mensaje de escalación
+                <option value="SELECTED">Solo productos seleccionados</option>
+              </select>
+            </div>
+
+            {form.productScope === "SELECTED" && (
+              <div className="agent-config__options">
+                {products.length === 0 && (
+                  <FormMessage kind="info">
+                    No hay productos disponibles para seleccionar.
+                  </FormMessage>
+                )}
+
+                {products.map((product) => (
+                  <label key={product._id} className="agent-config__option">
+                    <input
+                      type="checkbox"
+                      checked={form.allowedProductIds.includes(product._id)}
+                      onChange={() => toggleProduct(product._id)}
+                    />
+
+                    <span>
+                      <strong>{product.name}</strong>
+
+                      <small>
+                        {product.sku ? `${product.sku} · ` : ""}
+                        {product.currency} {product.unitPrice}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section
+            title="Escalación"
+            description="Transferencia automática de la conversación a un asesor humano"
+          >
+            <label className="agent-config__switch">
+              <input
+                type="checkbox"
+                checked={form.escalationEnabled}
+                onChange={(event) =>
+                  setField("escalationEnabled", event.target.checked)
+                }
+              />
+
+              <span>Habilitar escalación</span>
             </label>
 
-            <textarea
-              id="agent-escalation-fallback"
-              rows={2}
-              value={form.escalationFallback}
+            <Field
+              id="agent-escalation-keywords"
+              label="Palabras clave (separadas por coma)"
+              type="text"
+              value={form.escalationKeywords}
               onChange={(event) =>
-                setField("escalationFallback", event.target.value)
+                setField("escalationKeywords", event.target.value)
               }
-              placeholder="Ej.: Un asesor te contactará en breve."
+              placeholder="Ej.: asesor, humano, reclamar, gerente"
               disabled={!form.escalationEnabled}
             />
-          </div>
-        </Section>
 
-        <Section
-          title="Memoria"
-          description="Contexto que el agente recuerda de la conversación"
-        >
-          <label className="agent-config__switch">
-            <input
-              type="checkbox"
-              checked={form.memoryEnabled}
-              onChange={(event) => setField("memoryEnabled", event.target.checked)}
-            />
+            <div className="form-field">
+              <label htmlFor="agent-escalation-fallback">
+                Mensaje de escalación
+              </label>
 
-            <span>Habilitar memoria</span>
-          </label>
+              <textarea
+                id="agent-escalation-fallback"
+                rows={2}
+                value={form.escalationFallback}
+                onChange={(event) =>
+                  setField("escalationFallback", event.target.value)
+                }
+                placeholder="Ej.: Un asesor te contactará en breve."
+                disabled={!form.escalationEnabled}
+              />
+            </div>
+          </Section>
 
-          <div className="form-card__grid">
-            <Field
-              id="agent-memory-window"
-              label="Ventana de mensajes"
-              type="number"
-              min={1}
-              value={form.messageWindow}
-              onChange={(event) =>
-                setField("messageWindow", Number(event.target.value))
-              }
-              disabled={!form.memoryEnabled}
-            />
+          <Section
+            title="Memoria"
+            description="Contexto que el agente recuerda de la conversación"
+          >
+            <label className="agent-config__switch">
+              <input
+                type="checkbox"
+                checked={form.memoryEnabled}
+                onChange={(event) =>
+                  setField("memoryEnabled", event.target.checked)
+                }
+              />
 
-            <Field
-              id="agent-memory-tokens"
-              label="Tope de contexto (tokens)"
-              type="number"
-              min={1000}
-              value={form.maxContextTokens}
-              onChange={(event) =>
-                setField("maxContextTokens", Number(event.target.value))
-              }
-              disabled={!form.memoryEnabled}
-            />
-          </div>
+              <span>Habilitar memoria</span>
+            </label>
 
-          <label className="agent-config__switch">
-            <input
-              type="checkbox"
-              checked={form.summarizationEnabled}
-              onChange={(event) =>
-                setField("summarizationEnabled", event.target.checked)
-              }
-              disabled={!form.memoryEnabled}
-            />
+            <div className="form-card__grid">
+              <Field
+                id="agent-memory-window"
+                label="Ventana de mensajes"
+                type="number"
+                min={1}
+                value={form.messageWindow}
+                onChange={(event) =>
+                  setField("messageWindow", Number(event.target.value))
+                }
+                disabled={!form.memoryEnabled}
+              />
 
-            <span>Resumir conversaciones largas</span>
-          </label>
-        </Section>
-      </form>
+              <Field
+                id="agent-memory-tokens"
+                label="Tope de contexto (tokens)"
+                type="number"
+                min={1000}
+                value={form.maxContextTokens}
+                onChange={(event) =>
+                  setField("maxContextTokens", Number(event.target.value))
+                }
+                disabled={!form.memoryEnabled}
+              />
+            </div>
 
-      <FloatingPanel
-        icon="bot"
-        ariaLabel="Abrir asistente de configuración"
-      >
+            <label className="agent-config__switch">
+              <input
+                type="checkbox"
+                checked={form.summarizationEnabled}
+                onChange={(event) =>
+                  setField("summarizationEnabled", event.target.checked)
+                }
+                disabled={!form.memoryEnabled}
+              />
+
+              <span>Resumir conversaciones largas</span>
+            </label>
+          </Section>
+        </form>
+      )}
+
+      <FloatingPanel icon="bot" ariaLabel="Abrir asistente de configuración">
         <AssistantChat embedded />
       </FloatingPanel>
     </main>
