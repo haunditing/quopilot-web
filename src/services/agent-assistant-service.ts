@@ -4,17 +4,23 @@ import type {
   SendAssistantMessageResponse,
 } from "../types/agent-assistant.js";
 
-export async function getAssistantMessages(): Promise<AssistantMessage[]> {
-  return apiRequest<AssistantMessage[]>("/api/agent/assistant/messages", {
+export const AGENT_ASSISTANT_ENDPOINT = "/api/agent/assistant";
+export const INTERNAL_ASSISTANT_ENDPOINT = "/api/internal/assistant";
+
+export async function getAssistantMessages(
+  endpoint = AGENT_ASSISTANT_ENDPOINT,
+): Promise<AssistantMessage[]> {
+  return apiRequest<AssistantMessage[]>(`${endpoint}/messages`, {
     method: "GET",
   });
 }
 
 export async function sendAssistantMessage(
   content: string,
+  endpoint = AGENT_ASSISTANT_ENDPOINT,
 ): Promise<SendAssistantMessageResponse> {
   return apiRequest<SendAssistantMessageResponse>(
-    "/api/agent/assistant/messages",
+    `${endpoint}/messages`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -24,10 +30,12 @@ export async function sendAssistantMessage(
   );
 }
 
-export async function resetAssistantConversation(): Promise<{
+export async function resetAssistantConversation(
+  endpoint = AGENT_ASSISTANT_ENDPOINT,
+): Promise<{
   ok: boolean;
 }> {
-  return apiRequest<{ ok: boolean }>("/api/agent/assistant/reset", {
+  return apiRequest<{ ok: boolean }>(`${endpoint}/reset`, {
     method: "POST",
   });
 }

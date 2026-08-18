@@ -85,6 +85,12 @@ const navigationGroups: NavigationGroup[] = [
         roles: ["TENANT_ADMIN"],
       },
       {
+        to: "/internal/assistant",
+        label: "Asistente de QuoPilot",
+        icon: "bot",
+        roles: ["TENANT_ADMIN"],
+      },
+      {
         to: "/tenants",
         label: "Tenants",
         icon: "tenants",

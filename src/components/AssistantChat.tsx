@@ -4,6 +4,7 @@ import Button from "./Button.js";
 import FormMessage from "./FormMessage.js";
 import Icon from "./Icon.js";
 import {
+  AGENT_ASSISTANT_ENDPOINT,
   getAssistantMessages,
   resetAssistantConversation,
   sendAssistantMessage,
@@ -18,7 +19,7 @@ function nextAssistantOptimisticId(prefix: string): string {
   return `${prefix}-${assistantOptimisticId}`;
 }
 
-const SUGGESTIONS: string[] = [
+const DEFAULT_SUGGESTIONS: string[] = [
   "Ver la configuración actual del agente",
   "Configura la API key del modelo del agente",
   "Configura el modelo a gpt-4o-mini",
@@ -49,11 +50,24 @@ function buildMessage(
 interface AssistantChatProps {
   className?: string;
   embedded?: boolean;
+  endpoint?: string;
+  title?: string;
+  subtitle?: string;
+  welcomeMessage?: string;
+  placeholder?: string;
+  suggestions?: string[];
 }
 
 export default function AssistantChat({
   className,
   embedded = false,
+  endpoint = AGENT_ASSISTANT_ENDPOINT,
+  title = "Asistente de configuración",
+  subtitle = "Configura tu agente con lenguaje natural",
+  welcomeMessage =
+    "Hola, soy tu asistente de configuración. Pregúntame sobre tu agente de IA o pide cambios con lenguaje natural.",
+  placeholder = "Ej.: cambia el tono del agente a amigable",
+  suggestions = DEFAULT_SUGGESTIONS,
 }: AssistantChatProps) {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,7 +88,7 @@ export default function AssistantChat({
       setLoadError("");
 
       try {
-        const result = await getAssistantMessages();
+        const result = await getAssistantMessages(endpoint);
 
         if (!cancelled) {
           setMessages(result);
@@ -99,7 +113,7 @@ export default function AssistantChat({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [endpoint]);
 
   useEffect(() => {
     threadEndRef.current?.scrollIntoView({
@@ -125,7 +139,7 @@ export default function AssistantChat({
     setSending(true);
 
     try {
-      const response = await sendAssistantMessage(content);
+      const response = await sendAssistantMessage(content, endpoint);
 
       setMessages((current) => [
         ...current,
@@ -158,7 +172,7 @@ export default function AssistantChat({
     setSending(true);
 
     try {
-      const response = await sendAssistantMessage(suggestion);
+      const response = await sendAssistantMessage(suggestion, endpoint);
 
       setMessages((current) => [
         ...current,
@@ -187,7 +201,7 @@ export default function AssistantChat({
     setResetError("");
 
     try {
-      await resetAssistantConversation();
+      await resetAssistantConversation(endpoint);
 
       setMessages([]);
     } catch (error) {
@@ -215,9 +229,9 @@ export default function AssistantChat({
         <Icon name="bot" size={20} className="assistant-chat__header-icon" />
 
         <div className="assistant-chat__header-info">
-          <strong>Asistente de configuración</strong>
+          <strong>{title}</strong>
 
-          <small>Configura tu agente con lenguaje natural</small>
+          <small>{subtitle}</small>
         </div>
 
         <button
@@ -254,13 +268,10 @@ export default function AssistantChat({
                 className="assistant-chat__welcome-icon"
               />
 
-              <p>
-                Hola, soy tu asistente de configuración. Pregúntame sobre tu
-                agente de IA o pide cambios con lenguaje natural.
-              </p>
+              <p>{welcomeMessage}</p>
 
               <div className="assistant-chat__suggestions">
-                {SUGGESTIONS.map((suggestion) => (
+                {suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
@@ -316,7 +327,7 @@ export default function AssistantChat({
           <input
             type="text"
             value={draft}
-            placeholder="Ej.: cambia el tono del agente a amigable"
+            placeholder={placeholder}
             aria-label="Tu mensaje"
             onChange={(event) => setDraft(event.target.value)}
             disabled={sending || loading || Boolean(loadError)}
