@@ -249,9 +249,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="app-content__inner">{children}</div>
         </div>
 
-        <FloatingPanel icon="bot" ariaLabel="Abrir asistente de configuración">
-          <AssistantChat embedded />
-        </FloatingPanel>
+        {user?.role === "TENANT_ADMIN" && (
+          <FloatingPanel
+            icon="bot"
+            ariaLabel="Abrir asistente de configuración"
+          >
+            <AssistantChat embedded />
+          </FloatingPanel>
+        )}
       </div>
     </div>
   );
