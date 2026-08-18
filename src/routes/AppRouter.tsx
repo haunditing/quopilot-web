@@ -19,6 +19,7 @@ import Channels from "../pages/Channels.js";
 import ChannelForm from "../pages/ChannelForm.js";
 import Conversations from "../pages/Conversations.js";
 import Users from "../pages/Users.js";
+import UserForm from "../pages/UserForm.js";
 import Tenants from "../pages/Tenants.js";
 import AgentChat from "../pages/AgentChat.js";
 import AgentConfig from "../pages/AgentConfig.js";
@@ -77,6 +78,10 @@ export default function AppRouter() {
         <Route path="/conversations" element={<Conversations />} />
 
         <Route path="/users" element={<Users />} />
+
+        <Route path="/users/new" element={<UserForm />} />
+
+        <Route path="/users/:userId" element={<UserFormRoute />} />
 
         <Route path="/chat" element={<AgentChat />} />
 
@@ -177,6 +182,18 @@ function ChannelFormRoute() {
   }
 
   return <ChannelForm channelId={channelId} />;
+}
+
+function UserFormRoute() {
+  const { userId } = useParams<{
+    userId: string;
+  }>();
+
+  if (!userId) {
+    return <Navigate to="/users" replace />;
+  }
+
+  return <UserForm userId={userId} />;
 }
 
 function PublicChatRoute() {

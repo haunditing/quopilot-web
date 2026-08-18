@@ -5597,6 +5597,161 @@ p {
   }
 }
 
+/* =========================================
+   USER FORM (Máster-Detalle)
+   ========================================= */
+
+.user-form {
+  inline-size: 100%;
+}
+
+.user-form__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 24px;
+  margin-block-start: 24px;
+}
+
+.user-form__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-form__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.user-form__panel {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.user-form__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-form__tab {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.user-form__tab:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.user-form__tab--active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.user-form__panel-save {
+  justify-content: center;
+  inline-size: 100%;
+}
+
+.user-form__card {
+  scroll-margin-block-start: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 24px;
+}
+
+.user-form__card-head {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-start;
+  inline-size: 100%;
+  padding: 0;
+  margin-block-end: 20px;
+  border: 0;
+  background: none;
+}
+
+.user-form__card-head__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.user-form__card-head__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: start;
+}
+
+.user-form__card-head__text strong {
+  color: var(--text-h);
+  font-size: 16px;
+}
+
+.user-form__card-head__text small {
+  color: var(--text-muted, #64748b);
+  font-size: 13px;
+}
+
+.user-form__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .user-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .user-form__body {
+    grid-template-columns: 1fr;
+  }
+
+  .user-form__panel {
+    position: static;
+    order: -1;
+  }
+}
+
 .cell-webhook {
   display: flex;
   align-items: center;

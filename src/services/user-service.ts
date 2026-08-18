@@ -42,6 +42,12 @@ export async function getUsers({
   return apiRequest<UserListResponse>(`/api/users?${params.toString()}`);
 }
 
+export async function getUser(userId: string): Promise<User> {
+  return apiRequest<User>(`/api/users/${userId}`, {
+    method: "GET",
+  });
+}
+
 export interface CreateAgentInput {
   name: string;
   email: string;

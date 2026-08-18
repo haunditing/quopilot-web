@@ -1,12 +1,8 @@
-import { useCallback, useState } from "react";
-import type { FormEvent } from "react";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Ban, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
-import Field from "../components/Field.js";
-import FormMessage from "../components/FormMessage.js";
-import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
-import PasswordStrength from "../components/PasswordStrength.js";
 import DataListView from "../components/DataListView/DataListView.js";
 import type { ColumnSpec } from "../components/DataListView/types.js";
 import { USER_STATUS_OPTIONS } from "../config/filters.js";
@@ -16,18 +12,11 @@ import { useToast } from "../hooks/useToast.js";
 import { can } from "../lib/permissions.js";
 import { getUserRole } from "../services/auth-storage.js";
 import {
-  createAgent,
   deleteUser,
   getUsers,
-  updateUser,
   updateUserStatus,
 } from "../services/user-service.js";
 import type { User, UserStatus } from "../types/user.js";
-import { isValidEmail } from "../lib/validation.js";
-
-type UserModal = { mode: "create" } | { mode: "edit"; user: User } | null;
-
-const AGENT_EMAIL_MESSAGE = "No fue posible guardar el agente";
 
 const STATUS_ACTIONS: Record<
   UserStatus,
@@ -59,6 +48,8 @@ const STATUS_LABEL = Object.fromEntries(
 ) as Record<UserStatus, string>;
 
 export default function Users() {
+  const navigate = useNavigate();
+
   const buildFetcher = useCallback(
     (params: { search: string; status: string }) => () =>
       getUsers({
@@ -79,125 +70,6 @@ export default function Users() {
 
   const toast = useToast();
   const { confirm } = useConfirm();
-
-  const [modal, setModal] = useState<UserModal>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [nameError, setNameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
-
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState("");
-
-  function openCreate() {
-    setName("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setNameError("");
-    setEmailError("");
-    setPasswordError("");
-    setConfirmPasswordError("");
-    setSaveError("");
-    setModal({ mode: "create" });
-  }
-
-  function openEdit(user: User) {
-    setName(user.name);
-    setEmail(user.email);
-    setPassword("");
-    setConfirmPassword("");
-    setNameError("");
-    setEmailError("");
-    setPasswordError("");
-    setConfirmPasswordError("");
-    setSaveError("");
-    setModal({ mode: "edit", user });
-  }
-
-  function closeModal() {
-    setModal(null);
-    setNameError("");
-    setEmailError("");
-    setPasswordError("");
-    setConfirmPasswordError("");
-    setSaveError("");
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    let hasErrors = false;
-
-    if (!name.trim()) {
-      setNameError("El nombre es obligatorio");
-      hasErrors = true;
-    }
-
-    if (!email.trim()) {
-      setEmailError("El email es obligatorio");
-      hasErrors = true;
-    } else if (!isValidEmail(email)) {
-      setEmailError("Email inválido");
-      hasErrors = true;
-    }
-
-    if (password && password.length < 8) {
-      setPasswordError("La contraseña debe tener al menos 8 caracteres");
-      hasErrors = true;
-    } else if (modal?.mode !== "edit" && !password) {
-      setPasswordError("La contraseña es obligatoria");
-      hasErrors = true;
-    }
-
-    if (password && password !== confirmPassword) {
-      setConfirmPasswordError("Las contraseñas no coinciden");
-      hasErrors = true;
-    }
-
-    if (hasErrors) {
-      return;
-    }
-
-    setSaving(true);
-    setSaveError("");
-
-    try {
-      if (modal?.mode === "edit") {
-        await updateUser(modal.user._id, {
-          name,
-          email,
-          ...(password ? { password } : {}),
-        });
-
-        toast.success("Cambios guardados");
-      } else {
-        await createAgent({
-          name,
-          email,
-          password,
-        });
-
-        toast.success("Agente creado");
-      }
-
-      closeModal();
-      reload();
-    } catch (requestError) {
-      setSaveError(
-        requestError instanceof Error
-          ? requestError.message
-          : AGENT_EMAIL_MESSAGE,
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
 
   const handleStatusChange = useCallback(
     async (user: User, status: UserStatus) => {
@@ -326,7 +198,7 @@ export default function Users() {
               className="btn-icon-action"
               title="Editar"
               aria-label="Editar"
-              onClick={() => openEdit(user)}
+              onClick={() => navigate(`/users/${user._id}`)}
             >
               <Edit2 size={16} />
             </button>
@@ -354,7 +226,11 @@ export default function Users() {
         description="Gestiona los usuarios de tu empresa"
         actions={
           canCreate && (
-            <Button icon="plus" iconOnly onClick={openCreate}>
+            <Button
+              icon="plus"
+              iconOnly
+              onClick={() => navigate("/users/new")}
+            >
               Nuevo usuario
             </Button>
           )
@@ -382,92 +258,6 @@ export default function Users() {
           set("status", filters.status ?? "");
         }}
       />
-
-      <Modal
-        open={modal !== null}
-        title={modal?.mode === "edit" ? "Editar usuario" : "Nuevo usuario"}
-        onClose={closeModal}
-      >
-        <form className="modal__form" onSubmit={handleSubmit}>
-          <Field
-            id="user-name"
-            label="Nombre"
-            type="text"
-            value={name}
-            error={nameError}
-            onChange={(event) => {
-              setName(event.target.value);
-              setNameError("");
-            }}
-            required
-          />
-
-          <Field
-            id="user-email"
-            label="Email"
-            type="email"
-            value={email}
-            error={emailError}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setEmailError("");
-            }}
-            required
-          />
-
-          <Field
-            id="user-password"
-            label={
-              modal?.mode === "edit"
-                ? "Contraseña (déjala vacía para no cambiarla)"
-                : "Contraseña"
-            }
-            type="password"
-            value={password}
-            error={passwordError}
-            helper={<PasswordStrength value={password} />}
-            onChange={(event) => {
-              setPassword(event.target.value);
-              setPasswordError("");
-            }}
-            minLength={8}
-            required={modal?.mode !== "edit"}
-          />
-
-          {(modal?.mode === "create" || password) && (
-            <Field
-              id="user-confirm-password"
-              label="Confirmar contraseña"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              error={confirmPasswordError}
-              onChange={(event) => {
-                setConfirmPassword(event.target.value);
-                setConfirmPasswordError("");
-              }}
-              minLength={8}
-              required
-            />
-          )}
-
-          {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
-
-          <Button
-            type="submit"
-            variant="primary"
-            icon="check"
-            iconOnly
-            disabled={saving}
-          >
-            {saving
-              ? "Guardando..."
-              : modal?.mode === "edit"
-                ? "Guardar cambios"
-                : "Crear agente"}
-          </Button>
-        </form>
-      </Modal>
     </main>
   );
 }
