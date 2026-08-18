@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Ban, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
 import PageHeader from "../components/PageHeader.js";
+import SettingsTabs from "../components/SettingsTabs.js";
 import DataListView from "../components/DataListView/DataListView.js";
 import type { ColumnSpec } from "../components/DataListView/types.js";
 import { USER_STATUS_OPTIONS } from "../config/filters.js";
@@ -236,6 +237,8 @@ export default function Users() {
           )
         }
       />
+
+      <SettingsTabs />
 
       <DataListView<User>
         items={data?.data ?? []}

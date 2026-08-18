@@ -4,6 +4,7 @@ import { Copy, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
 import MaskedValue from "../components/MaskedValue.js";
 import PageHeader from "../components/PageHeader.js";
+import SettingsTabs from "../components/SettingsTabs.js";
 import DataListView from "../components/DataListView/DataListView.js";
 import type {
   ColumnSpec,
@@ -279,6 +280,8 @@ export default function Channels() {
           )
         }
       />
+
+      <SettingsTabs />
 
       <DataListView<Channel>
         items={data?.data ?? []}

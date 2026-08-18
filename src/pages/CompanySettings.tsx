@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, NavLink, Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Combobox from "../components/Combobox.js";
 import Icon from "../components/Icon.js";
 import Button from "../components/Button.js";
@@ -10,6 +10,7 @@ import ImageUploader from "../components/ImageUploader.js";
 import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
+import SettingsTabs from "../components/SettingsTabs.js";
 import { AGENT_TONE_OPTIONS, CURRENCY_OPTIONS, TIMEZONE_OPTIONS } from "../config/options.js";
 import { useAgentConfig } from "../hooks/useAgentConfig.js";
 import { useToast } from "../hooks/useToast.js";
@@ -336,16 +337,6 @@ function CompanySettingsPanel() {
     }
   }
 
-  const settingsTabs = useMemo(
-    () => [
-      { to: "/settings/company", label: "Empresa", end: true },
-      { to: "/agent", label: "Agente", end: true },
-      { to: "/channels", label: "Canales", end: true },
-      { to: "/users", label: "Usuarios", end: true },
-    ],
-    [],
-  );
-
   if (loading) {
     return <LoadingOverlay title="Cargando configuración de la empresa..." />;
   }
@@ -367,22 +358,7 @@ function CompanySettingsPanel() {
         description="Centraliza la identidad legal, el branding y las preferencias de tu empresa"
       />
 
-      <nav className="settings-tabs" aria-label="Configuración">
-        {settingsTabs.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            end={tab.end}
-            className={({ isActive }) =>
-              isActive
-                ? "settings-tabs__tab settings-tabs__tab--active"
-                : "settings-tabs__tab"
-            }
-          >
-            {tab.label}
-          </NavLink>
-        ))}
-      </nav>
+      <SettingsTabs />
 
       <div className="company-settings__body">
         <div className="company-settings__main">

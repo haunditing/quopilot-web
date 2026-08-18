@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button.js";
@@ -9,6 +9,8 @@ import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
 import PasswordStrength from "../components/PasswordStrength.js";
+import SettingsTabs from "../components/SettingsTabs.js";
+import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { isValidEmail } from "../lib/validation.js";
 import {
@@ -54,7 +56,6 @@ export default function UserForm({ userId }: UserFormProps) {
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
-  const [activeSection, setActiveSection] = useState("user-informacion");
 
   useEffect(() => {
     if (!userId) {
@@ -97,37 +98,12 @@ export default function UserForm({ userId }: UserFormProps) {
     };
   }, [userId]);
 
-  useEffect(() => {
-    if (loading || loadError) {
-      return;
-    }
+  const sectionIds = useMemo(() => SECTION_TABS.map((tab) => tab.id), []);
 
-    const sections = SECTION_TABS.map((tab) =>
-      document.getElementById(tab.id),
-    ).filter((element): element is HTMLElement => element !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: "-120px 0px -70% 0px", threshold: 0 },
-    );
-
-    sections.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, [loading, loadError]);
-
-  function scrollToSection(id: string): void {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
+  const { activeSection, scrollToSection } = useSectionScrollSpy({
+    sectionIds,
+    enabled: !loading && !loadError,
+  });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -222,6 +198,8 @@ export default function UserForm({ userId }: UserFormProps) {
             : "Crea un agente para que opere en tu empresa"
         }
       />
+
+      <SettingsTabs />
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 

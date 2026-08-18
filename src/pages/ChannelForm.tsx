@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button.js";
@@ -9,6 +9,8 @@ import LoadingOverlay from "../components/LoadingOverlay.js";
 import MaskedValue from "../components/MaskedValue.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
+import SettingsTabs from "../components/SettingsTabs.js";
+import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { getUser } from "../services/auth-storage.js";
 import { getPublicChatConfig } from "../services/agent-public-service.js";
@@ -122,7 +124,6 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
   const [colorError, setColorError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState("channel-informacion");
 
   const webChatDefaultsApplied = useRef(false);
   const tenantNamePromiseRef = useRef<Promise<string> | null>(null);
@@ -173,49 +174,26 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
     };
   }, [channelId]);
 
-  useEffect(() => {
-    if (loading || loadError) {
-      return;
-    }
-
-    const sections = SECTION_TABS.map((tab) =>
-      document.getElementById(tab.id),
-    ).filter((element): element is HTMLElement => element !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
+  const visibleTabs = useMemo(
+    () =>
+      SECTION_TABS.filter((tab) => {
+        if (tab.id === "channel-credenciales" && form.type === "WEB_CHAT") {
+          return false;
         }
-      },
-      { rootMargin: "-120px 0px -70% 0px", threshold: 0 },
-    );
 
-    sections.forEach((section) => observer.observe(section));
+        if (tab.id === "channel-webhook" && !isEdit) {
+          return false;
+        }
 
-    return () => observer.disconnect();
-  }, [loading, loadError, form.type, isEdit]);
+        return true;
+      }),
+    [form.type, isEdit],
+  );
 
-  const visibleTabs = SECTION_TABS.filter((tab) => {
-    if (tab.id === "channel-credenciales" && form.type === "WEB_CHAT") {
-      return false;
-    }
-
-    if (tab.id === "channel-webhook" && !isEdit) {
-      return false;
-    }
-
-    return true;
+  const { activeSection, scrollToSection } = useSectionScrollSpy({
+    sectionIds: useMemo(() => visibleTabs.map((tab) => tab.id), [visibleTabs]),
+    enabled: !loading && !loadError,
   });
-
-  function scrollToSection(id: string): void {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
 
   function setField<K extends keyof ChannelFormState>(
     key: K,
@@ -392,6 +370,8 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             : "Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
         }
       />
+
+      <SettingsTabs />
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 

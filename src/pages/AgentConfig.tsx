@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import AgentConfigCard from "../components/AgentConfigCard.js";
 import AssistantChat from "../components/AssistantChat.js";
@@ -14,8 +14,10 @@ import type { IconName } from "../components/Icon.js";
 import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
+import SettingsTabs from "../components/SettingsTabs.js";
 import Switch from "../components/Switch.js";
 import { useAgentConfig } from "../hooks/useAgentConfig.js";
+import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { getProducts } from "../services/product-service.js";
 import type {
@@ -253,7 +255,6 @@ export default function AgentConfig() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
-  const [activeSection, setActiveSection] = useState("agent-modelo");
 
   const formReady = form !== null;
 
@@ -299,37 +300,10 @@ export default function AgentConfig() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!formReady) {
-      return;
-    }
-
-    const sections = SECTION_TABS.map((tab) =>
-      document.getElementById(tab.id),
-    ).filter((element): element is HTMLElement => element !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: "-120px 0px -70% 0px", threshold: 0 },
-    );
-
-    sections.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, [formReady]);
-
-  function scrollToSection(id: string): void {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
+  const { activeSection, scrollToSection } = useSectionScrollSpy({
+    sectionIds: useMemo(() => SECTION_TABS.map((tab) => tab.id), []),
+    enabled: formReady,
+  });
 
   function setField<K extends keyof AgentForm>(
     key: K,
@@ -444,6 +418,8 @@ export default function AgentConfig() {
         description="Configura el asistente comercial virtual de tu empresa"
       />
 
+      <SettingsTabs />
+
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
       {loading || productsLoading ? (
@@ -452,11 +428,7 @@ export default function AgentConfig() {
           message="Esto puede tomar unos segundos"
         />
       ) : error ? (
-        <PageState
-          kind="error"
-          title="No fue posible cargar"
-          message={error}
-        />
+        <PageState kind="error" title="No fue posible cargar" message={error} />
       ) : !form ? (
         <EmptyState
           title="No hay canales"
@@ -470,484 +442,495 @@ export default function AgentConfig() {
               className="agent-config__form"
               onSubmit={handleSubmit}
             >
-          <AgentConfigCard
-            id="agent-modelo"
-            icon="cpu"
-            title="Modelo de IA"
-            description="Clave de API y modelo que usa el agente de este tenant"
-          >
-            <div className="form-field">
-              <label htmlFor="agent-llm-key">API Key</label>
+              <AgentConfigCard
+                id="agent-modelo"
+                icon="cpu"
+                title="Modelo de IA"
+                description="Clave de API y modelo que usa el agente de este tenant"
+              >
+                <div className="form-field">
+                  <label htmlFor="agent-llm-key">API Key</label>
 
-              <div className="agent-config__password">
-                <input
-                  id="agent-llm-key"
-                  type={showApiKey ? "text" : "password"}
-                  value={form.llmApiKey}
-                  onChange={(event) => setField("llmApiKey", event.target.value)}
-                  placeholder="sk-..."
-                  autoComplete="off"
-                />
+                  <div className="agent-config__password">
+                    <input
+                      id="agent-llm-key"
+                      type={showApiKey ? "text" : "password"}
+                      value={form.llmApiKey}
+                      onChange={(event) =>
+                        setField("llmApiKey", event.target.value)
+                      }
+                      placeholder="sk-..."
+                      autoComplete="off"
+                    />
 
-                <button
-                  type="button"
-                  className="agent-config__password-toggle"
-                  aria-label={
-                    showApiKey ? "Ocultar API Key" : "Mostrar API Key"
-                  }
-                  onClick={() => setShowApiKey((current) => !current)}
-                >
-                  <Icon name={showApiKey ? "eye-off" : "eye"} size={16} />
+                    <button
+                      type="button"
+                      className="agent-config__password-toggle"
+                      aria-label={
+                        showApiKey ? "Ocultar API Key" : "Mostrar API Key"
+                      }
+                      onClick={() => setShowApiKey((current) => !current)}
+                    >
+                      <Icon name={showApiKey ? "eye-off" : "eye"} size={16} />
+                    </button>
+                  </div>
+                </div>
 
-                  {showApiKey ? "Ocultar" : "Ver"}
-                </button>
-              </div>
-            </div>
+                <div className="agent-config__grid-3">
+                  <Field
+                    id="agent-llm-model"
+                    label="Modelo"
+                    type="text"
+                    value={form.llmModel}
+                    onChange={(event) =>
+                      setField("llmModel", event.target.value)
+                    }
+                    placeholder="Ej.: gpt-4o-mini"
+                  />
 
-            <div className="agent-config__grid-3">
-              <Field
-                id="agent-llm-model"
-                label="Modelo"
-                type="text"
-                value={form.llmModel}
-                onChange={(event) => setField("llmModel", event.target.value)}
-                placeholder="Ej.: gpt-4o-mini"
-              />
+                  <Field
+                    id="agent-llm-max-tokens"
+                    label="Máximo de tokens"
+                    type="number"
+                    min={1}
+                    value={form.llmMaxTokens}
+                    onChange={(event) =>
+                      setField("llmMaxTokens", Number(event.target.value))
+                    }
+                  />
 
-              <Field
-                id="agent-llm-max-tokens"
-                label="Máximo de tokens"
-                type="number"
-                min={1}
-                value={form.llmMaxTokens}
-                onChange={(event) =>
-                  setField("llmMaxTokens", Number(event.target.value))
-                }
-              />
+                  <Field
+                    id="agent-llm-base-url"
+                    label="URL base de la API"
+                    type="text"
+                    value={form.llmBaseUrl}
+                    onChange={(event) =>
+                      setField("llmBaseUrl", event.target.value)
+                    }
+                    placeholder="Ej.: https://api.openai.com/v1"
+                  />
+                </div>
 
-              <Field
-                id="agent-llm-base-url"
-                label="URL base de la API"
-                type="text"
-                value={form.llmBaseUrl}
-                onChange={(event) => setField("llmBaseUrl", event.target.value)}
-                placeholder="Ej.: https://api.openai.com/v1"
-              />
-            </div>
+                <FormMessage kind="info">
+                  Si la clave está vacía, el agente funciona en modo demo sin
+                  conexión. Para respuestas reales debes configurar la API Key
+                  de tu tenant (no se usa una clave global del servidor).
+                </FormMessage>
+              </AgentConfigCard>
 
-            <FormMessage kind="info">
-              Si la clave está vacía, el agente funciona en modo demo sin
-              conexión. Para respuestas reales debes configurar la API Key de tu
-              tenant (no se usa una clave global del servidor).
-            </FormMessage>
-          </AgentConfigCard>
+              <AgentConfigCard
+                id="agent-informacion"
+                icon="bot"
+                title="Información general"
+                description="Nombre, idioma y tono del asistente"
+              >
+                <div className="agent-config__grid-2">
+                  <Field
+                    id="agent-name"
+                    label="Nombre"
+                    type="text"
+                    value={form.name}
+                    onChange={(event) => setField("name", event.target.value)}
+                    required
+                  />
 
-          <AgentConfigCard
-            id="agent-informacion"
-            icon="bot"
-            title="Información general"
-            description="Nombre, idioma y tono del asistente"
-          >
-            <div className="agent-config__grid-2">
-              <Field
-                id="agent-name"
-                label="Nombre"
-                type="text"
-                value={form.name}
-                onChange={(event) => setField("name", event.target.value)}
-                required
-              />
+                  <div className="form-field">
+                    <label htmlFor="agent-language">Idioma</label>
 
-              <div className="form-field">
-                <label htmlFor="agent-language">Idioma</label>
-
-                <Combobox
-                  id="agent-language"
-                  value={form.language}
-                  options={LANGUAGE_OPTIONS}
-                  onChange={(value) => setField("language", value)}
-                  placeholder="Selecciona un idioma"
-                />
-              </div>
-
-              <div className="form-field">
-                <label htmlFor="agent-tone">Tono</label>
-
-                <Combobox
-                  id="agent-tone"
-                  value={form.tone}
-                  options={TONE_OPTIONS}
-                  onChange={(value) =>
-                    setField("tone", value as AgentTone)
-                  }
-                  placeholder="Selecciona un tono"
-                />
-              </div>
-
-              <div className="form-field">
-                <label htmlFor="agent-status">Estado</label>
-
-                <select
-                  id="agent-status"
-                  value={form.status}
-                  onChange={(event) =>
-                    setField("status", event.target.value as AgentStatus)
-                  }
-                >
-                  <option value="ACTIVE">Activo</option>
-
-                  <option value="INACTIVE">Inactivo</option>
-                </select>
-              </div>
-            </div>
-
-            <Field
-              id="agent-description"
-              label="Descripción"
-              type="text"
-              value={form.description}
-              onChange={(event) => setField("description", event.target.value)}
-              placeholder="Breve descripción del asistente"
-            />
-          </AgentConfigCard>
-
-          <AgentConfigCard
-            id="agent-comportamiento"
-            icon="settings"
-            title="Comportamiento"
-            description="Personalidad, objetivos y reglas que sigue el agente"
-          >
-            <Field
-              id="agent-personality"
-              label="Personalidad"
-              type="text"
-              value={form.personality}
-              onChange={(event) => setField("personality", event.target.value)}
-              placeholder="Ej.: cercano y orientado a soluciones"
-            />
-
-            <div className="form-field">
-              <label htmlFor="agent-welcome">Mensaje de bienvenida</label>
-
-              <textarea
-                id="agent-welcome"
-                rows={2}
-                maxLength={500}
-                value={form.welcomeMessage}
-                onChange={(event) =>
-                  setField("welcomeMessage", event.target.value)
-                }
-                placeholder="Ej.: Hola, ¿en qué puedo ayudarte hoy?"
-              />
-
-              <span className="agent-config__counter">
-                {form.welcomeMessage.length} / 500
-              </span>
-            </div>
-
-            <div className="form-field">
-              <label htmlFor="agent-objective">Objetivo comercial</label>
-
-              <textarea
-                id="agent-objective"
-                rows={2}
-                value={form.commercialObjective}
-                onChange={(event) =>
-                  setField("commercialObjective", event.target.value)
-                }
-                placeholder="Ej.: guiar al cliente hacia la compra o la cotización"
-              />
-            </div>
-
-            <div className="form-field">
-              <label htmlFor="agent-instructions">
-                Instrucciones del sistema
-              </label>
-
-              <textarea
-                id="agent-instructions"
-                rows={4}
-                maxLength={500}
-                value={form.systemInstructions}
-                onChange={(event) =>
-                  setField("systemInstructions", event.target.value)
-                }
-                placeholder="Reglas avanzadas que el modelo debe seguir siempre"
-              />
-
-              <span className="agent-config__counter">
-                {form.systemInstructions.length} / 500
-              </span>
-            </div>
-
-            <div className="agent-config__rules">
-              <div className="section-heading">
-                <h3>Reglas de comportamiento</h3>
-
-                <p>Reglas adicionales que debe respetar el agente</p>
-              </div>
-
-              {form.behaviorRules.length === 0 ? (
-                <div className="agent-config__rules-empty">
-                  <span className="agent-config__rules-empty__icon">
-                    <Icon name="settings" size={26} />
-                  </span>
-
-                  <div className="agent-config__rules-empty__text">
-                    <strong>No hay reglas de comportamiento</strong>
-
-                    <p>
-                      Agrega reglas para delimitar cómo responde el agente.
-                    </p>
+                    <Combobox
+                      id="agent-language"
+                      value={form.language}
+                      options={LANGUAGE_OPTIONS}
+                      onChange={(value) => setField("language", value)}
+                      placeholder="Selecciona un idioma"
+                    />
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="primary"
-                    icon="plus"
-                    onClick={addRule}
-                  >
-                    Agregar regla
-                  </Button>
+                  <div className="form-field">
+                    <label htmlFor="agent-tone">Tono</label>
+
+                    <Combobox
+                      id="agent-tone"
+                      value={form.tone}
+                      options={TONE_OPTIONS}
+                      onChange={(value) => setField("tone", value as AgentTone)}
+                      placeholder="Selecciona un tono"
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label htmlFor="agent-status">Estado</label>
+
+                    <select
+                      id="agent-status"
+                      value={form.status}
+                      onChange={(event) =>
+                        setField("status", event.target.value as AgentStatus)
+                      }
+                    >
+                      <option value="ACTIVE">Activo</option>
+
+                      <option value="INACTIVE">Inactivo</option>
+                    </select>
+                  </div>
                 </div>
-              ) : (
-                <>
-                  {form.behaviorRules.map((rule, index) => (
-                    <div key={index} className="agent-config__rule-row">
-                      <input
-                        type="text"
-                        value={rule}
-                        onChange={(event) =>
-                          updateRule(index, event.target.value)
-                        }
-                        placeholder="Ej.: nunca inventar precios"
-                        aria-label={`Regla ${index + 1}`}
-                      />
+
+                <Field
+                  id="agent-description"
+                  label="Descripción"
+                  type="text"
+                  value={form.description}
+                  onChange={(event) =>
+                    setField("description", event.target.value)
+                  }
+                  placeholder="Breve descripción del asistente"
+                />
+              </AgentConfigCard>
+
+              <AgentConfigCard
+                id="agent-comportamiento"
+                icon="settings"
+                title="Comportamiento"
+                description="Personalidad, objetivos y reglas que sigue el agente"
+              >
+                <Field
+                  id="agent-personality"
+                  label="Personalidad"
+                  type="text"
+                  value={form.personality}
+                  onChange={(event) =>
+                    setField("personality", event.target.value)
+                  }
+                  placeholder="Ej.: cercano y orientado a soluciones"
+                />
+
+                <div className="form-field">
+                  <label htmlFor="agent-welcome">Mensaje de bienvenida</label>
+
+                  <textarea
+                    id="agent-welcome"
+                    rows={2}
+                    maxLength={500}
+                    value={form.welcomeMessage}
+                    onChange={(event) =>
+                      setField("welcomeMessage", event.target.value)
+                    }
+                    placeholder="Ej.: Hola, ¿en qué puedo ayudarte hoy?"
+                  />
+
+                  <span className="agent-config__counter">
+                    {form.welcomeMessage.length} / 500
+                  </span>
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="agent-objective">Objetivo comercial</label>
+
+                  <textarea
+                    id="agent-objective"
+                    rows={2}
+                    value={form.commercialObjective}
+                    onChange={(event) =>
+                      setField("commercialObjective", event.target.value)
+                    }
+                    placeholder="Ej.: guiar al cliente hacia la compra o la cotización"
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="agent-instructions">
+                    Instrucciones del sistema
+                  </label>
+
+                  <textarea
+                    id="agent-instructions"
+                    rows={4}
+                    maxLength={500}
+                    value={form.systemInstructions}
+                    onChange={(event) =>
+                      setField("systemInstructions", event.target.value)
+                    }
+                    placeholder="Reglas avanzadas que el modelo debe seguir siempre"
+                  />
+
+                  <span className="agent-config__counter">
+                    {form.systemInstructions.length} / 500
+                  </span>
+                </div>
+
+                <div className="agent-config__rules">
+                  <div className="section-heading">
+                    <h3>Reglas de comportamiento</h3>
+
+                    <p>Reglas adicionales que debe respetar el agente</p>
+                  </div>
+
+                  {form.behaviorRules.length === 0 ? (
+                    <div className="agent-config__rules-empty">
+                      <span className="agent-config__rules-empty__icon">
+                        <Icon name="settings" size={26} />
+                      </span>
+
+                      <div className="agent-config__rules-empty__text">
+                        <strong>No hay reglas de comportamiento</strong>
+
+                        <p>
+                          Agrega reglas para delimitar cómo responde el agente.
+                        </p>
+                      </div>
 
                       <Button
                         type="button"
-                        variant="danger"
-                        icon="trash"
-                        iconOnly
-                        onClick={() => removeRule(index)}
+                        variant="primary"
+                        icon="plus"
+                        onClick={addRule}
                       >
-                        Eliminar regla
+                        Agregar regla
                       </Button>
                     </div>
-                  ))}
+                  ) : (
+                    <>
+                      {form.behaviorRules.map((rule, index) => (
+                        <div key={index} className="agent-config__rule-row">
+                          <input
+                            type="text"
+                            value={rule}
+                            onChange={(event) =>
+                              updateRule(index, event.target.value)
+                            }
+                            placeholder="Ej.: nunca inventar precios"
+                            aria-label={`Regla ${index + 1}`}
+                          />
 
-                  <div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      icon="plus"
-                      iconOnly
-                      onClick={addRule}
-                    >
-                      Agregar regla
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          </AgentConfigCard>
+                          <Button
+                            type="button"
+                            variant="danger"
+                            icon="trash"
+                            iconOnly
+                            onClick={() => removeRule(index)}
+                          >
+                            Eliminar regla
+                          </Button>
+                        </div>
+                      ))}
 
-          <AgentConfigCard
-            id="agent-herramientas"
-            icon="channels"
-            title="Herramientas"
-            description="Capacidades que el agente puede usar para atender clientes"
-          >
-            <div className="agent-config__tools">
-              {TOOL_OPTIONS.map((option) => {
-                const enabled = form.enabledTools.includes(option.value);
+                      <div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          icon="plus"
+                          iconOnly
+                          onClick={addRule}
+                        >
+                          Agregar regla
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </AgentConfigCard>
 
-                return (
-                  <div
-                    key={option.value}
-                    className={
-                      enabled
-                        ? "agent-config__tool agent-config__tool--active"
-                        : "agent-config__tool"
-                    }
-                    onClick={() => toggleTool(option.value)}
-                  >
-                    <span className="agent-config__tool-icon">
-                      <Icon name={option.icon} size={20} />
-                    </span>
-
-                    <span className="agent-config__tool-text">
-                      <strong>{option.label}</strong>
-
-                      <small>{option.description}</small>
-                    </span>
-
-                    <span onClick={(event) => event.stopPropagation()}>
-                      <Switch
-                        checked={enabled}
-                        onChange={() => toggleTool(option.value)}
-                        label={option.label}
-                      />
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <FormMessage kind="info">
-              Si no seleccionas ninguna herramienta, todas quedan habilitadas.
-            </FormMessage>
-
-            <div className="form-field">
-              <label htmlFor="agent-scope">Catálogo</label>
-
-              <select
-                id="agent-scope"
-                value={form.productScope}
-                onChange={(event) =>
-                  setField(
-                    "productScope",
-                    event.target.value as AgentProductScope,
-                  )
-                }
+              <AgentConfigCard
+                id="agent-herramientas"
+                icon="channels"
+                title="Herramientas"
+                description="Capacidades que el agente puede usar para atender clientes"
               >
-                <option value="ALL">Todos los productos</option>
+                <div className="agent-config__tools">
+                  {TOOL_OPTIONS.map((option) => {
+                    const enabled = form.enabledTools.includes(option.value);
 
-                <option value="SELECTED">Solo productos seleccionados</option>
-              </select>
-            </div>
+                    return (
+                      <div
+                        key={option.value}
+                        className={
+                          enabled
+                            ? "agent-config__tool agent-config__tool--active"
+                            : "agent-config__tool"
+                        }
+                        onClick={() => toggleTool(option.value)}
+                      >
+                        <span className="agent-config__tool-icon">
+                          <Icon name={option.icon} size={20} />
+                        </span>
 
-            {form.productScope === "SELECTED" && (
-              <div className="agent-config__options">
-                {products.length === 0 && (
-                  <FormMessage kind="info">
-                    No hay productos disponibles para seleccionar.
-                  </FormMessage>
+                        <span className="agent-config__tool-text">
+                          <strong>{option.label}</strong>
+
+                          <small>{option.description}</small>
+                        </span>
+
+                        <span onClick={(event) => event.stopPropagation()}>
+                          <Switch
+                            checked={enabled}
+                            onChange={() => toggleTool(option.value)}
+                            label={option.label}
+                          />
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <FormMessage kind="info">
+                  Si no seleccionas ninguna herramienta, todas quedan
+                  habilitadas.
+                </FormMessage>
+
+                <div className="form-field">
+                  <label htmlFor="agent-scope">Catálogo</label>
+
+                  <select
+                    id="agent-scope"
+                    value={form.productScope}
+                    onChange={(event) =>
+                      setField(
+                        "productScope",
+                        event.target.value as AgentProductScope,
+                      )
+                    }
+                  >
+                    <option value="ALL">Todos los productos</option>
+
+                    <option value="SELECTED">
+                      Solo productos seleccionados
+                    </option>
+                  </select>
+                </div>
+
+                {form.productScope === "SELECTED" && (
+                  <div className="agent-config__options">
+                    {products.length === 0 && (
+                      <FormMessage kind="info">
+                        No hay productos disponibles para seleccionar.
+                      </FormMessage>
+                    )}
+
+                    {products.map((product) => (
+                      <label key={product._id} className="agent-config__option">
+                        <input
+                          type="checkbox"
+                          checked={form.allowedProductIds.includes(product._id)}
+                          onChange={() => toggleProduct(product._id)}
+                        />
+
+                        <span>
+                          <strong>{product.name}</strong>
+
+                          <small>
+                            {product.sku ? `${product.sku} · ` : ""}
+                            {product.currency} {product.unitPrice}
+                          </small>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 )}
+              </AgentConfigCard>
 
-                {products.map((product) => (
-                  <label key={product._id} className="agent-config__option">
-                    <input
-                      type="checkbox"
-                      checked={form.allowedProductIds.includes(product._id)}
-                      onChange={() => toggleProduct(product._id)}
-                    />
+              <AgentConfigCard
+                id="agent-escalacion"
+                icon="phone"
+                title="Escalación"
+                description="Transferencia automática de la conversación a un asesor humano"
+              >
+                <div className="agent-config__toggle-row">
+                  <span>Habilitar escalación</span>
 
-                    <span>
-                      <strong>{product.name}</strong>
+                  <Switch
+                    checked={form.escalationEnabled}
+                    onChange={(checked) =>
+                      setField("escalationEnabled", checked)
+                    }
+                    label="Habilitar escalación"
+                  />
+                </div>
 
-                      <small>
-                        {product.sku ? `${product.sku} · ` : ""}
-                        {product.currency} {product.unitPrice}
-                      </small>
-                    </span>
+                <Field
+                  id="agent-escalation-keywords"
+                  label="Palabras clave (separadas por coma)"
+                  type="text"
+                  value={form.escalationKeywords}
+                  onChange={(event) =>
+                    setField("escalationKeywords", event.target.value)
+                  }
+                  placeholder="Ej.: asesor, humano, reclamar, gerente"
+                  disabled={!form.escalationEnabled}
+                />
+
+                <div className="form-field">
+                  <label htmlFor="agent-escalation-fallback">
+                    Mensaje de escalación
                   </label>
-                ))}
-              </div>
-            )}
-          </AgentConfigCard>
 
-          <AgentConfigCard
-            id="agent-escalacion"
-            icon="phone"
-            title="Escalación"
-            description="Transferencia automática de la conversación a un asesor humano"
-          >
-            <div className="agent-config__toggle-row">
-              <span>Habilitar escalación</span>
+                  <textarea
+                    id="agent-escalation-fallback"
+                    rows={2}
+                    value={form.escalationFallback}
+                    onChange={(event) =>
+                      setField("escalationFallback", event.target.value)
+                    }
+                    placeholder="Ej.: Un asesor te contactará en breve."
+                    disabled={!form.escalationEnabled}
+                  />
+                </div>
+              </AgentConfigCard>
 
-              <Switch
-                checked={form.escalationEnabled}
-                onChange={(checked) => setField("escalationEnabled", checked)}
-                label="Habilitar escalación"
-              />
-            </div>
+              <AgentConfigCard
+                id="agent-memoria"
+                icon="history"
+                title="Memoria"
+                description="Contexto que el agente recuerda de la conversación"
+              >
+                <div className="agent-config__toggle-row">
+                  <span>Habilitar memoria</span>
 
-            <Field
-              id="agent-escalation-keywords"
-              label="Palabras clave (separadas por coma)"
-              type="text"
-              value={form.escalationKeywords}
-              onChange={(event) =>
-                setField("escalationKeywords", event.target.value)
-              }
-              placeholder="Ej.: asesor, humano, reclamar, gerente"
-              disabled={!form.escalationEnabled}
-            />
+                  <Switch
+                    checked={form.memoryEnabled}
+                    onChange={(checked) => setField("memoryEnabled", checked)}
+                    label="Habilitar memoria"
+                  />
+                </div>
 
-            <div className="form-field">
-              <label htmlFor="agent-escalation-fallback">
-                Mensaje de escalación
-              </label>
+                <div className="agent-config__grid-2">
+                  <Field
+                    id="agent-memory-window"
+                    label="Ventana de mensajes"
+                    type="number"
+                    min={1}
+                    value={form.messageWindow}
+                    onChange={(event) =>
+                      setField("messageWindow", Number(event.target.value))
+                    }
+                    disabled={!form.memoryEnabled}
+                  />
 
-              <textarea
-                id="agent-escalation-fallback"
-                rows={2}
-                value={form.escalationFallback}
-                onChange={(event) =>
-                  setField("escalationFallback", event.target.value)
-                }
-                placeholder="Ej.: Un asesor te contactará en breve."
-                disabled={!form.escalationEnabled}
-              />
-            </div>
-          </AgentConfigCard>
+                  <Field
+                    id="agent-memory-tokens"
+                    label="Tope de contexto (tokens)"
+                    type="number"
+                    min={1000}
+                    value={form.maxContextTokens}
+                    onChange={(event) =>
+                      setField("maxContextTokens", Number(event.target.value))
+                    }
+                    disabled={!form.memoryEnabled}
+                  />
+                </div>
 
-          <AgentConfigCard
-            id="agent-memoria"
-            icon="history"
-            title="Memoria"
-            description="Contexto que el agente recuerda de la conversación"
-          >
-            <div className="agent-config__toggle-row">
-              <span>Habilitar memoria</span>
+                <div className="agent-config__toggle-row">
+                  <span>Resumir conversaciones largas</span>
 
-              <Switch
-                checked={form.memoryEnabled}
-                onChange={(checked) => setField("memoryEnabled", checked)}
-                label="Habilitar memoria"
-              />
-            </div>
-
-            <div className="agent-config__grid-2">
-              <Field
-                id="agent-memory-window"
-                label="Ventana de mensajes"
-                type="number"
-                min={1}
-                value={form.messageWindow}
-                onChange={(event) =>
-                  setField("messageWindow", Number(event.target.value))
-                }
-                disabled={!form.memoryEnabled}
-              />
-
-              <Field
-                id="agent-memory-tokens"
-                label="Tope de contexto (tokens)"
-                type="number"
-                min={1000}
-                value={form.maxContextTokens}
-                onChange={(event) =>
-                  setField("maxContextTokens", Number(event.target.value))
-                }
-                disabled={!form.memoryEnabled}
-              />
-            </div>
-
-            <div className="agent-config__toggle-row">
-              <span>Resumir conversaciones largas</span>
-
-              <Switch
-                checked={form.summarizationEnabled}
-                onChange={(checked) =>
-                  setField("summarizationEnabled", checked)
-                }
-                disabled={!form.memoryEnabled}
-                label="Resumir conversaciones largas"
-              />
-            </div>
-          </AgentConfigCard>
+                  <Switch
+                    checked={form.summarizationEnabled}
+                    onChange={(checked) =>
+                      setField("summarizationEnabled", checked)
+                    }
+                    disabled={!form.memoryEnabled}
+                    label="Resumir conversaciones largas"
+                  />
+                </div>
+              </AgentConfigCard>
             </form>
           </div>
 
