@@ -8089,7 +8089,6 @@ input[type="number"] {
 .company-settings {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 .settings-tabs {
@@ -8134,12 +8133,12 @@ input[type="number"] {
   grid-template-columns: minmax(0, 1fr) 320px;
   align-items: start;
   gap: 24px;
+  margin-block-start: 24px;
 }
 
 .company-settings__main {
   display: flex;
   flex-direction: column;
-  gap: 20px;
   min-width: 0;
 }
 
