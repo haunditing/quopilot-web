@@ -340,7 +340,7 @@ function CompanySettingsPanel() {
   }
 
   return (
-    <main className="company-settings">
+    <main className="master-detail">
       <PageHeader
         title="Configuración de la Empresa"
         description="Centraliza la identidad legal, el branding y las preferencias de tu empresa"
@@ -363,8 +363,8 @@ function CompanySettingsPanel() {
           message="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
         ></EmptyState>
       ) : (
-        <div className="company-settings__body">
-          <div className="company-settings__main">
+        <div className="master-detail__body">
+          <div className="master-detail__main">
             {/* Sección 1: Identificación legal y fiscal (solo lectura) */}
             <section className="settings-card">
               <header className="settings-card__header">
@@ -934,7 +934,7 @@ function CompanySettingsPanel() {
           </div>
 
           {/* Vista previa lateral */}
-          <aside className="company-settings__preview">
+          <aside className="master-detail__sidebar">
             <div className="settings-preview">
               <div className="settings-preview__title">Vista previa</div>
 

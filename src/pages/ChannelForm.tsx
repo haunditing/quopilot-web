@@ -29,7 +29,11 @@ import {
   swatchColor,
   webhookUrlFor,
 } from "../lib/channels.js";
-import type { Channel, ChannelType, ChatWidgetPosition } from "../types/channel.js";
+import type {
+  Channel,
+  ChannelType,
+  ChatWidgetPosition,
+} from "../types/channel.js";
 
 interface ChannelFormProps {
   channelId?: string;
@@ -254,11 +258,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
       hasErrors = true;
     }
 
-    if (
-      form.type === "WHATSAPP" &&
-      !isEdit &&
-      !form.phoneNumber.trim()
-    ) {
+    if (form.type === "WHATSAPP" && !isEdit && !form.phoneNumber.trim()) {
       setConfigError("El número de teléfono es obligatorio");
       hasErrors = true;
     }
@@ -344,7 +344,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
   if (loading) {
     return (
-      <main className="channel-form">
+      <main className="master-detail">
         <LoadingOverlay title="Cargando canal..." />
       </main>
     );
@@ -352,7 +352,11 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
   if (loadError) {
     return (
-      <PageState kind="error" title="No fue posible cargar" message={loadError} />
+      <PageState
+        kind="error"
+        title="No fue posible cargar"
+        message={loadError}
+      />
     );
   }
 
@@ -361,7 +365,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
   const showPublicLink = isEdit && channel?.type === "WEB_CHAT" && publicLink;
 
   return (
-    <main className="channel-form">
+    <main className="master-detail">
       <PageHeader
         title={isEdit ? "Editar canal" : "Nuevo canal"}
         description={
@@ -375,17 +379,14 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-      <div className="channel-form__body">
-        <div className="channel-form__main">
+      <div className="master-detail__body">
+        <div className="master-detail__main">
           <form
-            id="channel-form"
+            id="master-detail"
             className="channel-form__form"
             onSubmit={handleSubmit}
           >
-            <section
-              id="channel-informacion"
-              className="channel-form__card"
-            >
+            <section id="channel-informacion" className="channel-form__card">
               <header className="channel-form__card-head">
                 <span className="channel-form__card-head__icon">
                   <Icon name="settings" size={20} />
@@ -440,10 +441,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
               </div>
             </section>
 
-            <section
-              id="channel-configuracion"
-              className="channel-form__card"
-            >
+            <section id="channel-configuracion" className="channel-form__card">
               <header className="channel-form__card-head">
                 <span className="channel-form__card-head__icon">
                   <Icon name="channels" size={20} />
@@ -657,10 +655,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             </section>
 
             {form.type !== "WEB_CHAT" && (
-              <section
-                id="channel-credenciales"
-                className="channel-form__card"
-              >
+              <section id="channel-credenciales" className="channel-form__card">
                 <header className="channel-form__card-head">
                   <span className="channel-form__card-head__icon">
                     <Icon name="lock" size={20} />
@@ -772,7 +767,11 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                         icon="link"
                         variant="secondary"
                         onClick={() => {
-                          window.open(publicLink, "_blank", "noopener,noreferrer");
+                          window.open(
+                            publicLink,
+                            "_blank",
+                            "noopener,noreferrer",
+                          );
                         }}
                       >
                         Abrir
@@ -813,7 +812,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
           <Button
             type="submit"
-            form="channel-form"
+            form="master-detail"
             icon="check"
             disabled={saving}
             className="channel-form__panel-save"

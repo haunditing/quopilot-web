@@ -177,6 +177,26 @@ export default function Channels() {
       ),
     },
     {
+      key: "credentials",
+      label: "Credenciales",
+      render: (channel) => {
+        if (channel.type === "WEB_CHAT") {
+          return "—";
+        }
+        const cfg = channel.credentialsConfigured;
+        const allConfigured = cfg?.accessToken && cfg?.verifyToken;
+        return (
+          <span
+            className={
+              allConfigured ? "badge badge-success" : "badge badge-warning"
+            }
+          >
+            {allConfigured ? "Configuradas" : "Incompletas"}
+          </span>
+        );
+      },
+    },
+    {
       key: "webhook",
       label: "Webhook / Enlace",
       render: (channel) => {

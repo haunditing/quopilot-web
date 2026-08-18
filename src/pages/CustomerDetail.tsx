@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Info,
-  Search,
-} from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Info, Search } from "lucide-react";
 
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
@@ -260,7 +254,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
   if (loading) {
     return (
-      <main className="customer-detail">
+      <main className="master-detail">
         <LoadingOverlay title="Cargando contacto..." />
       </main>
     );
@@ -268,22 +262,30 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
   if (loadError) {
     return (
-      <PageState kind="error" title="No fue posible cargar" message={loadError} />
+      <PageState
+        kind="error"
+        title="No fue posible cargar"
+        message={loadError}
+      />
     );
   }
 
   return (
-    <main className="customer-detail">
+    <main className="master-detail">
       <PageHeader
         title={isEdit ? "Editar contacto" : "Nuevo contacto"}
         description="Datos generales e información de contacto"
       />
 
-      <form className="customer-detail__body" onSubmit={handleSubmit}>
+      <form className="master-detail__body" onSubmit={handleSubmit}>
         {/* ===== Columna principal ===== */}
-        <div className="customer-detail__main">
+        <div className="master-detail__main">
           {/* Selector de tipo de contacto */}
-          <div className="customer-type" role="group" aria-label="Tipo de contacto">
+          <div
+            className="customer-type"
+            role="group"
+            aria-label="Tipo de contacto"
+          >
             <button
               type="button"
               className={
@@ -297,7 +299,6 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               <span className="customer-type__check">
                 <Check size={12} strokeWidth={3} />
               </span>
-
               Cliente
             </button>
 
@@ -314,7 +315,6 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               <span className="customer-type__check">
                 <Check size={12} strokeWidth={3} />
               </span>
-
               Proveedor
             </button>
           </div>
@@ -336,10 +336,10 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
           )}
 
           {/* Sección 1: Datos generales */}
-          <section className="customer-card">
-            <h2 className="customer-card__title">Datos generales</h2>
+          <section className="master-detail-card">
+            <h2 className="master-detail-card__title">Datos generales</h2>
 
-            <div className="customer-card__grid">
+            <div className="master-detail-card__grid">
               <Field
                 id="customer-first-name"
                 label="Nombres"
@@ -358,7 +358,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               />
             </div>
 
-            <div className="customer-card__grid">
+            <div className="master-detail-card__grid">
               <div className="form-field">
                 <label htmlFor="customer-id-type">Tipo de identificación</label>
 
@@ -381,7 +381,9 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               </div>
 
               <div className="form-field">
-                <label htmlFor="customer-id-number">Número de identificación</label>
+                <label htmlFor="customer-id-number">
+                  Número de identificación
+                </label>
 
                 <div className="customer-field-with-action">
                   <input
@@ -406,18 +408,20 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               </div>
             </div>
 
-            <div className="customer-card__grid">
+            <div className="master-detail-card__grid">
               <Field
                 id="customer-municipality"
                 label="Municipio / Departamento"
                 type="text"
                 value={form.municipality}
                 placeholder="Ej.: Medellín / Antioquia"
-                onChange={(event) => setField("municipality", event.target.value)}
+                onChange={(event) =>
+                  setField("municipality", event.target.value)
+                }
               />
             </div>
 
-            <div className="customer-card__grid">
+            <div className="master-detail-card__grid">
               <Field
                 id="customer-address"
                 label="Dirección"
@@ -437,32 +441,35 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
           </section>
 
           {/* Sección 2: Información de contacto */}
-          <section className="customer-card">
+          <section className="master-detail-card">
             <button
               type="button"
-              className="customer-card__heading"
+              className="master-detail-card__heading"
               onClick={() => setContactOpen((current) => !current)}
               aria-expanded={contactOpen}
             >
-              <span className="customer-card__heading-text">
+              <span className="master-detail-card__heading-text">
                 <strong>Información de contacto</strong>
 
                 <small>
-                  Agrega estos datos para comunicarte en cualquier momento con tu
-                  contacto.
+                  Agrega estos datos para comunicarte en cualquier momento con
+                  tu contacto.
                 </small>
               </span>
 
               {contactOpen ? (
-                <ChevronUp size={18} className="customer-card__chevron" />
+                <ChevronUp size={18} className="master-detail-card__chevron" />
               ) : (
-                <ChevronDown size={18} className="customer-card__chevron" />
+                <ChevronDown
+                  size={18}
+                  className="master-detail-card__chevron"
+                />
               )}
             </button>
 
             {contactOpen && (
               <>
-                <div className="customer-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="customer-email"
                     label="Correo electrónico"
@@ -482,7 +489,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
                   />
                 </div>
 
-                <div className="customer-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="customer-phone"
                     label="Teléfono"
@@ -505,9 +512,9 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
         </div>
 
         {/* ===== Panel lateral sticky ===== */}
-        <aside className="customer-detail__sidebar">
-          <div className="customer-sidebar">
-            <div className="customer-sidebar__title">{title}</div>
+        <aside className="master-detail__sidebar">
+          <div className="master-detail-sidebar">
+            <div className="master-detail-sidebar__title">{title}</div>
 
             <label className="customer-switch">
               <input
@@ -525,7 +532,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               </span>
             </label>
 
-            <div className="customer-sidebar__actions">
+            <div className="master-detail-sidebar__actions">
               <Button
                 type="button"
                 variant="secondary"

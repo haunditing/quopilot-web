@@ -218,20 +218,20 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     };
   }, [productId]);
 
-  const setField = useCallback(<K extends keyof FormState>(
-    key: K,
-    value: FormState[K],
-  ) => {
-    setForm((current) => ({ ...current, [key]: value }));
+  const setField = useCallback(
+    <K extends keyof FormState>(key: K, value: FormState[K]) => {
+      setForm((current) => ({ ...current, [key]: value }));
 
-    if (key === "name") {
-      setNameError("");
-    }
+      if (key === "name") {
+        setNameError("");
+      }
 
-    if (key === "basePrice") {
-      setBasePriceError("");
-    }
-  }, []);
+      if (key === "basePrice") {
+        setBasePriceError("");
+      }
+    },
+    [],
+  );
 
   const isService = form.itemType === "SERVICE";
   const isCombo = form.itemType === "COMBO";
@@ -257,7 +257,12 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     const base = Number(form.basePrice);
     const cost = Number(form.cost);
 
-    if (!Number.isFinite(base) || base <= 0 || !Number.isFinite(cost) || cost < 0) {
+    if (
+      !Number.isFinite(base) ||
+      base <= 0 ||
+      !Number.isFinite(cost) ||
+      cost < 0
+    ) {
       return null;
     }
 
@@ -271,9 +276,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   );
 
   const taxOptionValue =
-    TAX_RATE_OPTIONS.find(
-      (option) => Number(option.value) === taxPercent,
-    )?.value ?? String(taxPercent);
+    TAX_RATE_OPTIONS.find((option) => Number(option.value) === taxPercent)
+      ?.value ?? String(taxPercent);
 
   function toggleSection(key: string) {
     setOpenSections((current) => ({ ...current, [key]: !current[key] }));
@@ -361,8 +365,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
       setForm((current) => ({
         ...current,
-        description:
-          current.description.trim() ? template : current.description,
+        description: current.description.trim()
+          ? template
+          : current.description,
       }));
       setCopilotLoading(false);
       setCopilotNotice(
@@ -419,16 +424,12 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       basePrice: Number.isFinite(basePrice) && basePrice > 0 ? basePrice : 0,
       cost: Number.isFinite(cost) && cost > 0 ? cost : 0,
       taxRate: taxPercent,
-      priceLists: form.priceLists.length
-        ? form.priceLists
-        : undefined,
+      priceLists: form.priceLists.length ? form.priceLists : undefined,
       accountingAccount: form.accountingAccount.trim() || undefined,
       incomeAccount: form.incomeAccount.trim() || undefined,
       inventoryAccount: form.inventoryAccount.trim() || undefined,
       fiscalCode: form.fiscalCode.trim() || undefined,
-      image: form.imageUrl.trim()
-        ? { url: form.imageUrl.trim() }
-        : undefined,
+      image: form.imageUrl.trim() ? { url: form.imageUrl.trim() } : undefined,
       warehouses: isProduct
         ? form.warehouses.filter((warehouse) => warehouse.quantity > 0)
         : [],
@@ -489,7 +490,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   if (loading) {
     return (
-      <main className="product-detail">
+      <main className="master-detail">
         <LoadingOverlay title="Cargando producto..." />
       </main>
     );
@@ -497,36 +498,45 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   if (loadError) {
     return (
-      <PageState kind="error" title="No fue posible cargar" message={loadError} />
+      <PageState
+        kind="error"
+        title="No fue posible cargar"
+        message={loadError}
+      />
     );
   }
 
   return (
-    <main className="product-detail">
+    <main className="master-detail">
       <PageHeader
-        title={isEdit ? "Editar producto / servicio" : "Nuevo producto / servicio"}
+        title={
+          isEdit ? "Editar producto / servicio" : "Nuevo producto / servicio"
+        }
         description="Formulario avanzado con inventario, contabilidad y automatización"
       />
 
-      <form className="product-detail__body" onSubmit={handleSubmit}>
-        <div className="product-detail__main">
+      <form className="master-detail__body" onSubmit={handleSubmit}>
+        <div className="master-detail__main">
           {/* Sección A: Información general */}
-          <section className="product-card">
+          <section className="master-detail-card">
             <button
               type="button"
-              className="product-card__heading"
+              className="master-detail-card__heading"
               onClick={() => toggleSection("general")}
               aria-expanded={openSections.general}
             >
-              <span className="product-card__heading-text">
+              <span className="master-detail-card__heading-text">
                 <strong>A · Información general</strong>
                 <small>Tipo de ítem, nombre, referencia e imagen</small>
               </span>
 
               {openSections.general ? (
-                <ChevronUp size={18} className="product-card__chevron" />
+                <ChevronUp size={18} className="master-detail-card__chevron" />
               ) : (
-                <ChevronDown size={18} className="product-card__chevron" />
+                <ChevronDown
+                  size={18}
+                  className="master-detail-card__chevron"
+                />
               )}
             </button>
 
@@ -550,7 +560,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </div>
                 )}
 
-                <div className="product-card__type" role="group" aria-label="Tipo de ítem">
+                <div
+                  className="product-card__type"
+                  role="group"
+                  aria-label="Tipo de ítem"
+                >
                   {ITEM_TYPE_OPTIONS.map((option) => {
                     const isActive = form.itemType === option.value;
                     const disabled = isEdit && !isActive;
@@ -574,7 +588,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   })}
                 </div>
 
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-name"
                     label="Nombre"
@@ -586,7 +600,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
 
                   <div className="form-field">
-                    <label htmlFor="product-category">Categoría / Familia</label>
+                    <label htmlFor="product-category">
+                      Categoría / Familia
+                    </label>
 
                     <select
                       id="product-category"
@@ -606,13 +622,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </div>
                 </div>
 
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-reference"
                     label="Referencia / SKU"
                     type="text"
                     value={form.reference}
-                    onChange={(event) => setField("reference", event.target.value)}
+                    onChange={(event) =>
+                      setField("reference", event.target.value)
+                    }
                     placeholder="Ej.: HP-14-X360"
                   />
 
@@ -626,13 +644,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-barcode"
                     label="Código de barras (EAN/UPC)"
                     type="text"
                     value={form.barcode}
-                    onChange={(event) => setField("barcode", event.target.value)}
+                    onChange={(event) =>
+                      setField("barcode", event.target.value)
+                    }
                     placeholder="Ej.: 7701234567890"
                   />
 
@@ -641,13 +661,17 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     label="Imagen principal (URL)"
                     type="text"
                     value={form.imageUrl}
-                    onChange={(event) => setField("imageUrl", event.target.value)}
+                    onChange={(event) =>
+                      setField("imageUrl", event.target.value)
+                    }
                     placeholder="https://..."
                   />
                 </div>
 
                 <div className="form-field">
-                  <label htmlFor="product-description">Descripción detallada</label>
+                  <label htmlFor="product-description">
+                    Descripción detallada
+                  </label>
 
                   <textarea
                     id="product-description"
@@ -663,28 +687,31 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección B: Precios e impuestos */}
-          <section className="product-card">
+          <section className="master-detail-card">
             <button
               type="button"
-              className="product-card__heading"
+              className="master-detail-card__heading"
               onClick={() => toggleSection("pricing")}
               aria-expanded={openSections.pricing}
             >
-              <span className="product-card__heading-text">
+              <span className="master-detail-card__heading-text">
                 <strong>B · Precios e impuestos</strong>
                 <small>Precio base, impuesto, listas de precios y margen</small>
               </span>
 
               {openSections.pricing ? (
-                <ChevronUp size={18} className="product-card__chevron" />
+                <ChevronUp size={18} className="master-detail-card__chevron" />
               ) : (
-                <ChevronDown size={18} className="product-card__chevron" />
+                <ChevronDown
+                  size={18}
+                  className="master-detail-card__chevron"
+                />
               )}
             </button>
 
             {openSections.pricing && (
               <>
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-base-price"
                     label="Precio base (sin impuestos)"
@@ -705,7 +732,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     <select
                       id="product-tax-rate"
                       value={taxOptionValue}
-                      onChange={(event) => setField("taxRate", event.target.value)}
+                      onChange={(event) =>
+                        setField("taxRate", event.target.value)
+                      }
                     >
                       {TAX_RATE_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -716,7 +745,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </div>
                 </div>
 
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-cost"
                     label="Costo (sin impuestos)"
@@ -731,9 +760,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                 <div className="product-price-summary">
                   <div>
                     <span>Precio total</span>
-                    <small>
-                      Precio base + {taxPercent}% de impuesto
-                    </small>
+                    <small>Precio base + {taxPercent}% de impuesto</small>
                   </div>
 
                   <strong>
@@ -762,7 +789,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   );
 
                   return (
-                    <div key={priceList.value} className="product-card__grid">
+                    <div
+                      key={priceList.value}
+                      className="master-detail-card__grid"
+                    >
                       <div className="form-field">
                         <label>{priceList.label}</label>
 
@@ -789,15 +819,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección C: Inventario y almacenes */}
-          <section className="product-card">
+          <section className="master-detail-card">
             <button
               type="button"
-              className="product-card__heading"
+              className="master-detail-card__heading"
               onClick={() => toggleSection("inventory")}
               aria-expanded={openSections.inventory}
               disabled={isService || isCombo}
             >
-              <span className="product-card__heading-text">
+              <span className="master-detail-card__heading-text">
                 <strong>C · Inventario y almacenes</strong>
                 <small>
                   {isProduct
@@ -807,15 +837,18 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               </span>
 
               {openSections.inventory ? (
-                <ChevronUp size={18} className="product-card__chevron" />
+                <ChevronUp size={18} className="master-detail-card__chevron" />
               ) : (
-                <ChevronDown size={18} className="product-card__chevron" />
+                <ChevronDown
+                  size={18}
+                  className="master-detail-card__chevron"
+                />
               )}
             </button>
 
             {openSections.inventory && isProduct && (
               <>
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-min-stock"
                     label="Stock mínimo"
@@ -823,7 +856,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     min="0"
                     step="1"
                     value={form.minStock}
-                    onChange={(event) => setField("minStock", event.target.value)}
+                    onChange={(event) =>
+                      setField("minStock", event.target.value)
+                    }
                   />
 
                   <Field
@@ -833,7 +868,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     min="0"
                     step="1"
                     value={form.maxStock}
-                    onChange={(event) => setField("maxStock", event.target.value)}
+                    onChange={(event) =>
+                      setField("maxStock", event.target.value)
+                    }
                   />
                 </div>
 
@@ -930,28 +967,31 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección D: Contabilidad */}
-          <section className="product-card">
+          <section className="master-detail-card">
             <button
               type="button"
-              className="product-card__heading"
+              className="master-detail-card__heading"
               onClick={() => toggleSection("accounting")}
               aria-expanded={openSections.accounting}
             >
-              <span className="product-card__heading-text">
+              <span className="master-detail-card__heading-text">
                 <strong>D · Contabilidad y clasificación fiscal</strong>
                 <small>Cuentas contables y códigos de homologación</small>
               </span>
 
               {openSections.accounting ? (
-                <ChevronUp size={18} className="product-card__chevron" />
+                <ChevronUp size={18} className="master-detail-card__chevron" />
               ) : (
-                <ChevronDown size={18} className="product-card__chevron" />
+                <ChevronDown
+                  size={18}
+                  className="master-detail-card__chevron"
+                />
               )}
             </button>
 
             {openSections.accounting && (
               <>
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-income-account"
                     label="Cuenta contable de ingresos"
@@ -975,7 +1015,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="product-card__grid">
+                <div className="master-detail-card__grid">
                   <Field
                     id="product-inventory-account"
                     label="Cuenta de inventario / costo de ventas"
@@ -1003,22 +1043,25 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección E: Copiloto y automatización */}
-          <section className="product-card">
+          <section className="master-detail-card">
             <button
               type="button"
-              className="product-card__heading"
+              className="master-detail-card__heading"
               onClick={() => toggleSection("copilot")}
               aria-expanded={openSections.copilot}
             >
-              <span className="product-card__heading-text">
+              <span className="master-detail-card__heading-text">
                 <strong>E · Copiloto &amp; automatización QuoPilot</strong>
                 <small>Descripciones IA, sugerencia de precio y triggers</small>
               </span>
 
               {openSections.copilot ? (
-                <ChevronUp size={18} className="product-card__chevron" />
+                <ChevronUp size={18} className="master-detail-card__chevron" />
               ) : (
-                <ChevronDown size={18} className="product-card__chevron" />
+                <ChevronDown
+                  size={18}
+                  className="master-detail-card__chevron"
+                />
               )}
             </button>
 
@@ -1043,7 +1086,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       disabled={copilotLoading}
                       onClick={handleGenerateDescription}
                     >
-                      {copilotLoading ? "Generando..." : "Autogenerar descripción"}
+                      {copilotLoading
+                        ? "Generando..."
+                        : "Autogenerar descripción"}
                     </Button>
                   </div>
 
@@ -1091,7 +1136,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                         }
                       />
 
-                      <span className="product-switch__track" aria-hidden="true" />
+                      <span
+                        className="product-switch__track"
+                        aria-hidden="true"
+                      />
 
                       <span className="product-switch__label">
                         Alerta automática de stock bajo
@@ -1105,13 +1153,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         </div>
 
         {/* Panel lateral */}
-        <aside className="product-detail__sidebar">
-          <div className="product-sidebar">
-            <div className="product-sidebar__title">
+        <aside className="master-detail__sidebar">
+          <div className="master-detail-sidebar">
+            <div className="master-detail-sidebar__title">
               {form.name.trim() || "Nuevo producto"}
             </div>
 
-            <div className="product-sidebar__meta">
+            <div className="master-detail-sidebar__meta">
               <div>
                 <span>Precio total</span>
                 <strong>
@@ -1136,7 +1184,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               )}
             </div>
 
-            <div className="product-sidebar__actions">
+            <div className="master-detail-sidebar__actions">
               <Button
                 type="button"
                 variant="secondary"
@@ -1150,7 +1198,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                 variant="primary"
                 disabled={saving || (isEdit && !canEdit)}
               >
-                {saving ? "Guardando..." : isEdit ? "Guardar cambios" : "Crear producto"}
+                {saving
+                  ? "Guardando..."
+                  : isEdit
+                    ? "Guardar cambios"
+                    : "Crear producto"}
               </Button>
             </div>
           </div>

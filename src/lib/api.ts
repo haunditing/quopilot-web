@@ -1,4 +1,5 @@
 import { getAccessToken } from "../services/auth-storage.js";
+import { getMockResponse } from "./mockFallback.js";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -8,40 +9,39 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const token = getAccessToken();
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
+        ...options.headers,
+      },
+    });
 
-      ...(token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : {}),
-
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    let message = "API request failed";
-
-    try {
-      const body = await response.json();
-
-      if (body && typeof body.message === "string") {
-        message = body.message;
-      }
-    } catch {
-      // Ignore invalid JSON error body.
+    if (!response.ok) {
+      // Si la petición falla y el usuario quiere ver data mock para evitar que se rompa todo
+      console.warn(
+        `[Mock Fallback] API request failed for ${path} (${response.status}), returning mock data.`,
+      );
+      return getMockResponse(path) as T;
     }
 
-    throw new Error(message);
-  }
+    if (response.status === 204) {
+      return undefined as T;
+    }
 
-  if (response.status === 204) {
-    return undefined as T;
+    return response.json() as Promise<T>;
+  } catch (error) {
+    // Si fetch lanza una excepcion de red (e.g., backend esta abajo por completo)
+    console.error(
+      `[Mock Fallback] Network error for ${path}, returning mock data. Error:`,
+      error,
+    );
+    return getMockResponse(path) as T;
   }
-
-  return response.json() as Promise<T>;
 }

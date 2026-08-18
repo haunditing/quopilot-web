@@ -13,11 +13,7 @@ import SettingsTabs from "../components/SettingsTabs.js";
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { isValidEmail } from "../lib/validation.js";
-import {
-  createAgent,
-  getUser,
-  updateUser,
-} from "../services/user-service.js";
+import { createAgent, getUser, updateUser } from "../services/user-service.js";
 
 interface UserFormProps {
   userId?: string;
@@ -174,7 +170,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
   if (loading) {
     return (
-      <main className="user-form">
+      <main className="master-detail">
         <LoadingOverlay title="Cargando usuario..." />
       </main>
     );
@@ -182,14 +178,18 @@ export default function UserForm({ userId }: UserFormProps) {
 
   if (loadError) {
     return (
-      <PageState kind="error" title="No fue posible cargar" message={loadError} />
+      <PageState
+        kind="error"
+        title="No fue posible cargar"
+        message={loadError}
+      />
     );
   }
 
   const showConfirmPassword = !isEdit || Boolean(password);
 
   return (
-    <main className="user-form">
+    <main className="master-detail">
       <PageHeader
         title={isEdit ? "Editar usuario" : "Nuevo usuario"}
         description={
@@ -203,10 +203,10 @@ export default function UserForm({ userId }: UserFormProps) {
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-      <div className="user-form__body">
-        <div className="user-form__main">
+      <div className="master-detail__body">
+        <div className="master-detail__main">
           <form
-            id="user-form"
+            id="master-detail"
             className="user-form__form"
             onSubmit={handleSubmit}
           >
@@ -324,7 +324,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
           <Button
             type="submit"
-            form="user-form"
+            form="master-detail"
             icon="check"
             disabled={saving}
             className="user-form__panel-save"
