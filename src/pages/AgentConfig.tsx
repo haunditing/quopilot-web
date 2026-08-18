@@ -42,6 +42,7 @@ interface AgentForm {
   allowedProductIds: string[];
   enabledTools: AgentTool[];
   status: AgentStatus;
+  llmProvider: string;
   llmApiKey: string;
   llmModel: string;
   llmBaseUrl: string;
@@ -128,6 +129,13 @@ const LANGUAGE_OPTIONS: ComboboxOption[] = [
   { value: "fr", label: "Francés", icon: "globe" },
 ];
 
+const PROVIDER_OPTIONS: ComboboxOption[] = [
+  { value: "openai", label: "OpenAI", icon: "cpu" },
+  { value: "google", label: "Google Gemini", icon: "cpu" },
+  { value: "openrouter", label: "OpenRouter", icon: "cpu" },
+  { value: "custom", label: "Custom (OpenAI compatible)", icon: "cpu" },
+];
+
 interface SectionTab {
   id: string;
   label: string;
@@ -157,6 +165,7 @@ function agentToForm(agent: AgentConfig): AgentForm {
     allowedProductIds: agent.allowedProductIds ?? [],
     enabledTools: agent.enabledTools ?? [],
     status: agent.status,
+    llmProvider: agent.llm?.provider ?? "openai",
     llmApiKey: agent.llm?.apiKey ?? "",
     llmModel: agent.llm?.model ?? "",
     llmBaseUrl: agent.llm?.baseUrl ?? "",
@@ -225,6 +234,7 @@ function formToInput(form: AgentForm): AgentConfigInput {
         : {}),
     },
     llm: {
+      provider: form.llmProvider,
       ...(form.llmApiKey.trim() ? { apiKey: form.llmApiKey.trim() } : {}),
       ...(form.llmModel.trim() ? { model: form.llmModel.trim() } : {}),
       ...(form.llmBaseUrl.trim() ? { baseUrl: form.llmBaseUrl.trim() } : {}),
@@ -446,31 +456,45 @@ export default function AgentConfig() {
                 title="Modelo de IA"
                 description="Clave de API y modelo que usa el agente de este tenant"
               >
-                <div className="form-field">
-                  <label htmlFor="agent-llm-key">API Key</label>
+                <div className="agent-config__grid-2">
+                  <div className="form-field">
+                    <label htmlFor="agent-llm-provider">Proveedor</label>
 
-                  <div className="agent-config__password">
-                    <input
-                      id="agent-llm-key"
-                      type={showApiKey ? "text" : "password"}
-                      value={form.llmApiKey}
-                      onChange={(event) =>
-                        setField("llmApiKey", event.target.value)
-                      }
-                      placeholder="sk-..."
-                      autoComplete="off"
+                    <Combobox
+                      id="agent-llm-provider"
+                      value={form.llmProvider}
+                      options={PROVIDER_OPTIONS}
+                      onChange={(value) => setField("llmProvider", value)}
+                      placeholder="Selecciona un proveedor"
                     />
+                  </div>
 
-                    <button
-                      type="button"
-                      className="agent-config__password-toggle"
-                      aria-label={
-                        showApiKey ? "Ocultar API Key" : "Mostrar API Key"
-                      }
-                      onClick={() => setShowApiKey((current) => !current)}
-                    >
-                      <Icon name={showApiKey ? "eye-off" : "eye"} size={16} />
-                    </button>
+                  <div className="form-field">
+                    <label htmlFor="agent-llm-key">API Key</label>
+
+                    <div className="agent-config__password">
+                      <input
+                        id="agent-llm-key"
+                        type={showApiKey ? "text" : "password"}
+                        value={form.llmApiKey}
+                        onChange={(event) =>
+                          setField("llmApiKey", event.target.value)
+                        }
+                        placeholder="sk-..."
+                        autoComplete="off"
+                      />
+
+                      <button
+                        type="button"
+                        className="agent-config__password-toggle"
+                        aria-label={
+                          showApiKey ? "Ocultar API Key" : "Mostrar API Key"
+                        }
+                        onClick={() => setShowApiKey((current) => !current)}
+                      >
+                        <Icon name={showApiKey ? "eye-off" : "eye"} size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

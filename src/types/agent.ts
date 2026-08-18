@@ -33,6 +33,7 @@ export interface AgentMemoryConfig {
 }
 
 export interface AgentLLMConfig {
+  provider?: string;
   apiKey?: string;
   model?: string;
   baseUrl?: string;
@@ -96,6 +97,7 @@ export interface AgentConfigInput {
     summarizationEnabled?: boolean;
   };
   llm?: {
+    provider?: string;
     apiKey?: string;
     model?: string;
     baseUrl?: string;
