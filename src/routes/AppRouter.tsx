@@ -16,6 +16,7 @@ import CustomerDetail from "../pages/CustomerDetail.js";
 import Products from "../pages/Products.js";
 import ProductDetail from "../pages/ProductDetail.js";
 import Channels from "../pages/Channels.js";
+import ChannelForm from "../pages/ChannelForm.js";
 import Conversations from "../pages/Conversations.js";
 import Users from "../pages/Users.js";
 import Tenants from "../pages/Tenants.js";
@@ -68,6 +69,10 @@ export default function AppRouter() {
         <Route path="/products/:productId" element={<ProductDetailRoute />} />
 
         <Route path="/channels" element={<Channels />} />
+
+        <Route path="/channels/new" element={<ChannelForm />} />
+
+        <Route path="/channels/:channelId" element={<ChannelFormRoute />} />
 
         <Route path="/conversations" element={<Conversations />} />
 
@@ -160,6 +165,18 @@ function ProductDetailRoute() {
   }
 
   return <ProductDetail productId={productId} />;
+}
+
+function ChannelFormRoute() {
+  const { channelId } = useParams<{
+    channelId: string;
+  }>();
+
+  if (!channelId) {
+    return <Navigate to="/channels" replace />;
+  }
+
+  return <ChannelForm channelId={channelId} />;
 }
 
 function PublicChatRoute() {

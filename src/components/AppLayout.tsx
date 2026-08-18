@@ -11,6 +11,7 @@ import {
 } from "../lib/roles.js";
 import { clearAuth, getUser } from "../services/auth-storage.js";
 import type { UserRole } from "../types/user.js";
+import Button from "./Button.js";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -205,16 +206,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
               {roleLabel && <span className="app-user__role">{roleLabel}</span>}
             </div>
 
-            <button
-              className="app-user__logout"
-              type="button"
+            <Button
+              icon="logout"
+              iconOnly
               onClick={handleLogout}
               aria-label="Cerrar sesión"
-              title="Cerrar sesión"
             >
-              <Icon name="logout" size={18} />
-              <span className="visually-hidden">Cerrar sesión</span>
-            </button>
+              Cerrar sesión
+            </Button>
           </div>
         </div>
       </aside>

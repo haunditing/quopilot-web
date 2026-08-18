@@ -444,23 +444,6 @@ export default function AgentConfig() {
         description="Configura el asistente comercial virtual de tu empresa"
       />
 
-      <nav className="agent-config__tabs" aria-label="Secciones del agente">
-        {SECTION_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={
-              activeSection === tab.id
-                ? "agent-config__tab agent-config__tab--active"
-                : "agent-config__tab"
-            }
-            onClick={() => scrollToSection(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
       {loading || productsLoading ? (
@@ -480,11 +463,13 @@ export default function AgentConfig() {
           message="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
         ></EmptyState>
       ) : (
-        <form
-          id="agent-config-form"
-          className="agent-config__form"
-          onSubmit={handleSubmit}
-        >
+        <div className="agent-config__body">
+          <div className="agent-config__main">
+            <form
+              id="agent-config-form"
+              className="agent-config__form"
+              onSubmit={handleSubmit}
+            >
           <AgentConfigCard
             id="agent-modelo"
             icon="cpu"
@@ -963,19 +948,40 @@ export default function AgentConfig() {
               />
             </div>
           </AgentConfigCard>
-        </form>
-      )}
+            </form>
+          </div>
 
-      {formReady && (
-        <div className="agent-config__savebar">
-          <Button
-            type="submit"
-            form="agent-config-form"
-            icon="check"
-            disabled={saving}
-          >
-            {saving ? "Guardando..." : "Guardar cambios"}
-          </Button>
+          <aside className="agent-config__panel">
+            <nav
+              className="agent-config__nav"
+              aria-label="Secciones del agente"
+            >
+              {SECTION_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={
+                    activeSection === tab.id
+                      ? "agent-config__tab agent-config__tab--active"
+                      : "agent-config__tab"
+                  }
+                  onClick={() => scrollToSection(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+
+            <Button
+              type="submit"
+              form="agent-config-form"
+              icon="check"
+              disabled={saving}
+              className="agent-config__panel-save"
+            >
+              {saving ? "Guardando..." : "Guardar cambios"}
+            </Button>
+          </aside>
         </div>
       )}
 

@@ -355,7 +355,7 @@ export default function Users() {
         actions={
           canCreate && (
             <Button icon="plus" iconOnly onClick={openCreate}>
-              Nuevo agente
+              Nuevo usuario
             </Button>
           )
         }
@@ -385,7 +385,7 @@ export default function Users() {
 
       <Modal
         open={modal !== null}
-        title={modal?.mode === "edit" ? "Editar agente" : "Nuevo agente"}
+        title={modal?.mode === "edit" ? "Editar usuario" : "Nuevo usuario"}
         onClose={closeModal}
       >
         <form className="modal__form" onSubmit={handleSubmit}>

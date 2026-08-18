@@ -4659,48 +4659,55 @@ p {
 
 .agent-config {
   inline-size: 100%;
-  max-inline-size: 860px;
-  padding-block-end: 88px;
+  max-inline-size: none;
 }
 
-.agent-config__form {
-  display: flex;
-  flex-direction: column;
+.agent-config__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
   gap: 24px;
   margin-block-start: 24px;
 }
 
-.agent-config__form .form-field textarea {
-  font-family: var(--sans);
+.agent-config__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-/* Sticky anchor tabs */
-
-.agent-config__tabs {
+.agent-config__panel {
   position: sticky;
-  top: 0;
-  z-index: 9;
+  top: 20px;
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 0;
-  margin-block-start: 4px;
-  border-block-end: 1px solid var(--border);
-  background: var(--bg);
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.agent-config__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .agent-config__tab {
-  flex-shrink: 0;
-  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  padding: 10px 14px;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  white-space: nowrap;
+  text-align: start;
   cursor: pointer;
   transition:
     background-color 150ms ease,
@@ -4719,10 +4726,15 @@ p {
   color: var(--accent);
 }
 
+.agent-config__panel-save {
+  justify-content: center;
+  inline-size: 100%;
+}
+
 /* Cards */
 
 .agent-config__card {
-  scroll-margin-block-start: 64px;
+  scroll-margin-block-start: 16px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: #ffffff;
@@ -5059,31 +5071,6 @@ p {
   color: var(--text-h);
   font-size: 14px;
   font-weight: 600;
-}
-
-/* Sticky save bar */
-
-.agent-config__savebar {
-  position: fixed;
-  inset-block-end: 0;
-  inset-inline: 0;
-  z-index: 40;
-  display: flex;
-  justify-content: center;
-  padding: 14px 16px 18px;
-  background: linear-gradient(
-    to top,
-    var(--bg) 55%,
-    rgba(255, 255, 255, 0)
-  );
-  pointer-events: none;
-}
-
-.agent-config__savebar .button {
-  pointer-events: auto;
-  min-inline-size: 200px;
-  justify-content: center;
-  box-shadow: var(--shadow);
 }
 
 .agent-config__rules {
@@ -5449,6 +5436,165 @@ p {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   color: var(--text, #0f172a);
+}
+
+/* =========================================
+   CHANNEL FORM (Máster-Detalle)
+   ========================================= */
+
+.channel-form {
+  inline-size: 100%;
+}
+
+.channel-form__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 24px;
+  margin-block-start: 24px;
+}
+
+.channel-form__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.channel-form__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.channel-form__form .form-field textarea {
+  font-family: var(--sans);
+}
+
+.channel-form__panel {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.channel-form__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channel-form__tab {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.channel-form__tab:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.channel-form__tab--active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.channel-form__panel-save {
+  justify-content: center;
+  inline-size: 100%;
+}
+
+.channel-form__card {
+  scroll-margin-block-start: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 24px;
+}
+
+.channel-form__card-head {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-start;
+  inline-size: 100%;
+  padding: 0;
+  margin-block-end: 20px;
+  border: 0;
+  background: none;
+}
+
+.channel-form__card-head__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.channel-form__card-head__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: start;
+}
+
+.channel-form__card-head__text strong {
+  color: var(--text-h);
+  font-size: 16px;
+}
+
+.channel-form__card-head__text small {
+  color: var(--text-muted, #64748b);
+  font-size: 13px;
+}
+
+.channel-form__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .channel-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .channel-form__body {
+    grid-template-columns: 1fr;
+  }
+
+  .channel-form__panel {
+    position: static;
+    order: -1;
+  }
 }
 
 .cell-webhook {
@@ -8321,6 +8467,15 @@ input[type="number"] {
   }
 
   .company-settings__preview {
+    position: static;
+    order: -1;
+  }
+
+  .agent-config__body {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-config__panel {
     position: static;
     order: -1;
   }
