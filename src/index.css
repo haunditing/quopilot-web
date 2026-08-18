@@ -178,7 +178,8 @@ p {
 
 .app-layout {
   inline-size: 100%;
-  min-block-size: 100svh;
+  block-size: 100svh;
+  overflow: hidden;
   background: var(--bg);
 }
 
@@ -219,14 +220,16 @@ p {
 .app-main {
   min-inline-size: 0;
   inline-size: 100%;
+  block-size: 100svh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .app-header {
-  position: sticky;
-  inset-block-start: 0;
+  position: static;
   z-index: 10;
+  flex-shrink: 0;
   min-block-size: 56px;
   display: flex;
   align-items: center;
@@ -264,6 +267,12 @@ p {
 
 .app-content {
   flex: 1;
+  min-block-size: 0;
+  inline-size: 100%;
+  overflow-y: auto;
+}
+
+.app-content__inner {
   inline-size: 100%;
   max-inline-size: var(--content-max-width);
   margin-inline: auto;
@@ -538,7 +547,7 @@ p {
     display: none;
   }
 
-  .app-content {
+  .app-content__inner {
     padding: 24px;
   }
 
@@ -4669,21 +4678,16 @@ p {
 
 .agent-config__tabs {
   position: sticky;
-  top: 56px;
-  z-index: 20;
+  top: 0;
+  z-index: 9;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 8px 0;
   margin-block-start: 4px;
-  overflow-x: auto;
   border-block-end: 1px solid var(--border);
   background: var(--bg);
-  scrollbar-width: none;
-}
-
-.agent-config__tabs::-webkit-scrollbar {
-  display: none;
 }
 
 .agent-config__tab {
@@ -4718,7 +4722,7 @@ p {
 /* Cards */
 
 .agent-config__card {
-  scroll-margin-block-start: 130px;
+  scroll-margin-block-start: 64px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: #ffffff;
@@ -6296,7 +6300,7 @@ input[type="number"] {
 @media (min-width: 1200px) {
   .quote-erp__sidebar {
     position: sticky;
-    top: calc(var(--space-lg) + 60px);
+    top: var(--space-lg);
   }
 }
 

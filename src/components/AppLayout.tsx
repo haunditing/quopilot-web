@@ -243,7 +243,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <strong className="app-header__title">{headerTitle}</strong>
         </header>
 
-        <div className="app-content">{children}</div>
+        <div className="app-content">
+          <div className="app-content__inner">{children}</div>
+        </div>
       </div>
     </div>
   );
