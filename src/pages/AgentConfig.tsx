@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import AgentConfigCard from "../components/AgentConfigCard.js";
-import AssistantChat from "../components/AssistantChat.js";
 import Button from "../components/Button.js";
 import Combobox from "../components/Combobox.js";
 import type { ComboboxOption } from "../components/Combobox.js";
 import EmptyState from "../components/EmptyState.js";
 import Field from "../components/Field.js";
-import FloatingPanel from "../components/FloatingPanel.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import type { IconName } from "../components/Icon.js";
@@ -967,10 +965,6 @@ export default function AgentConfig() {
           </aside>
         </div>
       )}
-
-      <FloatingPanel icon="bot" ariaLabel="Abrir asistente de configuración">
-        <AssistantChat embedded />
-      </FloatingPanel>
     </main>
   );
 }

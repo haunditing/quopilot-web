@@ -12,6 +12,8 @@ import {
 import { clearAuth, getUser } from "../services/auth-storage.js";
 import type { UserRole } from "../types/user.js";
 import Button from "./Button.js";
+import FloatingPanel from "./FloatingPanel.js";
+import AssistantChat from "./AssistantChat.js";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -84,12 +86,7 @@ const navigationGroups: NavigationGroup[] = [
         icon: "settings",
         roles: ["TENANT_ADMIN"],
       },
-      {
-        to: "/internal/assistant",
-        label: "Asistente de QuoPilot",
-        icon: "bot",
-        roles: ["TENANT_ADMIN"],
-      },
+
       {
         to: "/tenants",
         label: "Tenants",
@@ -251,6 +248,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="app-content">
           <div className="app-content__inner">{children}</div>
         </div>
+
+        <FloatingPanel icon="bot" ariaLabel="Abrir asistente de configuración">
+          <AssistantChat embedded />
+        </FloatingPanel>
       </div>
     </div>
   );
