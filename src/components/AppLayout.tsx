@@ -14,6 +14,7 @@ import type { UserRole } from "../types/user.js";
 import Button from "./Button.js";
 import FloatingPanel from "./FloatingPanel.js";
 import AssistantChat from "./AssistantChat.js";
+import { SUPPORT_ASSISTANT_ENDPOINT } from "../services/support-assistant-service.js";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -77,36 +78,30 @@ const navigationGroups: NavigationGroup[] = [
       },
     ],
   },
-{
-      label: "Configuración",
-      items: [
-        {
-          to: "/settings/company",
-          label: "Empresa",
-          icon: "settings",
-          roles: ["TENANT_ADMIN"],
-        },
-
-        {
-          to: "/tenants",
-          label: "Tenants",
-          icon: "tenants",
-          roles: ["SUPER_ADMIN"],
-        },
-      ],
-    },
-    {
-      label: "Soporte",
-      items: [
-        {
-          to: "/support/assistant",
-          label: "Asistente interno",
-          icon: "bot",
-          roles: ["SUPER_ADMIN"],
-        },
-      ],
-    },
-  ];
+  {
+    label: "Configuración",
+    items: [
+      {
+        to: "/settings/company",
+        label: "Empresa",
+        icon: "settings",
+        roles: ["TENANT_ADMIN"],
+      },
+      {
+        to: "/support/assistant",
+        label: "Asistente de soporte",
+        icon: "bot",
+        roles: ["SUPER_ADMIN"],
+      },
+      {
+        to: "/tenants",
+        label: "Tenants",
+        icon: "tenants",
+        roles: ["SUPER_ADMIN"],
+      },
+    ],
+  },
+];
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
@@ -315,9 +310,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {user?.role === "TENANT_ADMIN" && (
           <FloatingPanel
             icon="bot"
-            ariaLabel="Abrir asistente de configuración"
+            ariaLabel="Abrir asistente de soporte"
           >
-            <AssistantChat embedded />
+            <AssistantChat
+              embedded
+              endpoint={SUPPORT_ASSISTANT_ENDPOINT}
+              title="Asistente de soporte"
+              subtitle="Consulta el estado de tu tenant y resuelve dudas"
+              welcomeMessage="Hola, soy el asistente de soporte de QuoPilot. Puedo consultar el estado real de tu plataforma, resolver dudas sobre cotizaciones, ventas, productos, usuarios, canales y configuración, y orientarte con procedimientos documentados."
+              placeholder="Ej.: ¿cuántas cotizaciones tengo pendientes?"
+              suggestions={[
+                "Resumen de mi tenant",
+                "¿Cuántas cotizaciones tengo pendientes?",
+                "¿Cómo configuro un canal de WhatsApp?",
+                "¿Qué hacer si un PDF de cotización no se descarga?",
+                "Estado del sistema",
+                "¿Cómo creo un usuario con rol de agente?",
+              ]}
+            />
           </FloatingPanel>
         )}
       </div>

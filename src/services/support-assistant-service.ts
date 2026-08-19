@@ -10,6 +10,7 @@ import type {
 } from "../types/support-assistant.js";
 
 export const SUPPORT_ASSISTANT_ENDPOINT = "/api/support/assistant";
+export const SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT = "/api/super-admin/support/assistant";
 
 export async function getSupportMessages(): Promise<SupportMessage[]> {
   return apiRequest<SupportMessage[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/messages`, {
@@ -43,7 +44,7 @@ export async function getSupportMetrics(): Promise<SupportMetrics> {
 
 export async function getSupportConfig(): Promise<SupportAssistantConfig> {
   return apiRequest<SupportAssistantConfig>(
-    `${SUPPORT_ASSISTANT_ENDPOINT}/config`,
+    `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`,
     {
       method: "GET",
     },
@@ -53,10 +54,13 @@ export async function getSupportConfig(): Promise<SupportAssistantConfig> {
 export async function updateSupportConfig(
   input: SupportAssistantConfigInput,
 ): Promise<{ ok: boolean }> {
-  return apiRequest<{ ok: boolean }>(`${SUPPORT_ASSISTANT_ENDPOINT}/config`, {
-    method: "PUT",
-    body: JSON.stringify(input),
-  });
+  return apiRequest<{ ok: boolean }>(
+    `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`,
+    {
+      method: "PUT",
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export async function listKnowledgeDocs(): Promise<SupportKnowledgeDoc[]> {

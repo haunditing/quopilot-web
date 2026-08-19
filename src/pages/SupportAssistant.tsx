@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
-import AssistantChat from "../components/AssistantChat.js";
 import Button from "../components/Button.js";
 import EmptyState from "../components/EmptyState.js";
 import Field from "../components/Field.js";
@@ -14,7 +13,6 @@ import StatCard from "../components/StatCard.js";
 import Tabs from "../components/Tabs.js";
 import { getUserRole } from "../services/auth-storage.js";
 import {
-  SUPPORT_ASSISTANT_ENDPOINT,
   confirmSupportCase,
   createKnowledgeDoc,
   createSupportCase,
@@ -33,6 +31,7 @@ import type {
   SupportCase,
   SupportKnowledgeDoc,
   SupportMetrics,
+  AgentToolConfig,
 } from "../types/support-assistant.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatDate } from "../lib/format.js";
@@ -43,6 +42,13 @@ const LLM_PROVIDER_OPTIONS = [
   { value: "openrouter", label: "OpenRouter" },
 ];
 
+const PLAN_OPTIONS = [
+  { value: "FREE", label: "Free" },
+  { value: "STARTER", label: "Starter" },
+  { value: "PRO", label: "Pro" },
+  { value: "ENTERPRISE", label: "Enterprise" },
+];
+
 const CASE_STATUS_LABEL: Record<string, string> = {
   RESOLVED: "Resuelto",
   VERIFIED: "Verificado",
@@ -51,6 +57,17 @@ const CASE_STATUS_LABEL: Record<string, string> = {
 const CASE_STATUS_CLASS: Record<string, string> = {
   RESOLVED: "badge badge-success",
   VERIFIED: "badge badge-neutral",
+};
+
+const TOOL_LABELS: Record<string, string> = {
+  getTenantSummary: "Resumen del tenant",
+  getAgentConfig: "Configuración del agente",
+  getSystemStatus: "Estado del sistema",
+  getQuotes: "Cotizaciones",
+  getSales: "Ventas",
+  getProducts: "Productos",
+  getCustomers: "Clientes",
+  getChannels: "Canales",
 };
 
 interface ConfigFormState {
@@ -67,6 +84,7 @@ interface ConfigFormState {
   ragMinScore: string;
   memoryWindow: string;
   maxContextTokens: string;
+  agentTools: AgentToolConfig[];
 }
 
 interface KnowledgeFormState {
@@ -107,6 +125,19 @@ function emptyCaseForm(): CaseFormState {
   };
 }
 
+function defaultAgentTools(): AgentToolConfig[] {
+  return [
+    { name: "getTenantSummary", enabled: true },
+    { name: "getAgentConfig", enabled: true },
+    { name: "getSystemStatus", enabled: true },
+    { name: "getQuotes", enabled: true, planRequired: ["PRO", "ENTERPRISE"] },
+    { name: "getSales", enabled: true, planRequired: ["PRO", "ENTERPRISE"] },
+    { name: "getProducts", enabled: true, planRequired: ["STARTER", "PRO", "ENTERPRISE"] },
+    { name: "getCustomers", enabled: true, planRequired: ["STARTER", "PRO", "ENTERPRISE"] },
+    { name: "getChannels", enabled: true, planRequired: ["PRO", "ENTERPRISE"] },
+  ];
+}
+
 function keywordsToArray(value: string): string[] {
   return value
     .split(",")
@@ -127,7 +158,7 @@ export default function SupportAssistant() {
 function SupportAssistantPanel() {
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState("chat");
+  const [activeTab, setActiveTab] = useState("config");
 
   const [config, setConfig] = useState<SupportAssistantConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
@@ -157,16 +188,16 @@ function SupportAssistantPanel() {
     ragMinScore: "0.3",
     memoryWindow: "8",
     maxContextTokens: "6000",
+    agentTools: defaultAgentTools(),
   });
   const [configSaving, setConfigSaving] = useState(false);
   const [configSaveError, setConfigSaveError] = useState("");
 
   const [knowledgeModalOpen, setKnowledgeModalOpen] = useState(false);
-  const [editingDoc, setEditingDoc] = useState<SupportKnowledgeDoc | null>(
-    null,
+  const [editingDoc, setEditingDoc] = useState<SupportKnowledgeDoc | null>(null);
+  const [knowledgeForm, setKnowledgeForm] = useState<KnowledgeFormState>(
+    emptyKnowledgeForm(),
   );
-  const [knowledgeForm, setKnowledgeForm] =
-    useState<KnowledgeFormState>(emptyKnowledgeForm());
   const [knowledgeSaving, setKnowledgeSaving] = useState(false);
   const [knowledgeError, setKnowledgeError] = useState("");
 
@@ -198,12 +229,11 @@ function SupportAssistantPanel() {
         ragMinScore: String(data.ragMinScore),
         memoryWindow: String(data.memoryWindow),
         maxContextTokens: String(data.maxContextTokens),
+        agentTools: data.agentTools ?? defaultAgentTools(),
       });
     } catch (error) {
       setConfigError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible cargar la config",
+        error instanceof Error ? error.message : "No fue posible cargar la config",
       );
     } finally {
       setConfigLoading(false);
@@ -241,9 +271,7 @@ function SupportAssistantPanel() {
       setCases(await listSupportCases());
     } catch (error) {
       setCasesError(
-        error instanceof Error
-          ? error.message
-          : "No fue posible cargar los casos",
+        error instanceof Error ? error.message : "No fue posible cargar los casos",
       );
     } finally {
       setCasesLoading(false);
@@ -277,6 +305,24 @@ function SupportAssistantPanel() {
     }
   }
 
+  function updateToolConfig(name: string, enabled: boolean) {
+    setConfigForm((current) => ({
+      ...current,
+      agentTools: current.agentTools.map((tool) =>
+        tool.name === name ? { ...tool, enabled } : tool
+      ),
+    }));
+  }
+
+  function updateToolPlanRequired(name: string, plans: string[]) {
+    setConfigForm((current) => ({
+      ...current,
+      agentTools: current.agentTools.map((tool) =>
+        tool.name === name ? { ...tool, planRequired: plans } : tool
+      ),
+    }));
+  }
+
   async function handleSaveConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setConfigSaving(true);
@@ -293,29 +339,16 @@ function SupportAssistantPanel() {
               : undefined,
           model: configForm.model || undefined,
           baseUrl: configForm.baseUrl || undefined,
-          maxTokens: configForm.maxTokens
-            ? Number(configForm.maxTokens)
-            : undefined,
-          timeoutMs: configForm.timeoutMs
-            ? Number(configForm.timeoutMs)
-            : undefined,
+          maxTokens: configForm.maxTokens ? Number(configForm.maxTokens) : undefined,
+          timeoutMs: configForm.timeoutMs ? Number(configForm.timeoutMs) : undefined,
         },
         systemPrompt: configForm.systemPrompt || undefined,
-        caseThreshold: configForm.caseThreshold
-          ? Number(configForm.caseThreshold)
-          : undefined,
-        ragMaxDocs: configForm.ragMaxDocs
-          ? Number(configForm.ragMaxDocs)
-          : undefined,
-        ragMinScore: configForm.ragMinScore
-          ? Number(configForm.ragMinScore)
-          : undefined,
-        memoryWindow: configForm.memoryWindow
-          ? Number(configForm.memoryWindow)
-          : undefined,
-        maxContextTokens: configForm.maxContextTokens
-          ? Number(configForm.maxContextTokens)
-          : undefined,
+        caseThreshold: configForm.caseThreshold ? Number(configForm.caseThreshold) : undefined,
+        ragMaxDocs: configForm.ragMaxDocs ? Number(configForm.ragMaxDocs) : undefined,
+        ragMinScore: configForm.ragMinScore ? Number(configForm.ragMinScore) : undefined,
+        memoryWindow: configForm.memoryWindow ? Number(configForm.memoryWindow) : undefined,
+        maxContextTokens: configForm.maxContextTokens ? Number(configForm.maxContextTokens) : undefined,
+        agentTools: configForm.agentTools,
       });
 
       toast.success("Configuración actualizada");
@@ -470,317 +503,349 @@ function SupportAssistantPanel() {
   const activeConfigStatus =
     config?.status === "ACTIVE" ? "Asistente activo" : "Asistente inactivo";
 
+  const tabs = [
+    { id: "config", label: "Configuración" },
+    { id: "knowledge", label: "Base de conocimiento", count: docs?.length },
+    { id: "cases", label: "Casos", count: cases?.length },
+    { id: "metrics", label: "Métricas" },
+  ];
+
+  const configTabContent = activeTab === "config" ? (
+    configLoading ? (
+      <LoadingOverlay
+        title="Cargando configuración..."
+        message="Esto puede tomar unos segundos"
+      />
+    ) : configError ? (
+      <PageState kind="error" title="Error" message={configError} />
+    ) : (
+      <form
+        className="settings-card settings-card__form"
+        onSubmit={handleSaveConfig}
+      >
+        <section className="settings-card__section">
+          <header className="settings-card__header">
+            <div>
+              <h2>Estado y proveedor de IA</h2>
+              <p>Activa/desactiva el asistente y configura el modelo.</p>
+            </div>
+            <span className="settings-card__badge">{activeConfigStatus}</span>
+          </header>
+
+          <div className="settings-card__grid">
+            <div className="form-field">
+              <label htmlFor="support-status">Estado</label>
+              <select
+                id="support-status"
+                value={configForm.status}
+                onChange={(event) =>
+                  setConfigForm((current) => ({
+                    ...current,
+                    status: event.target.value as "ACTIVE" | "INACTIVE",
+                  }))
+                }
+              >
+                <option value="ACTIVE">Activo</option>
+                <option value="INACTIVE">Inactivo</option>
+              </select>
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="support-provider">Proveedor</label>
+              <select
+                id="support-provider"
+                value={configForm.provider}
+                onChange={(event) =>
+                  setConfigForm((current) => ({
+                    ...current,
+                    provider: event.target.value,
+                  }))
+                }
+              >
+                <option value="">Sin proveedor (modo offline)</option>
+                {LLM_PROVIDER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Field
+              id="support-model"
+              label="Modelo"
+              type="text"
+              value={configForm.model}
+              placeholder="Ej.: gpt-4o-mini"
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  model: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-api-key"
+              label="API key"
+              type="password"
+              value={configForm.apiKey}
+              placeholder="sk-..."
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  apiKey: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-base-url"
+              label="Base URL"
+              type="text"
+              value={configForm.baseUrl}
+              placeholder="Ej.: https://api.openai.com/v1"
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  baseUrl: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-max-tokens"
+              label="Máx. tokens"
+              type="number"
+              value={configForm.maxTokens}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  maxTokens: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-timeout"
+              label="Timeout (ms)"
+              type="number"
+              value={configForm.timeoutMs}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  timeoutMs: event.target.value,
+                }))
+              }
+            />
+          </div>
+        </section>
+
+        <section className="settings-card__section">
+          <header className="settings-card__header">
+            <div>
+              <h2>Prompt del sistema</h2>
+              <p>Instrucciones de comportamiento del asistente.</p>
+            </div>
+          </header>
+
+          <div className="form-field">
+            <textarea
+              id="support-system-prompt"
+              rows={10}
+              value={configForm.systemPrompt}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  systemPrompt: event.target.value,
+                }))
+              }
+            />
+          </div>
+        </section>
+
+        <section className="settings-card__section">
+          <header className="settings-card__header">
+            <div>
+              <h2>Razonamiento (CBR + RAG + memoria)</h2>
+              <p>Ajustes de búsqueda de casos, documentación y memoria conversacional.</p>
+            </div>
+          </header>
+
+          <div className="settings-card__grid">
+            <Field
+              id="support-case-threshold"
+              label="Umbral de caso (CBR)"
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              value={configForm.caseThreshold}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  caseThreshold: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-rag-docs"
+              label="Docs RAG (máx.)"
+              type="number"
+              min="1"
+              max="10"
+              value={configForm.ragMaxDocs}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  ragMaxDocs: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-rag-score"
+              label="Puntaje RAG mínimo"
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              value={configForm.ragMinScore}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  ragMinScore: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-memory-window"
+              label="Ventana de memoria (mensajes)"
+              type="number"
+              min="2"
+              max="30"
+              value={configForm.memoryWindow}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  memoryWindow: event.target.value,
+                }))
+              }
+            />
+
+            <Field
+              id="support-max-context"
+              label="Máx. tokens de contexto"
+              type="number"
+              min="500"
+              max="20000"
+              value={configForm.maxContextTokens}
+              onChange={(event) =>
+                setConfigForm((current) => ({
+                  ...current,
+                  maxContextTokens: event.target.value,
+                }))
+              }
+            />
+          </div>
+        </section>
+
+        <section className="settings-card__section">
+          <header className="settings-card__header">
+            <div>
+              <h2>Tools del agente comercial (por plan)</h2>
+              <p>
+                Configura qué herramientas puede usar el asistente para consultar datos reales.
+                Las herramientas con plan requerido solo estarán disponibles si el tenant tiene ese plan.
+              </p>
+            </div>
+          </header>
+
+          <div className="tools-config-grid">
+            {configForm.agentTools.map((tool) => (
+              <div key={tool.name} className="tool-config-item">
+                <label className="tool-config-label">
+                  <input
+                    type="checkbox"
+                    checked={tool.enabled}
+                    onChange={(event) =>
+                      updateToolConfig(tool.name, event.target.checked)
+                    }
+                  />
+                  <span>
+                    <strong>{TOOL_LABELS[tool.name] ?? tool.name}</strong>
+                    {tool.planRequired && tool.planRequired.length > 0 && (
+                      <span className="tool-config-plan">
+                        Requiere: {tool.planRequired.join(", ")}
+                      </span>
+                    )}
+                  </span>
+                </label>
+
+                {tool.planRequired && tool.planRequired.length > 0 && (
+                  <div className="tool-config-plans">
+                    <label>Planes habilitados:</label>
+                    {PLAN_OPTIONS.map((plan) => (
+                      <label key={plan.value} className="plan-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={tool.planRequired!.includes(plan.value)}
+                          onChange={(event) => {
+                            const currentPlans = tool.planRequired ?? [];
+                            const newPlans = event.target.checked
+                              ? [...currentPlans, plan.value]
+                              : currentPlans.filter((p) => p !== plan.value);
+                            updateToolPlanRequired(tool.name, newPlans);
+                          }}
+                        />
+                        {plan.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {configSaveError && (
+          <FormMessage kind="error">{configSaveError}</FormMessage>
+        )}
+
+        <div className="settings-card__footer">
+          <Button type="submit" variant="primary" disabled={configSaving}>
+            {configSaving ? "Guardando..." : "Guardar configuración"}
+          </Button>
+        </div>
+      </form>
+    )
+  ) : null;
+
   return (
     <main className="assistant-chat">
       <PageHeader
         title="Asistente de soporte"
-        description="Centro de control del asistente interno de la plataforma"
+        description="Centro de control del asistente interno (SUPER_ADMIN)"
       />
 
       <Tabs
-        tabs={[
-          { id: "chat", label: "Chat" },
-          { id: "config", label: "Configuración" },
-          {
-            id: "knowledge",
-            label: "Base de conocimiento",
-            count: docs?.length,
-          },
-          { id: "cases", label: "Casos", count: cases?.length },
-          { id: "metrics", label: "Métricas" },
-        ]}
+        tabs={tabs}
         active={activeTab}
         onChange={handleTabChange}
       />
 
       <div className="assistant-chat__tab-content">
-        {activeTab === "chat" && (
-          <AssistantChat
-            className="assistant-chat__card--page"
-            endpoint={SUPPORT_ASSISTANT_ENDPOINT}
-            title="Asistente de soporte"
-            subtitle="Consulta el estado de la plataforma y resuelve dudas de la aplicación"
-            welcomeMessage="Hola, soy el asistente de soporte de QuoPilot. Puedo consultar el estado real de la plataforma, resolver dudas sobre cotizaciones, ventas, productos, usuarios, tenants y canales, y orientarte con procedimientos documentados."
-            placeholder="Ej.: ¿cuántos tenants hay activos?"
-            suggestions={[
-              "¿Cuántos tenants hay en la plataforma?",
-              "Resumen de la plataforma",
-              "¿Cómo configuro un canal de WhatsApp?",
-              "¿Qué hacer si un PDF de cotización no se descarga?",
-              "Estado del sistema",
-              "¿Cómo creo un usuario con rol de agente?",
-            ]}
-          />
-        )}
 
-        {activeTab === "config" &&
-          (configLoading ? (
-            <LoadingOverlay
-              title="Cargando configuración..."
-              message="Esto puede tomar unos segundos"
-            />
-          ) : configError ? (
-            <PageState kind="error" title="Error" message={configError} />
-          ) : (
-            <form
-              className="settings-card settings-card__form"
-              onSubmit={handleSaveConfig}
-            >
-              <section className="settings-card__section">
-                <header className="settings-card__header">
-                  <div>
-                    <h2>Estado y proveedor de IA</h2>
-                    <p>Activa/desactiva el asistente y configura el modelo.</p>
-                  </div>
-                  <span className="settings-card__badge">
-                    {activeConfigStatus}
-                  </span>
-                </header>
-
-                <div className="settings-card__grid">
-                  <div className="form-field">
-                    <label htmlFor="support-status">Estado</label>
-                    <select
-                      id="support-status"
-                      value={configForm.status}
-                      onChange={(event) =>
-                        setConfigForm((current) => ({
-                          ...current,
-                          status: event.target.value as "ACTIVE" | "INACTIVE",
-                        }))
-                      }
-                    >
-                      <option value="ACTIVE">Activo</option>
-                      <option value="INACTIVE">Inactivo</option>
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label htmlFor="support-provider">Proveedor</label>
-                    <select
-                      id="support-provider"
-                      value={configForm.provider}
-                      onChange={(event) =>
-                        setConfigForm((current) => ({
-                          ...current,
-                          provider: event.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Sin proveedor (modo offline)</option>
-                      {LLM_PROVIDER_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <Field
-                    id="support-model"
-                    label="Modelo"
-                    type="text"
-                    value={configForm.model}
-                    placeholder="Ej.: gpt-4o-mini"
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        model: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-api-key"
-                    label="API key"
-                    type="password"
-                    value={configForm.apiKey}
-                    placeholder="sk-..."
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        apiKey: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-base-url"
-                    label="Base URL"
-                    type="text"
-                    value={configForm.baseUrl}
-                    placeholder="Ej.: https://api.openai.com/v1"
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        baseUrl: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-max-tokens"
-                    label="Máx. tokens"
-                    type="number"
-                    value={configForm.maxTokens}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        maxTokens: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-timeout"
-                    label="Timeout (ms)"
-                    type="number"
-                    value={configForm.timeoutMs}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        timeoutMs: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </section>
-
-              <section className="settings-card__section">
-                <header className="settings-card__header">
-                  <div>
-                    <h2>Prompt del sistema</h2>
-                    <p>Instrucciones de comportamiento del asistente.</p>
-                  </div>
-                </header>
-
-                <div className="form-field">
-                  <textarea
-                    id="support-system-prompt"
-                    rows={10}
-                    value={configForm.systemPrompt}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        systemPrompt: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </section>
-
-              <section className="settings-card__section">
-                <header className="settings-card__header">
-                  <div>
-                    <h2>Razonamiento (CBR + RAG + memoria)</h2>
-                    <p>
-                      Ajustes de búsqueda de casos, documentación y memoria
-                      conversacional.
-                    </p>
-                  </div>
-                </header>
-
-                <div className="settings-card__grid">
-                  <Field
-                    id="support-case-threshold"
-                    label="Umbral de caso (CBR)"
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={configForm.caseThreshold}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        caseThreshold: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-rag-docs"
-                    label="Docs RAG (máx.)"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={configForm.ragMaxDocs}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        ragMaxDocs: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-rag-score"
-                    label="Puntaje RAG mínimo"
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={configForm.ragMinScore}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        ragMinScore: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-memory-window"
-                    label="Ventana de memoria (mensajes)"
-                    type="number"
-                    min="2"
-                    max="30"
-                    value={configForm.memoryWindow}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        memoryWindow: event.target.value,
-                      }))
-                    }
-                  />
-
-                  <Field
-                    id="support-max-context"
-                    label="Máx. tokens de contexto"
-                    type="number"
-                    min="500"
-                    max="20000"
-                    value={configForm.maxContextTokens}
-                    onChange={(event) =>
-                      setConfigForm((current) => ({
-                        ...current,
-                        maxContextTokens: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </section>
-
-              {configSaveError && (
-                <FormMessage kind="error">{configSaveError}</FormMessage>
-              )}
-
-              <div className="settings-card__footer">
-                <Button type="submit" variant="primary" disabled={configSaving}>
-                  {configSaving ? "Guardando..." : "Guardar configuración"}
-                </Button>
-              </div>
-            </form>
-          ))}
+        {configTabContent}
 
         {activeTab === "knowledge" && (
           <section className="settings-card">
             <header className="settings-card__header">
               <div>
                 <h2>Base de conocimiento</h2>
-                <p>
-                  Documentación que el asistente consulta cuando no existe un
-                  caso.
-                </p>
+                <p>Documentación que el asistente consulta cuando no existe un caso.</p>
               </div>
               <Button icon="plus" iconOnly onClick={() => openKnowledgeModal()}>
                 Nuevo documento
@@ -800,9 +865,7 @@ function SupportAssistantPanel() {
                       <span className="cell-sub">
                         {doc.module} · {doc.keywords.join(", ")}
                       </span>
-                      {doc.summary && (
-                        <span className="cell-sub">{doc.summary}</span>
-                      )}
+                      {doc.summary && <span className="cell-sub">{doc.summary}</span>}
                     </div>
 
                     <div className="support-admin__item-meta">
@@ -811,9 +874,7 @@ function SupportAssistantPanel() {
                       ) : (
                         <span className="badge badge-danger">Inactivo</span>
                       )}
-                      <span className="cell-sub">
-                        {formatDate(doc.updatedAt)}
-                      </span>
+                      <span className="cell-sub">{formatDate(doc.updatedAt)}</span>
 
                       <div className="row-actions">
                         <button
@@ -928,32 +989,14 @@ function SupportAssistantPanel() {
           <section className="support-admin__metrics">
             {metrics ? (
               <div className="stats-grid">
-                <StatCard
-                  label="Conversaciones abiertas"
-                  value={String(metrics.openConversations)}
-                />
-                <StatCard
-                  label="Mensajes totales"
-                  value={String(metrics.totalMessages)}
-                />
-                <StatCard
-                  label="Casos registrados"
-                  value={String(metrics.totalCases)}
-                />
-                <StatCard
-                  label="Casos verificados"
-                  value={String(metrics.confirmedCases)}
-                />
-                <StatCard
-                  label="Documentos KB"
-                  value={String(metrics.totalDocs)}
-                  highlight
-                />
+                <StatCard label="Conversaciones abiertas" value={String(metrics.openConversations)} />
+                <StatCard label="Mensajes totales" value={String(metrics.totalMessages)} />
+                <StatCard label="Casos registrados" value={String(metrics.totalCases)} />
+                <StatCard label="Casos verificados" value={String(metrics.confirmedCases)} />
+                <StatCard label="Documentos KB" value={String(metrics.totalDocs)} highlight />
               </div>
             ) : (
-              <FormMessage kind="info">
-                No fue posible cargar las métricas.
-              </FormMessage>
+              <FormMessage kind="info">No fue posible cargar las métricas.</FormMessage>
             )}
           </section>
         )}
@@ -973,10 +1016,7 @@ function SupportAssistantPanel() {
               type="text"
               value={knowledgeForm.title}
               onChange={(event) =>
-                setKnowledgeForm((current) => ({
-                  ...current,
-                  title: event.target.value,
-                }))
+                setKnowledgeForm((current) => ({ ...current, title: event.target.value }))
               }
               required
             />
@@ -988,10 +1028,7 @@ function SupportAssistantPanel() {
               value={knowledgeForm.module}
               placeholder="Ej.: pdf, quotes, channels"
               onChange={(event) =>
-                setKnowledgeForm((current) => ({
-                  ...current,
-                  module: event.target.value,
-                }))
+                setKnowledgeForm((current) => ({ ...current, module: event.target.value }))
               }
               required
             />
@@ -1003,10 +1040,7 @@ function SupportAssistantPanel() {
               value={knowledgeForm.keywords}
               placeholder="separadas por coma"
               onChange={(event) =>
-                setKnowledgeForm((current) => ({
-                  ...current,
-                  keywords: event.target.value,
-                }))
+                setKnowledgeForm((current) => ({ ...current, keywords: event.target.value }))
               }
             />
 
@@ -1035,10 +1069,7 @@ function SupportAssistantPanel() {
               rows={2}
               value={knowledgeForm.summary}
               onChange={(event) =>
-                setKnowledgeForm((current) => ({
-                  ...current,
-                  summary: event.target.value,
-                }))
+                setKnowledgeForm((current) => ({ ...current, summary: event.target.value }))
               }
             />
           </div>
@@ -1050,25 +1081,15 @@ function SupportAssistantPanel() {
               rows={8}
               value={knowledgeForm.content}
               onChange={(event) =>
-                setKnowledgeForm((current) => ({
-                  ...current,
-                  content: event.target.value,
-                }))
+                setKnowledgeForm((current) => ({ ...current, content: event.target.value }))
               }
               required
             />
           </div>
 
-          {knowledgeError && (
-            <FormMessage kind="error">{knowledgeError}</FormMessage>
-          )}
+          {knowledgeError && <FormMessage kind="error">{knowledgeError}</FormMessage>}
 
-          <Button
-            type="submit"
-            icon="check"
-            iconOnly
-            disabled={knowledgeSaving}
-          >
+          <Button type="submit" icon="check" iconOnly disabled={knowledgeSaving}>
             {knowledgeSaving ? "Guardando..." : "Guardar documento"}
           </Button>
         </form>
@@ -1088,10 +1109,7 @@ function SupportAssistantPanel() {
               type="text"
               value={caseForm.title}
               onChange={(event) =>
-                setCaseForm((current) => ({
-                  ...current,
-                  title: event.target.value,
-                }))
+                setCaseForm((current) => ({ ...current, title: event.target.value }))
               }
               required
             />
@@ -1103,10 +1121,7 @@ function SupportAssistantPanel() {
               value={caseForm.module}
               placeholder="Ej.: pdf, quotes, users"
               onChange={(event) =>
-                setCaseForm((current) => ({
-                  ...current,
-                  module: event.target.value,
-                }))
+                setCaseForm((current) => ({ ...current, module: event.target.value }))
               }
               required
             />
@@ -1118,10 +1133,7 @@ function SupportAssistantPanel() {
               value={caseForm.keywords}
               placeholder="separadas por coma"
               onChange={(event) =>
-                setCaseForm((current) => ({
-                  ...current,
-                  keywords: event.target.value,
-                }))
+                setCaseForm((current) => ({ ...current, keywords: event.target.value }))
               }
             />
           </div>
@@ -1133,10 +1145,7 @@ function SupportAssistantPanel() {
               rows={4}
               value={caseForm.problem}
               onChange={(event) =>
-                setCaseForm((current) => ({
-                  ...current,
-                  problem: event.target.value,
-                }))
+                setCaseForm((current) => ({ ...current, problem: event.target.value }))
               }
               required
             />
@@ -1149,10 +1158,7 @@ function SupportAssistantPanel() {
               rows={6}
               value={caseForm.solution}
               onChange={(event) =>
-                setCaseForm((current) => ({
-                  ...current,
-                  solution: event.target.value,
-                }))
+                setCaseForm((current) => ({ ...current, solution: event.target.value }))
               }
               required
             />

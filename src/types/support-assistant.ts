@@ -2,6 +2,8 @@ export type SupportMessageRole = "USER" | "ASSISTANT" | "SYSTEM";
 
 export interface SupportMessage {
   _id: string;
+  tenantId: string;
+  userId: string;
   conversationId: string;
   role: SupportMessageRole;
   content: string;
@@ -43,10 +45,18 @@ export interface SupportAssistantConfig {
   ragMinScore: number;
   memoryWindow: number;
   maxContextTokens: number;
+  agentTools: AgentToolConfig[];
+}
+
+export interface AgentToolConfig {
+  name: string;
+  enabled: boolean;
+  planRequired?: string[];
 }
 
 export interface SupportKnowledgeDoc {
   _id: string;
+  tenantId: string;
   title: string;
   module: string;
   summary: string;
@@ -61,6 +71,7 @@ export type SupportCaseStatus = "RESOLVED" | "VERIFIED";
 
 export interface SupportCase {
   _id: string;
+  tenantId: string;
   title: string;
   module: string;
   problem: string;
@@ -96,4 +107,5 @@ export interface SupportAssistantConfigInput {
   ragMinScore?: number;
   memoryWindow?: number;
   maxContextTokens?: number;
+  agentTools?: AgentToolConfig[];
 }
