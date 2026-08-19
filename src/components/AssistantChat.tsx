@@ -10,7 +10,7 @@ import {
   sendAssistantMessage,
 } from "../services/agent-assistant-service.js";
 import type { AssistantMessage } from "../types/agent-assistant.js";
-import { sanitizeChatContent } from "../lib/sanitize.js";
+import { renderMarkdown } from "../lib/sanitize.js";
 
 let assistantOptimisticId = 0;
 
@@ -294,7 +294,7 @@ export default function AssistantChat({
               >
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: sanitizeChatContent(message.content),
+                    __html: renderMarkdown(message.content),
                   }}
                 />{" "}
               </div>

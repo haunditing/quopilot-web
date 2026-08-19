@@ -24,7 +24,7 @@ import {
   isValidPhone,
   normalizePhoneInput,
 } from "../lib/validation.js";
-import { sanitizeChatContent } from "../lib/sanitize.js";
+import { renderMarkdown } from "../lib/sanitize.js";
 import { contrastTextFor } from "../lib/contrast.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 
@@ -898,10 +898,18 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                         <span className="public-chat__system">
                           <Icon name="brand" size={14} />
 
-                          {sanitizeChatContent(message.content)}
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: renderMarkdown(message.content),
+                            }}
+                          />
                         </span>
                       ) : (
-                        <p>{sanitizeChatContent(message.content)}</p>
+                        <p
+                          dangerouslySetInnerHTML={{
+                            __html: renderMarkdown(message.content),
+                          }}
+                        />
                       )}
                     </div>
                   ))

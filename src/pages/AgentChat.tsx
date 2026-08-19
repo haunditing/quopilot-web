@@ -25,7 +25,7 @@ import type {
   ChatMessage,
 } from "../types/agent-conversation.js";
 import type { Customer } from "../types/customer.js";
-import { renderMarkdown, sanitizeChatContent } from "../lib/sanitize.js";
+import { renderMarkdown } from "../lib/sanitize.js";
 
 type StatusFilter = "OPEN" | "CLOSED" | "ALL";
 
@@ -569,7 +569,11 @@ export default function AgentChat() {
                         </span>
 
                         {message.direction === "INBOUND" ? (
-                          <p>{sanitizeChatContent(message.content)}</p>
+                          <p
+                            dangerouslySetInnerHTML={{
+                              __html: renderMarkdown(message.content),
+                            }}
+                          />
                         ) : (
                           <div
                             dangerouslySetInnerHTML={{
