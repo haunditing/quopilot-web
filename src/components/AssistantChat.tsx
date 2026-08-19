@@ -10,6 +10,7 @@ import {
   sendAssistantMessage,
 } from "../services/agent-assistant-service.js";
 import type { AssistantMessage } from "../types/agent-assistant.js";
+import { sanitizeChatContent } from "../lib/sanitize.js";
 
 let assistantOptimisticId = 0;
 
@@ -64,8 +65,7 @@ export default function AssistantChat({
   endpoint = AGENT_ASSISTANT_ENDPOINT,
   title = "Asistente de configuración",
   subtitle = "Configura tu agente con lenguaje natural",
-  welcomeMessage =
-    "Hola, soy tu asistente de configuración. Pregúntame sobre tu agente de IA o pide cambios con lenguaje natural.",
+  welcomeMessage = "Hola, soy tu asistente de configuración. Pregúntame sobre tu agente de IA o pide cambios con lenguaje natural.",
   placeholder = "Ej.: cambia el tono del agente a amigable",
   suggestions = DEFAULT_SUGGESTIONS,
 }: AssistantChatProps) {
@@ -151,9 +151,7 @@ export default function AssistantChat({
       );
       setDraft(content);
       setMessages((current) =>
-        current.filter(
-          (message) => message._id !== optimisticMessage._id,
-        ),
+        current.filter((message) => message._id !== optimisticMessage._id),
       );
     } finally {
       setSending(false);
@@ -183,9 +181,7 @@ export default function AssistantChat({
         error instanceof Error ? error.message : "No fue posible enviar",
       );
       setMessages((current) =>
-        current.filter(
-          (message) => message._id !== optimisticMessage._id,
-        ),
+        current.filter((message) => message._id !== optimisticMessage._id),
       );
     } finally {
       setSending(false);
@@ -296,7 +292,7 @@ export default function AssistantChat({
                     : "public-chat__bubble public-chat__bubble--ai"
                 }
               >
-                <p>{message.content}</p>
+                <p>{sanitizeChatContent(message.content)}</p>
               </div>
             ))
           )}

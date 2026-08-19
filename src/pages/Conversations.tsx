@@ -39,6 +39,7 @@ import type {
   ChatMessage,
   ConversationChannel,
 } from "../types/agent-conversation.js";
+import { sanitizeChatContent } from "../lib/sanitize.js";
 
 type ChannelFilter = ConversationChannel | "ALL";
 type StatusTab = "ALL" | "OPEN" | "PENDING" | "CLOSED";
@@ -760,226 +761,230 @@ export default function Conversations() {
           </div>
 
           {showFilters && (
-          <div className="filters-bar inbox__filters" ref={filtersBarRef}>
-            <div className="filters-group">
-              {/* Chip Canal */}
-              <div className="chip-wrapper">
-                <button
-                  type="button"
-                  className={`filter-chip ${channelFilter !== "ALL" ? "has-value" : ""}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setOpenChipKey((current) =>
-                      current === "channel" ? null : "channel",
-                    );
-                  }}
-                >
-                  <Filter size={14} className="chip-icon" />
+            <div className="filters-bar inbox__filters" ref={filtersBarRef}>
+              <div className="filters-group">
+                {/* Chip Canal */}
+                <div className="chip-wrapper">
+                  <button
+                    type="button"
+                    className={`filter-chip ${channelFilter !== "ALL" ? "has-value" : ""}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpenChipKey((current) =>
+                        current === "channel" ? null : "channel",
+                      );
+                    }}
+                  >
+                    <Filter size={14} className="chip-icon" />
 
-                  <span>
-                    Canal
-                    {channelFilter !== "ALL" ? ` · ${channelFilterLabel}` : ""}
-                  </span>
+                    <span>
+                      Canal
+                      {channelFilter !== "ALL"
+                        ? ` · ${channelFilterLabel}`
+                        : ""}
+                    </span>
 
-                  <ChevronDown size={14} className="chip-arrow" />
-                </button>
+                    <ChevronDown size={14} className="chip-arrow" />
+                  </button>
 
-                {openChipKey === "channel" && (
-                  <div className="chip-popover">
-                    <div className="chip-popover-header">
-                      <span className="chip-popover-title">Canal</span>
+                  {openChipKey === "channel" && (
+                    <div className="chip-popover">
+                      <div className="chip-popover-header">
+                        <span className="chip-popover-title">Canal</span>
 
-                      {channelFilter !== "ALL" && (
-                        <button
-                          type="button"
-                          className="btn-clear-chip"
-                          title="Limpiar filtro"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setChannelFilter("ALL");
-                            setOpenChipKey(null);
-                          }}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="chip-popover-body">
-                      <select
-                        className="chip-select"
-                        value={channelFilter}
-                        onChange={(event) => {
-                          setChannelFilter(event.target.value as ChannelFilter);
-                          setOpenChipKey(null);
-                        }}
-                        autoFocus
-                      >
-                        {CHANNEL_FILTER_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Chip Asignación */}
-              <div className="chip-wrapper">
-                <button
-                  type="button"
-                  className={`filter-chip ${assigneeFilter !== "ANY" ? "has-value" : ""}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setOpenChipKey((current) =>
-                      current === "assignee" ? null : "assignee",
-                    );
-                  }}
-                >
-                  <Filter size={14} className="chip-icon" />
-
-                  <span>
-                    Asignación
-                    {assigneeFilter !== "ANY"
-                      ? ` · ${assigneeFilterLabel}`
-                      : ""}
-                  </span>
-
-                  <ChevronDown size={14} className="chip-arrow" />
-                </button>
-
-                {openChipKey === "assignee" && (
-                  <div className="chip-popover">
-                    <div className="chip-popover-header">
-                      <span className="chip-popover-title">Asignación</span>
-
-                      {assigneeFilter !== "ANY" && (
-                        <button
-                          type="button"
-                          className="btn-clear-chip"
-                          title="Limpiar filtro"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setAssigneeFilter("ANY");
-                            setOpenChipKey(null);
-                          }}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="chip-popover-body">
-                      <select
-                        className="chip-select"
-                        value={assigneeFilter}
-                        onChange={(event) => {
-                          setAssigneeFilter(
-                            event.target.value as AssigneeFilter,
-                          );
-                          setOpenChipKey(null);
-                        }}
-                        autoFocus
-                      >
-                        {BASE_ASSIGNEE_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-
-                        {availableAgents.length > 0 && (
-                          <optgroup label="Asesores">
-                            {availableAgents.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </optgroup>
+                        {channelFilter !== "ALL" && (
+                          <button
+                            type="button"
+                            className="btn-clear-chip"
+                            title="Limpiar filtro"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setChannelFilter("ALL");
+                              setOpenChipKey(null);
+                            }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
                         )}
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
+                      </div>
 
-              {/* Chip Estado */}
-              <div className="chip-wrapper">
-                <button
-                  type="button"
-                  className={`filter-chip ${statusTab !== "ALL" ? "has-value" : ""}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setOpenChipKey((current) =>
-                      current === "status" ? null : "status",
-                    );
-                  }}
-                >
-                  <Filter size={14} className="chip-icon" />
-
-                  <span>
-                    Estado
-                    {statusTab !== "ALL" ? ` · ${statusFilterLabel}` : ""}
-                  </span>
-
-                  <ChevronDown size={14} className="chip-arrow" />
-                </button>
-
-                {openChipKey === "status" && (
-                  <div className="chip-popover">
-                    <div className="chip-popover-header">
-                      <span className="chip-popover-title">Estado</span>
-
-                      {statusTab !== "ALL" && (
-                        <button
-                          type="button"
-                          className="btn-clear-chip"
-                          title="Limpiar filtro"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setStatusTab("ALL");
+                      <div className="chip-popover-body">
+                        <select
+                          className="chip-select"
+                          value={channelFilter}
+                          onChange={(event) => {
+                            setChannelFilter(
+                              event.target.value as ChannelFilter,
+                            );
                             setOpenChipKey(null);
                           }}
+                          autoFocus
                         >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
+                          {CHANNEL_FILTER_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
+                  )}
+                </div>
 
-                    <div className="chip-popover-body">
-                      <select
-                        className="chip-select"
-                        value={statusTab}
-                        onChange={(event) => {
-                          setStatusTab(event.target.value as StatusTab);
-                          setOpenChipKey(null);
-                        }}
-                        autoFocus
-                      >
-                        {STATUS_FILTER_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                {/* Chip Asignación */}
+                <div className="chip-wrapper">
+                  <button
+                    type="button"
+                    className={`filter-chip ${assigneeFilter !== "ANY" ? "has-value" : ""}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpenChipKey((current) =>
+                        current === "assignee" ? null : "assignee",
+                      );
+                    }}
+                  >
+                    <Filter size={14} className="chip-icon" />
+
+                    <span>
+                      Asignación
+                      {assigneeFilter !== "ANY"
+                        ? ` · ${assigneeFilterLabel}`
+                        : ""}
+                    </span>
+
+                    <ChevronDown size={14} className="chip-arrow" />
+                  </button>
+
+                  {openChipKey === "assignee" && (
+                    <div className="chip-popover">
+                      <div className="chip-popover-header">
+                        <span className="chip-popover-title">Asignación</span>
+
+                        {assigneeFilter !== "ANY" && (
+                          <button
+                            type="button"
+                            className="btn-clear-chip"
+                            title="Limpiar filtro"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setAssigneeFilter("ANY");
+                              setOpenChipKey(null);
+                            }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="chip-popover-body">
+                        <select
+                          className="chip-select"
+                          value={assigneeFilter}
+                          onChange={(event) => {
+                            setAssigneeFilter(
+                              event.target.value as AssigneeFilter,
+                            );
+                            setOpenChipKey(null);
+                          }}
+                          autoFocus
+                        >
+                          {BASE_ASSIGNEE_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+
+                          {availableAgents.length > 0 && (
+                            <optgroup label="Asesores">
+                              {availableAgents.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                {/* Chip Estado */}
+                <div className="chip-wrapper">
+                  <button
+                    type="button"
+                    className={`filter-chip ${statusTab !== "ALL" ? "has-value" : ""}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpenChipKey((current) =>
+                        current === "status" ? null : "status",
+                      );
+                    }}
+                  >
+                    <Filter size={14} className="chip-icon" />
+
+                    <span>
+                      Estado
+                      {statusTab !== "ALL" ? ` · ${statusFilterLabel}` : ""}
+                    </span>
+
+                    <ChevronDown size={14} className="chip-arrow" />
+                  </button>
+
+                  {openChipKey === "status" && (
+                    <div className="chip-popover">
+                      <div className="chip-popover-header">
+                        <span className="chip-popover-title">Estado</span>
+
+                        {statusTab !== "ALL" && (
+                          <button
+                            type="button"
+                            className="btn-clear-chip"
+                            title="Limpiar filtro"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setStatusTab("ALL");
+                              setOpenChipKey(null);
+                            }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="chip-popover-body">
+                        <select
+                          className="chip-select"
+                          value={statusTab}
+                          onChange={(event) => {
+                            setStatusTab(event.target.value as StatusTab);
+                            setOpenChipKey(null);
+                          }}
+                          autoFocus
+                        >
+                          {STATUS_FILTER_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {hasActiveFilters && (
-              <Button
-                icon="trash"
-                iconOnly
-                className="btn-remove-filters"
-                onClick={clearAllFilters}
-              >
-                Remover filtros
-              </Button>
-            )}
-          </div>
+              {hasActiveFilters && (
+                <Button
+                  icon="trash"
+                  iconOnly
+                  className="btn-remove-filters"
+                  onClick={clearAllFilters}
+                >
+                  Remover filtros
+                </Button>
+              )}
+            </div>
           )}
 
           <div className="inbox__items">
@@ -1152,7 +1157,7 @@ export default function Conversations() {
                               key={message._id}
                               className="inbox__system-banner"
                             >
-                              {message.content}
+                              {sanitizeChatContent(message.content)}
                             </div>
                           );
                         }
@@ -1166,7 +1171,7 @@ export default function Conversations() {
                                 : "inbox__bubble inbox__bubble--agent"
                             }
                           >
-                            <p>{message.content}</p>
+                            <p>{sanitizeChatContent(message.content)}</p>
 
                             <span className="inbox__bubble-meta">
                               {senderLabel(message)}

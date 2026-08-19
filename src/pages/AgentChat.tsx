@@ -25,6 +25,7 @@ import type {
   ChatMessage,
 } from "../types/agent-conversation.js";
 import type { Customer } from "../types/customer.js";
+import { sanitizeChatContent } from "../lib/sanitize.js";
 
 type StatusFilter = "OPEN" | "CLOSED" | "ALL";
 
@@ -564,7 +565,7 @@ export default function AgentChat() {
                           {formatRelativeTime(message.createdAt)}
                         </span>
 
-                        <p>{message.content}</p>
+                        <p>{sanitizeChatContent(message.content)}</p>
                       </div>
                     ))
                   )}
