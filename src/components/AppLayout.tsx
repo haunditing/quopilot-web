@@ -77,25 +77,36 @@ const navigationGroups: NavigationGroup[] = [
       },
     ],
   },
-  {
-    label: "Configuración",
-    items: [
-      {
-        to: "/settings/company",
-        label: "Empresa",
-        icon: "settings",
-        roles: ["TENANT_ADMIN"],
-      },
+{
+      label: "Configuración",
+      items: [
+        {
+          to: "/settings/company",
+          label: "Empresa",
+          icon: "settings",
+          roles: ["TENANT_ADMIN"],
+        },
 
-      {
-        to: "/tenants",
-        label: "Tenants",
-        icon: "tenants",
-        roles: ["SUPER_ADMIN"],
-      },
-    ],
-  },
-];
+        {
+          to: "/tenants",
+          label: "Tenants",
+          icon: "tenants",
+          roles: ["SUPER_ADMIN"],
+        },
+      ],
+    },
+    {
+      label: "Soporte",
+      items: [
+        {
+          to: "/support/assistant",
+          label: "Asistente interno",
+          icon: "bot",
+          roles: ["SUPER_ADMIN"],
+        },
+      ],
+    },
+  ];
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();

@@ -24,6 +24,7 @@ import AgentChat from "../pages/AgentChat.js";
 import AgentConfig from "../pages/AgentConfig.js";
 import AgentAssistant from "../pages/AgentAssistant.js";
 import InternalAssistant from "../pages/InternalAssistant.js";
+import SupportAssistant from "../pages/SupportAssistant.js";
 import CompanySettings from "../pages/CompanySettings.js";
 import PublicChat from "../pages/PublicChat.js";
 import { getAccessToken, getUser } from "../services/auth-storage.js";
@@ -88,6 +89,8 @@ export default function AppRouter() {
         <Route path="/agent/assistant" element={<AgentAssistant />} />
 
         <Route path="/internal/assistant" element={<InternalAssistant />} />
+
+        <Route path="/support/assistant" element={<SupportAssistant />} />
 
         <Route path="/settings/company" element={<CompanySettings />} />
 
