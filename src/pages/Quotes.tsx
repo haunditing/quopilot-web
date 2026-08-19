@@ -13,6 +13,7 @@ import type {
 import { QUOTE_STATUS_OPTIONS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
+import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDate } from "../lib/format.js";
 import { can } from "../lib/permissions.js";
@@ -43,6 +44,7 @@ export default function Quotes() {
   const navigate = useNavigate();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const { downloadingId, downloadQuote } = usePdfDownload();
 
   const buildFetcher = useCallback(
     (params: { search: string; status: string; customerId: string }) => () =>
@@ -139,7 +141,7 @@ export default function Quotes() {
     [confirm, runQuoteAction],
   );
 
-  const quotes = data?.data ?? [];
+  const quotes = useMemo(() => data?.data ?? [], [data]);
 
   const statusCounts = useMemo(() => {
     const counts: Partial<Record<QuoteStatus, number>> = {};
@@ -258,9 +260,10 @@ export default function Quotes() {
               <Button
                 icon="download"
                 iconOnly
+                loading={downloadingId === quote._id}
                 className="btn-icon-action btn-download"
                 aria-label="Descargar PDF"
-                onClick={() => navigate(`/quotes/${quote._id}/print`)}
+                onClick={() => downloadQuote(quote)}
               >
                 Descargar
               </Button>
@@ -281,7 +284,7 @@ export default function Quotes() {
         ),
       },
     ],
-    [canView, canSend, canAccept, canEdit, customerNameById, navigate, handleSend, handleAccept],
+    [canView, canSend, canAccept, canEdit, customerNameById, navigate, handleSend, handleAccept, downloadingId, downloadQuote],
   );
 
   if (error) {

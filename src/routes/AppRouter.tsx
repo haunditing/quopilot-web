@@ -8,7 +8,6 @@ import Dashboard from "../pages/Dashboard.js";
 import Quotes from "../pages/Quotes.js";
 import QuoteDetail from "../pages/QuoteDetail.js";
 import CreateQuote from "../pages/CreateQuote.js";
-import QuotePrint from "../pages/QuotePrint.js";
 import Sales from "../pages/Sales.js";
 import SaleDetail from "../pages/SaleDetail.js";
 import Customers from "../pages/Customers.js";
@@ -28,7 +27,6 @@ import InternalAssistant from "../pages/InternalAssistant.js";
 import CompanySettings from "../pages/CompanySettings.js";
 import PublicChat from "../pages/PublicChat.js";
 import { getAccessToken, getUser } from "../services/auth-storage.js";
-import SalePrint from "../pages/SalePrint.js";
 
 export default function AppRouter() {
   return (
@@ -48,15 +46,11 @@ export default function AppRouter() {
 
         <Route path="/quotes/new" element={<CreateQuote />} />
 
-        <Route path="/quotes/:quoteId/print" element={<QuotePrintRoute />} />
-
         <Route path="/quotes/:quoteId" element={<QuoteDetailRoute />} />
 
         <Route path="/sales" element={<Sales />} />
 
         <Route path="/sales/:saleId" element={<SaleDetailRoute />} />
-
-        <Route path="/sales/:saleId/print" element={<SalePrintRoute />} />
 
         <Route path="/customers" element={<Customers />} />
 
@@ -130,18 +124,6 @@ function QuoteDetailRoute() {
   return <QuoteDetail quoteId={quoteId} />;
 }
 
-function QuotePrintRoute() {
-  const { quoteId } = useParams<{
-    quoteId: string;
-  }>();
-
-  if (!quoteId) {
-    return <Navigate to="/quotes" replace />;
-  }
-
-  return <QuotePrint quoteId={quoteId} />;
-}
-
 function SaleDetailRoute() {
   const { saleId } = useParams<{
     saleId: string;
@@ -154,16 +136,6 @@ function SaleDetailRoute() {
   return <SaleDetail saleId={saleId} />;
 }
 
-function SalePrintRoute() {
-  const { saleId } = useParams<{
-    saleId: string;
-  }>();
-  if (!saleId) {
-    return <Navigate to="/sales" replace />;
-  }
-
-  return <SalePrint saleId={saleId} />;
-}
 function CustomerDetailRoute() {
   const { customerId } = useParams<{
     customerId: string;

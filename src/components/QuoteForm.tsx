@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import DocumentDetailForm from "./DocumentDetailForm.js";
 import type {
   ActionDefinition,
@@ -7,6 +6,7 @@ import type {
   GenericDocument,
 } from "./DocumentDetailForm.js";
 import { useConfirm } from "../hooks/useConfirm.js";
+import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
 import { can } from "../lib/permissions.js";
 import { getUserRole } from "../services/auth-storage.js";
@@ -41,9 +41,9 @@ interface QuoteFormProps {
 }
 
 export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
-  const navigate = useNavigate();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const { downloadingId, downloadQuote } = usePdfDownload();
   const role = getUserRole();
 
   // Adapta la respuesta del backend al tipo genérico esperado por el Form
@@ -101,12 +101,16 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     const actions: ActionDefinition[] = [];
 
     // Acción: Descargar PDF
-    actions.push({
-      icon: "download",
-      ariaLabel: "Descargar PDF",
-      variant: "secondary",
-      onClick: () => navigate(`/quotes/${quoteId}/print`),
-    });
+    if (quote._id) {
+      actions.push({
+        icon: "download",
+        ariaLabel: "Descargar PDF",
+        variant: "secondary",
+        busy: downloadingId === quote._id,
+        disabled: downloadingId !== null && downloadingId !== quote._id,
+        onClick: () => downloadQuote(quote),
+      });
+    }
 
     // Acción: Enviar Cotización
     if (can(role, "quotes", "send") && quote.status === "DRAFT") {

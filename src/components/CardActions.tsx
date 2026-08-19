@@ -1,5 +1,6 @@
 import Icon from "./Icon.js";
 import type { IconName } from "./Icon.js";
+import Spinner from "./Spinner.js";
 
 export interface EntityAction {
   icon?: IconName;
@@ -9,6 +10,7 @@ export interface EntityAction {
   variant?: "primary" | "secondary" | "danger";
   type?: "button" | "submit";
   disabled?: boolean;
+  busy?: boolean;
 }
 
 interface CardActionsProps {
@@ -48,9 +50,13 @@ export default function CardActions({ actions }: CardActionsProps) {
             onClick={action.onClick}
             aria-label={accessibleLabel}
             title={hasLabel ? undefined : accessibleLabel}
-            disabled={action.disabled}
+            disabled={action.busy || action.disabled}
           >
-            {action.icon && <Icon name={action.icon} size={18} />}
+            {action.busy ? (
+              <Spinner size="xs" className="entity-card__action-spinner" />
+            ) : (
+              action.icon && <Icon name={action.icon} size={18} />
+            )}
 
             {hasLabel && <span>{action.label}</span>}
           </button>

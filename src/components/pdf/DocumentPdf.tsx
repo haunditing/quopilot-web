@@ -6,7 +6,11 @@ import {
   Image,
   StyleSheet,
 } from "@react-pdf/renderer";
-import type { PrintCustomerInfo, PrintDocumentInfo, PrintTenantInfo } from "../DocumentPrintTemplate.js";
+import type {
+  PrintCustomerInfo,
+  PrintDocumentInfo,
+  PrintTenantInfo,
+} from "./types.js";
 
 interface DocumentPdfProps {
   documentTypeLabel: string;

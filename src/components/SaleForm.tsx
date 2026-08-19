@@ -6,12 +6,14 @@ import type {
   GenericDocument,
 } from "./DocumentDetailForm.js";
 import { useConfirm } from "../hooks/useConfirm.js";
+import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
 import { can } from "../lib/permissions.js";
 import { getUserRole } from "../services/auth-storage.js";
 
 import { getSaleDetail } from "../services/sale-detail-service.js";
 import { cancelSale, deleteSale } from "../services/sale-service.js";
+import type { Sale } from "../types/sale.js";
 
 const TAX_OPTIONS = [
   { label: "Exento 0%", value: 0 },
@@ -34,6 +36,7 @@ export default function SaleForm({ mode, saleId }: SaleFormProps) {
   const navigate = useNavigate();
   const toast = useToast();
   const { confirm } = useConfirm();
+  const { downloadingId, downloadSale } = usePdfDownload();
   const role = getUserRole();
 
   // Adapta la respuesta del backend al tipo genérico esperado por el Form
@@ -76,8 +79,7 @@ export default function SaleForm({ mode, saleId }: SaleFormProps) {
     saving: boolean;
     reloadDetail: () => void;
   }): ActionDefinition[] {
-    const sale = document as unknown as GenericDocument;
-    const saleId = sale._id;
+    const sale = document as unknown as Sale;
     const actions: ActionDefinition[] = [];
 
     // Acción: Descargar PDF
@@ -85,7 +87,9 @@ export default function SaleForm({ mode, saleId }: SaleFormProps) {
       icon: "download",
       ariaLabel: "Descargar PDF",
       variant: "secondary",
-      onClick: () => navigate(`/sales/${saleId}/print`),
+      busy: downloadingId === sale._id,
+      disabled: downloadingId !== null && downloadingId !== sale._id,
+      onClick: () => downloadSale(sale),
     });
 
     // Acción: Cancelar venta
@@ -103,9 +107,9 @@ export default function SaleForm({ mode, saleId }: SaleFormProps) {
             danger: true,
           });
 
-          if (confirmed && saleId) {
+          if (confirmed && sale._id) {
             await runSaleAction(
-              () => cancelSale(saleId),
+              () => cancelSale(sale._id),
               reloadDetail,
               "Venta cancelada",
             );
@@ -129,9 +133,9 @@ export default function SaleForm({ mode, saleId }: SaleFormProps) {
             danger: true,
           });
 
-          if (confirmed && saleId) {
+          if (confirmed && sale._id) {
             await runSaleAction(
-              () => deleteSale(saleId),
+              () => deleteSale(sale._id),
               reloadDetail,
               "Venta eliminada",
             );

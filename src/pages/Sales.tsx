@@ -13,6 +13,7 @@ import type {
 import { SALE_STATUS_OPTIONS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
+import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDate } from "../lib/format.js";
 import { can } from "../lib/permissions.js";
@@ -39,6 +40,7 @@ const STATUS_LABEL = Object.fromEntries(
 
 export default function Sales() {
   const navigate = useNavigate();
+  const { downloadingId, downloadSale } = usePdfDownload();
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -228,9 +230,10 @@ export default function Sales() {
               <Button
                 icon="download"
                 iconOnly
+                loading={downloadingId === sale._id}
                 className="btn-icon-action btn-download"
                 aria-label="Descargar PDF"
-                onClick={() => navigate(`/sales/${sale._id}/print`)}
+                onClick={() => downloadSale(sale)}
               >
                 Descargar
               </Button>
@@ -275,7 +278,7 @@ export default function Sales() {
         ),
       },
     ],
-    [canView, canDelete, customerNameById, navigate, handleCancel, handleDelete],
+    [canView, canDelete, customerNameById, navigate, handleCancel, handleDelete, downloadingId, downloadSale],
   );
 
   if (error) {

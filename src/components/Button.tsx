@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import Icon from "./Icon.js";
 import type { IconName } from "./Icon.js";
+import Spinner from "./Spinner.js";
 
 export type ButtonVariant = "primary" | "secondary" | "danger";
 
@@ -8,6 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   icon?: IconName;
   iconOnly?: boolean;
+  loading?: boolean;
   children: ReactNode;
 }
 
@@ -15,6 +17,7 @@ export default function Button({
   variant = "primary",
   icon,
   iconOnly = false,
+  loading = false,
   className,
   children,
   ...props
@@ -37,10 +40,15 @@ export default function Button({
       type="button"
       className={classes.join(" ")}
       {...props}
+      disabled={loading || props.disabled}
       aria-label={props["aria-label"] ?? iconOnlyLabel}
       title={props.title ?? iconOnlyLabel}
     >
-      {icon && <Icon name={icon} size={18} />}
+      {loading ? (
+        <Spinner size="xs" className="button__spinner" />
+      ) : (
+        icon && <Icon name={icon} size={18} />
+      )}
 
       {iconOnly ? (
         <span className="visually-hidden">{children}</span>

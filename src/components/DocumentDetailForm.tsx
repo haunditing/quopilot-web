@@ -78,6 +78,7 @@ export interface ActionDefinition {
   variant?: "primary" | "secondary" | "danger";
   type?: "button" | "submit";
   disabled?: boolean;
+  busy?: boolean;
   onClick?: () => void | Promise<void>;
 }
 
