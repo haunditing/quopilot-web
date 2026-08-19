@@ -12,6 +12,7 @@ import PageState from "../components/PageState.js";
 import StatCard from "../components/StatCard.js";
 import Tabs from "../components/Tabs.js";
 import { getUserRole } from "../services/auth-storage.js";
+import { getTenants } from "../services/tenant-service.js";
 import {
   confirmSupportCase,
   createKnowledgeDoc,
@@ -174,6 +175,10 @@ function SupportAssistantPanel() {
   const [casesLoading, setCasesLoading] = useState(false);
   const [casesError, setCasesError] = useState("");
 
+  const [tenants, setTenants] = useState<Array<{ _id: string; name: string }>>([]);
+  const [selectedTenantId, setSelectedTenantId] = useState("");
+  const [tenantsLoading, setTenantsLoading] = useState(false);
+
   const [configForm, setConfigForm] = useState<ConfigFormState>({
     status: "ACTIVE",
     provider: "",
@@ -207,12 +212,30 @@ function SupportAssistantPanel() {
   const [caseSaving, setCaseSaving] = useState(false);
   const [caseError, setCaseError] = useState("");
 
+  const loadTenants = useCallback(async () => {
+    setTenantsLoading(true);
+    try {
+      const data = await getTenants({});
+      const tenantList = data.data.map((t) => ({ _id: t._id, name: t.name }));
+      setTenants(tenantList);
+      if (tenantList.length > 0 && !selectedTenantId) {
+        setSelectedTenantId(tenantList[0]._id);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTenantsLoading(false);
+    }
+  }, []);
+
   const loadConfig = useCallback(async () => {
+    if (!selectedTenantId) return;
+
     setConfigLoading(true);
     setConfigError("");
 
     try {
-      const data = await getSupportConfig();
+      const data = await getSupportConfig(selectedTenantId);
 
       setConfig(data);
       setConfigForm({
@@ -238,7 +261,7 @@ function SupportAssistantPanel() {
     } finally {
       setConfigLoading(false);
     }
-  }, []);
+  }, [selectedTenantId]);
 
   const loadMetrics = useCallback(async () => {
     try {
@@ -246,14 +269,14 @@ function SupportAssistantPanel() {
     } catch {
       setMetrics(null);
     }
-  }, []);
+  }, [selectedTenantId]);
 
   const loadDocs = useCallback(async () => {
     setDocsLoading(true);
     setDocsError("");
 
     try {
-      setDocs(await listKnowledgeDocs());
+      setDocs(await listKnowledgeDocs(selectedTenantId));
     } catch (error) {
       setDocsError(
         error instanceof Error ? error.message : "No fue posible cargar la KB",
@@ -261,7 +284,7 @@ function SupportAssistantPanel() {
     } finally {
       setDocsLoading(false);
     }
-  }, []);
+  }, [selectedTenantId]);
 
   const loadCases = useCallback(async () => {
     setCasesLoading(true);
@@ -276,18 +299,26 @@ function SupportAssistantPanel() {
     } finally {
       setCasesLoading(false);
     }
-  }, []);
+  }, [selectedTenantId]);
 
   useEffect(() => {
-    async function loadAll() {
+    async function load() {
+      await loadTenants();
+    }
+    void load();
+  }, [loadTenants]);
+
+  useEffect(() => {
+    if (!selectedTenantId) return;
+
+    async function load() {
       await loadConfig();
       await loadMetrics();
       await loadDocs();
       await loadCases();
     }
-
-    void loadAll();
-  }, [loadConfig, loadMetrics, loadDocs, loadCases]);
+    void load();
+  }, [selectedTenantId, loadConfig, loadMetrics, loadDocs, loadCases]);
 
   function handleTabChange(id: string) {
     setActiveTab(id);
@@ -329,27 +360,30 @@ function SupportAssistantPanel() {
     setConfigSaveError("");
 
     try {
-      await updateSupportConfig({
-        status: configForm.status,
-        llm: {
-          provider: configForm.provider || undefined,
-          apiKey:
-            configForm.apiKey && configForm.apiKey !== "••••••••"
-              ? configForm.apiKey
-              : undefined,
-          model: configForm.model || undefined,
-          baseUrl: configForm.baseUrl || undefined,
-          maxTokens: configForm.maxTokens ? Number(configForm.maxTokens) : undefined,
-          timeoutMs: configForm.timeoutMs ? Number(configForm.timeoutMs) : undefined,
+      await updateSupportConfig(
+        {
+          status: configForm.status,
+          llm: {
+            provider: configForm.provider || undefined,
+            apiKey:
+              configForm.apiKey && configForm.apiKey !== "••••••••"
+                ? configForm.apiKey
+                : undefined,
+            model: configForm.model || undefined,
+            baseUrl: configForm.baseUrl || undefined,
+            maxTokens: configForm.maxTokens ? Number(configForm.maxTokens) : undefined,
+            timeoutMs: configForm.timeoutMs ? Number(configForm.timeoutMs) : undefined,
+          },
+          systemPrompt: configForm.systemPrompt || undefined,
+          caseThreshold: configForm.caseThreshold ? Number(configForm.caseThreshold) : undefined,
+          ragMaxDocs: configForm.ragMaxDocs ? Number(configForm.ragMaxDocs) : undefined,
+          ragMinScore: configForm.ragMinScore ? Number(configForm.ragMinScore) : undefined,
+          memoryWindow: configForm.memoryWindow ? Number(configForm.memoryWindow) : undefined,
+          maxContextTokens: configForm.maxContextTokens ? Number(configForm.maxContextTokens) : undefined,
+          agentTools: configForm.agentTools,
         },
-        systemPrompt: configForm.systemPrompt || undefined,
-        caseThreshold: configForm.caseThreshold ? Number(configForm.caseThreshold) : undefined,
-        ragMaxDocs: configForm.ragMaxDocs ? Number(configForm.ragMaxDocs) : undefined,
-        ragMinScore: configForm.ragMinScore ? Number(configForm.ragMinScore) : undefined,
-        memoryWindow: configForm.memoryWindow ? Number(configForm.memoryWindow) : undefined,
-        maxContextTokens: configForm.maxContextTokens ? Number(configForm.maxContextTokens) : undefined,
-        agentTools: configForm.agentTools,
-      });
+        selectedTenantId,
+      );
 
       toast.success("Configuración actualizada");
       await loadConfig();
@@ -523,6 +557,35 @@ function SupportAssistantPanel() {
         className="settings-card settings-card__form"
         onSubmit={handleSaveConfig}
       >
+        <section className="settings-card__section">
+          <header className="settings-card__header">
+            <div>
+              <h2>Tenant a configurar</h2>
+              <p>Selecciona el tenant cuyo asistente quieres configurar.</p>
+            </div>
+          </header>
+
+          <div className="form-field">
+            <label htmlFor="config-tenant">Tenant</label>
+            <select
+              id="config-tenant"
+              value={selectedTenantId}
+              onChange={(event) => setSelectedTenantId(event.target.value)}
+              disabled={tenantsLoading}
+            >
+              {tenantsLoading ? (
+                <option value="">Cargando tenants...</option>
+              ) : (
+                tenants.map((tenant) => (
+                  <option key={tenant._id} value={tenant._id}>
+                    {tenant.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        </section>
+
         <section className="settings-card__section">
           <header className="settings-card__header">
             <div>

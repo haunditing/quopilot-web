@@ -42,34 +42,35 @@ export async function getSupportMetrics(): Promise<SupportMetrics> {
   });
 }
 
-export async function getSupportConfig(): Promise<SupportAssistantConfig> {
-  return apiRequest<SupportAssistantConfig>(
-    `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`,
-    {
-      method: "GET",
-    },
-  );
+export async function getSupportConfig(tenantId?: string): Promise<SupportAssistantConfig> {
+  const url = tenantId
+    ? `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config?tenantId=${encodeURIComponent(tenantId)}`
+    : `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`;
+  return apiRequest<SupportAssistantConfig>(url, {
+    method: "GET",
+  });
 }
 
 export async function updateSupportConfig(
   input: SupportAssistantConfigInput,
+  tenantId?: string,
 ): Promise<{ ok: boolean }> {
-  return apiRequest<{ ok: boolean }>(
-    `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`,
-    {
-      method: "PUT",
-      body: JSON.stringify(input),
-    },
-  );
+  const url = tenantId
+    ? `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config?tenantId=${encodeURIComponent(tenantId)}`
+    : `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`;
+  return apiRequest<{ ok: boolean }>(url, {
+    method: "PUT",
+    body: JSON.stringify({ ...input, tenantId }),
+  });
 }
 
-export async function listKnowledgeDocs(): Promise<SupportKnowledgeDoc[]> {
-  return apiRequest<SupportKnowledgeDoc[]>(
-    `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge`,
-    {
-      method: "GET",
-    },
-  );
+export async function listKnowledgeDocs(tenantId?: string): Promise<SupportKnowledgeDoc[]> {
+  const url = tenantId
+    ? `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge?tenantId=${encodeURIComponent(tenantId)}`
+    : `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge`;
+  return apiRequest<SupportKnowledgeDoc[]>(url, {
+    method: "GET",
+  });
 }
 
 export async function createKnowledgeDoc(input: {
@@ -120,8 +121,11 @@ export async function deleteKnowledgeDoc(
   );
 }
 
-export async function listSupportCases(): Promise<SupportCase[]> {
-  return apiRequest<SupportCase[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/cases`, {
+export async function listSupportCases(tenantId?: string): Promise<SupportCase[]> {
+  const url = tenantId
+    ? `${SUPPORT_ASSISTANT_ENDPOINT}/cases?tenantId=${encodeURIComponent(tenantId)}`
+    : `${SUPPORT_ASSISTANT_ENDPOINT}/cases`;
+  return apiRequest<SupportCase[]>(url, {
     method: "GET",
   });
 }
