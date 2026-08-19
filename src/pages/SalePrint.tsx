@@ -11,6 +11,8 @@ import type { Customer } from "../types/customer.js";
 import type { Sale } from "../types/sale.js";
 import type { Tenant } from "../types/tenant.js";
 import SalePrintTemplate from "../components/SalePrintTemplate.js";
+import BackButton from "../components/BackButton.js";
+import { useNavigate } from "react-router-dom";
 
 interface SalePrintData {
   sale: Sale;
@@ -43,6 +45,7 @@ export default function SalePrint({ saleId }: SalePrintProps) {
 
   const fetcher = useCallback(() => loadSalePrintData(saleId), [saleId]);
   const { data, loading, error } = useAsyncData(fetcher);
+  const navigate = useNavigate();
 
   const handleDownloadPdf = async () => {
     if (!contentRef.current || !data) return;
@@ -92,6 +95,9 @@ export default function SalePrint({ saleId }: SalePrintProps) {
 
   return (
     <main className="quote-print-page">
+      <BackButton onClick={() => navigate(`/sales/${saleId}`)}>
+        Volver a ventas
+      </BackButton>
       <div
         className="quote-print-page__toolbar"
         style={{

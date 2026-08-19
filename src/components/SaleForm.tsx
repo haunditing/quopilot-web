@@ -10,15 +10,15 @@ import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
 import { can } from "../lib/permissions.js";
 import { getUserRole } from "../services/auth-storage.js";
-import { getQuoteDetail } from "../services/quote-detail-service.js";
+
+import { getSaleDetail } from "../services/sale-detail-service.js";
 import {
-  acceptQuote,
-  createQuote,
-  getNextQuoteNumber,
-  sendQuote,
-  updateQuote,
-} from "../services/quote-service.js";
-import type { Quote } from "../types/quote.js";
+  acceptSale,
+  createSale,
+  getNextSaleNumber,
+  sendSale,
+  updateSale,
+} from "../services/sale-service.js";
 
 const TAX_OPTIONS = [
   { label: "Exento 0%", value: 0 },
@@ -35,12 +35,12 @@ const STATUS_LABELS: Record<string, string> = {
   EXPIRED: "Expirada",
 };
 
-interface QuoteFormProps {
+interface SaleFormProps {
   mode: "create" | "edit";
-  quoteId?: string;
+  saleId?: string;
 }
 
-export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
+export default function SaleForm({ mode, saleId }: SaleFormProps) {
   const navigate = useNavigate();
   const toast = useToast();
   const { confirm } = useConfirm();
@@ -50,27 +50,27 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   async function fetchDetailAdapter(
     id: string,
   ): Promise<DocumentDetailData | null> {
-    const data = await getQuoteDetail(id);
+    const data = await getSaleDetail(id);
     if (!data) return null;
 
     return {
-      document: data.quote as unknown as GenericDocument,
+      document: data.sale as unknown as GenericDocument,
       events: data.events,
     };
   }
 
   async function handleCreate(payload: DocumentPayload): Promise<void> {
-    await createQuote(payload);
+    await createSale(payload);
   }
 
   async function handleUpdate(
     id: string,
     payload: DocumentPayload,
   ): Promise<void> {
-    await updateQuote(id, payload);
+    await updateSale(id, payload);
   }
 
-  async function runQuoteAction(
+  async function runSaleAction(
     action: () => Promise<unknown>,
     reloadDetail: () => void,
     successMessage: string,
@@ -97,7 +97,8 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     saving: boolean;
     reloadDetail: () => void;
   }): ActionDefinition[] {
-    const quote = document as unknown as Quote;
+    const sale = document as unknown as GenericDocument;
+    const saleId = sale._id;
     const actions: ActionDefinition[] = [];
 
     // Acción: Descargar PDF
@@ -105,11 +106,11 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
       icon: "download",
       ariaLabel: "Descargar PDF",
       variant: "secondary",
-      onClick: () => navigate(`/quotes/${quoteId}/print`),
+      onClick: () => navigate(`/sales/${saleId}/print`),
     });
 
     // Acción: Enviar Cotización
-    if (can(role, "quotes", "send") && quote.status === "DRAFT") {
+    if (can(role, "sales", "send") && sale.status === "DRAFT") {
       actions.push({
         icon: "send",
         ariaLabel: "Enviar",
@@ -117,16 +118,16 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
         disabled: saving,
         onClick: async () => {
           const confirmed = await confirm({
-            title: "Enviar cotización",
-            message: `¿Enviar la cotización ${quote.number} al cliente?`,
+            title: "Enviar venta",
+            message: `¿Enviar la venta ${sale.number} al cliente?`,
             confirmLabel: "Enviar",
           });
 
-          if (confirmed && quoteId) {
-            await runQuoteAction(
-              () => sendQuote(quoteId),
+          if (confirmed && saleId) {
+            await runSaleAction(
+              () => sendSale(saleId),
               reloadDetail,
-              "Cotización enviada",
+              "Venta enviada",
             );
           }
         },
@@ -135,26 +136,26 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
 
     // Acción: Aceptar Cotización
     if (
-      can(role, "quotes", "accept") &&
-      (quote.status === "SENT" || quote.status === "VIEWED")
+      can(role, "sales", "accept") &&
+      (sale.status === "SENT" || sale.status === "VIEWED")
     ) {
       actions.push({
         icon: "check",
-        ariaLabel: "Aceptar cotización",
+        ariaLabel: "Aceptar venta",
         variant: "primary",
         disabled: saving,
         onClick: async () => {
           const confirmed = await confirm({
-            title: "Aceptar cotización",
-            message: `¿Confirmar la aceptación de la cotización ${quote.number}?`,
+            title: "Aceptar venta",
+            message: `¿Confirmar la aceptación de la venta ${sale.number}?`,
             confirmLabel: "Aceptar",
           });
 
-          if (confirmed && quoteId) {
-            await runQuoteAction(
-              () => acceptQuote(quoteId),
+          if (confirmed && saleId) {
+            await runSaleAction(
+              () => acceptSale(saleId),
               reloadDetail,
-              "Cotización aceptada",
+              "Venta aceptada",
             );
           }
         },
@@ -167,16 +168,16 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   return (
     <DocumentDetailForm
       mode={mode}
-      documentId={quoteId}
-      documentTypeLabel="Cotización"
-      documentTypeKey="quotes"
+      documentId={saleId}
+      documentTypeLabel="Venta"
+      documentTypeKey="sales"
       statusLabels={STATUS_LABELS}
       taxOptions={TAX_OPTIONS}
       fetchDetail={fetchDetailAdapter}
-      fetchNextNumber={getNextQuoteNumber}
+      fetchNextNumber={getNextSaleNumber}
       onCreate={handleCreate}
       onUpdate={handleUpdate}
-      onSuccessRedirect="/quotes"
+      onSuccessRedirect="/sales"
       getExtraActions={getExtraActions}
     />
   );

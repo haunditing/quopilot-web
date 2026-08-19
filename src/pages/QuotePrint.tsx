@@ -11,6 +11,8 @@ import { getCurrentTenant } from "../services/tenant-service.js";
 import type { Customer } from "../types/customer.js";
 import type { Quote } from "../types/quote.js";
 import type { Tenant } from "../types/tenant.js";
+import BackButton from "../components/BackButton.js";
+import { useNavigate } from "react-router-dom";
 
 interface QuotePrintData {
   quote: Quote;
@@ -40,6 +42,7 @@ async function loadQuotePrintData(quoteId: string): Promise<QuotePrintData> {
 export default function QuotePrint({ quoteId }: QuotePrintProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const navigate = useNavigate();
 
   const fetcher = useCallback(() => loadQuotePrintData(quoteId), [quoteId]);
   const { data, loading, error } = useAsyncData(fetcher);
@@ -92,15 +95,10 @@ export default function QuotePrint({ quoteId }: QuotePrintProps) {
 
   return (
     <main className="quote-print-page">
-      <div
-        className="quote-print-page__toolbar"
-        style={{
-          display: "flex",
-          gap: "12px",
-          justifyContent: "flex-end",
-          marginBottom: "24px",
-        }}
-      >
+      <BackButton onClick={() => navigate("/quotes")}>
+        Volver a cotizaciones
+      </BackButton>
+      <div className="quote-print-page__toolbar">
         <Button
           icon="download"
           iconOnly

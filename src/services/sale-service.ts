@@ -1,20 +1,12 @@
 import { apiRequest } from "../lib/api.js";
-import type {
-  SaleDetailResponse,
-  SaleListResponse,
-} from "../types/sale.js";
+import type { Sale, SaleListResponse } from "../types/sale.js";
 
 export interface GetSalesParams {
   page?: number;
   limit?: number;
   status?: string;
   customerId?: string;
-  productId?: string;
   search?: string;
-  minTotal?: number;
-  maxTotal?: number;
-  dateFrom?: string;
-  dateTo?: string;
 }
 
 export async function getSales({
@@ -22,12 +14,7 @@ export async function getSales({
   limit = 20,
   status,
   customerId,
-  productId,
   search,
-  minTotal,
-  maxTotal,
-  dateFrom,
-  dateTo,
 }: GetSalesParams = {}): Promise<SaleListResponse> {
   const params = new URLSearchParams();
 
@@ -42,28 +29,8 @@ export async function getSales({
     params.set("customerId", customerId);
   }
 
-  if (productId) {
-    params.set("productId", productId);
-  }
-
   if (search) {
     params.set("search", search);
-  }
-
-  if (minTotal !== undefined) {
-    params.set("minTotal", String(minTotal));
-  }
-
-  if (maxTotal !== undefined) {
-    params.set("maxTotal", String(maxTotal));
-  }
-
-  if (dateFrom) {
-    params.set("dateFrom", dateFrom);
-  }
-
-  if (dateTo) {
-    params.set("dateTo", dateTo);
   }
 
   return apiRequest<SaleListResponse>(`/api/sales?${params.toString()}`, {
@@ -71,16 +38,78 @@ export async function getSales({
   });
 }
 
-export async function getSaleDetail(
+export interface CreateSaleItemInput {
+  productId: string;
+  quantity: number;
+  unitPrice?: number;
+  discountPercent?: number;
+  taxRate?: number;
+}
+
+export interface CreateSaleInput {
+  customerId: string;
+  quoteId?: string;
+  items: CreateSaleItemInput[];
+  notes?: string;
+  terms?: string;
+}
+
+export async function createSale(
+  input: CreateSaleInput,
+): Promise<{ sale: Sale }> {
+  return apiRequest<{ sale: Sale }>(`/api/sales`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function sendSale(saleId: string): Promise<Sale> {
+  return apiRequest<Sale>(`/api/sales/${saleId}/send`, {
+    method: "POST",
+  });
+}
+
+export async function acceptSale(saleId: string): Promise<Sale> {
+  return apiRequest<Sale>(`/api/sales/${saleId}/accept`, {
+    method: "POST",
+  });
+}
+
+export interface UpdateSaleItemInput {
+  productId: string;
+  quantity: number;
+  unitPrice?: number;
+  discountPercent?: number;
+  taxRate?: number;
+}
+
+export interface UpdateSaleInput {
+  customerId: string;
+  quoteId?: string;
+  items: UpdateSaleItemInput[];
+  notes?: string;
+  terms?: string;
+}
+
+export async function updateSale(
   saleId: string,
-): Promise<SaleDetailResponse> {
-  return apiRequest<SaleDetailResponse>(`/api/sales/${saleId}`, {
-    method: "GET",
+  input: UpdateSaleInput,
+): Promise<Sale> {
+  return apiRequest<Sale>(`/api/sales/${saleId}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
   });
 }
 
 export async function deleteSale(saleId: string): Promise<void> {
-  return apiRequest<void>(`/api/sales/${saleId}`, {
+  await apiRequest<void>(`/api/sales/${saleId}`, {
     method: "DELETE",
   });
+}
+
+export async function getNextSaleNumber(): Promise<string> {
+  const response = await apiRequest<{ number: string }>(
+    "/api/sales/next-number",
+  );
+  return response.number;
 }

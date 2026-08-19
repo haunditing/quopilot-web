@@ -12,7 +12,7 @@ export default function QuoteDetail({ quoteId }: QuoteDetailProps) {
 
   return (
     <main>
-      <BackButton onClick={() => navigate("/quotes")}>
+      <BackButton onClick={() => navigate(`/quotes/${quoteId}`)}>
         Volver a cotizaciones
       </BackButton>
 
