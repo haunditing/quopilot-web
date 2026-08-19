@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Trash2 } from "lucide-react";
 
+import Button from "../components/Button.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
 import StatCard from "../components/StatCard.js";
@@ -15,9 +15,15 @@ import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDate } from "../lib/format.js";
+import { can } from "../lib/permissions.js";
+import { getUserRole } from "../services/auth-storage.js";
 import { getCustomers } from "../services/customer-service.js";
 import { getProducts } from "../services/product-service.js";
-import { deleteSale, getSales } from "../services/sale-service.js";
+import {
+  cancelSale,
+  deleteSale,
+  getSales,
+} from "../services/sale-service.js";
 import type { Customer } from "../types/customer.js";
 import type { Product } from "../types/product.js";
 import type { Sale, SaleStatus } from "../types/sale.js";
@@ -60,6 +66,38 @@ export default function Sales() {
 
   const toast = useToast();
   const { confirm } = useConfirm();
+
+  const role = getUserRole();
+  const canView = can(role, "sales", "view");
+  const canDelete = can(role, "sales", "delete");
+
+  const handleCancel = useCallback(
+    async (sale: Sale) => {
+      const confirmed = await confirm({
+        title: "Cancelar venta",
+        message: `¿Cancelar la venta ${sale.number}?`,
+        confirmLabel: "Cancelar venta",
+        danger: true,
+      });
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await cancelSale(sale._id);
+        reload();
+        toast.success("Venta cancelada");
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible cancelar la venta",
+        );
+      }
+    },
+    [confirm, reload, toast],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -186,31 +224,58 @@ export default function Sales() {
         align: "right",
         render: (sale) => (
           <div className="row-actions">
-            <button
-              type="button"
-              className="btn-icon-action"
-              title="Ver detalle"
-              aria-label="Ver detalle"
-              onClick={() => navigate(`/sales/${sale._id}`)}
-            >
-              <Eye size={16} />
-            </button>
-            {sale.status === "CANCELLED" && (
-              <button
-                type="button"
+            {canView && (
+              <Button
+                icon="download"
+                iconOnly
+                className="btn-icon-action btn-download"
+                aria-label="Descargar PDF"
+                onClick={() => navigate(`/sales/${sale._id}/print`)}
+              >
+                Descargar
+              </Button>
+            )}
+            {canDelete && sale.status === "CONFIRMED" && (
+              <Button
+                icon="close"
+                iconOnly
+                variant="danger"
+                className="btn-icon-action btn-cancel"
+                aria-label="Cancelar venta"
+                onClick={() => handleCancel(sale)}
+              >
+                Cancelar
+              </Button>
+            )}
+            {canDelete && sale.status === "CANCELLED" && (
+              <Button
+                icon="trash"
+                iconOnly
+                variant="danger"
                 className="btn-icon-action btn-danger"
-                title="Eliminar"
                 aria-label="Eliminar"
                 onClick={() => handleDelete(sale)}
               >
-                <Trash2 size={16} />
-              </button>
+                Eliminar
+              </Button>
+            )}
+            {canView && (
+              <Button
+                icon="eye"
+                iconOnly
+                variant="primary"
+                aria-label="Ver detalle"
+                className="btn-icon-action btn-view"
+                onClick={() => navigate(`/sales/${sale._id}`)}
+              >
+                Ver detalle
+              </Button>
             )}
           </div>
         ),
       },
     ],
-    [customerNameById, navigate, handleDelete],
+    [canView, canDelete, customerNameById, navigate, handleCancel, handleDelete],
   );
 
   if (error) {
@@ -218,6 +283,10 @@ export default function Sales() {
   }
 
   const sales = data?.data ?? [];
+
+  const cancelledCount = sales.filter(
+    (sale) => sale.status === "CANCELLED",
+  ).length;
 
   const totalAmount = sales.reduce(
     (total, sale) => total + (sale.status === "CONFIRMED" ? sale.total : 0),
@@ -230,6 +299,8 @@ export default function Sales() {
 
       <section className="sales-summary">
         <StatCard label="Ventas" value={String(sales.length)} />
+
+        <StatCard label="Canceladas" value={String(cancelledCount)} />
 
         <StatCard
           label="Monto vendido"

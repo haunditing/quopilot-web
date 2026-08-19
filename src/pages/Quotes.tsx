@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/Button.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
+import StatCard from "../components/StatCard.js";
 import DataListView from "../components/DataListView/DataListView.js";
 import type {
   ColumnSpec,
@@ -11,11 +12,17 @@ import type {
 } from "../components/DataListView/types.js";
 import { QUOTE_STATUS_OPTIONS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
+import { useConfirm } from "../hooks/useConfirm.js";
+import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDate } from "../lib/format.js";
 import { can } from "../lib/permissions.js";
 import { getUserRole } from "../services/auth-storage.js";
 import { getCustomers } from "../services/customer-service.js";
-import { getQuotes } from "../services/quote-service.js";
+import {
+  acceptQuote,
+  getQuotes,
+  sendQuote,
+} from "../services/quote-service.js";
 import type { Customer } from "../types/customer.js";
 import type { Quote, QuoteStatus } from "../types/quote.js";
 
@@ -34,6 +41,8 @@ const STATUS_LABEL = Object.fromEntries(
 
 export default function Quotes() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const { confirm } = useConfirm();
 
   const buildFetcher = useCallback(
     (params: { search: string; status: string; customerId: string }) => () =>
@@ -44,7 +53,7 @@ export default function Quotes() {
       }),
     [],
   );
-  const { data, loading, error, set } = useFilteredList(buildFetcher, {
+  const { data, loading, error, reload, set } = useFilteredList(buildFetcher, {
     status: "",
     customerId: "",
   });
@@ -71,6 +80,81 @@ export default function Quotes() {
   const canView = can(role, "quotes", "view");
   const canCreate = can(role, "quotes", "create");
   const canEdit = can(role, "quotes", "update");
+  const canSend = can(role, "quotes", "send");
+  const canAccept = can(role, "quotes", "accept");
+
+  const runQuoteAction = useCallback(
+    async (
+      action: () => Promise<unknown>,
+      successMessage: string,
+    ): Promise<void> => {
+      try {
+        await action();
+        reload();
+        toast.success(successMessage);
+      } catch (requestError) {
+        toast.error(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible completar la acción",
+        );
+      }
+    },
+    [reload, toast],
+  );
+
+  const handleSend = useCallback(
+    async (quote: Quote) => {
+      const confirmed = await confirm({
+        title: "Enviar cotización",
+        message: `¿Enviar la cotización ${quote.number} al cliente?`,
+        confirmLabel: "Enviar",
+      });
+
+      if (confirmed) {
+        await runQuoteAction(
+          () => sendQuote(quote._id),
+          "Cotización enviada",
+        );
+      }
+    },
+    [confirm, runQuoteAction],
+  );
+
+  const handleAccept = useCallback(
+    async (quote: Quote) => {
+      const confirmed = await confirm({
+        title: "Aceptar cotización",
+        message: `¿Confirmar la aceptación de la cotización ${quote.number}?`,
+        confirmLabel: "Aceptar",
+      });
+
+      if (confirmed) {
+        await runQuoteAction(
+          () => acceptQuote(quote._id),
+          "Cotización aceptada",
+        );
+      }
+    },
+    [confirm, runQuoteAction],
+  );
+
+  const quotes = data?.data ?? [];
+
+  const statusCounts = useMemo(() => {
+    const counts: Partial<Record<QuoteStatus, number>> = {};
+    for (const quote of quotes) {
+      counts[quote.status] = (counts[quote.status] ?? 0) + 1;
+    }
+    return counts;
+  }, [quotes]);
+
+  const summaryStatuses: QuoteStatus[] = [
+    "VIEWED",
+    "ACCEPTED",
+    "REJECTED",
+    "EXPIRED",
+  ];
 
   const customerNameById = useMemo(
     () => new Map(customers.map((customer) => [customer._id, customer.name])),
@@ -146,6 +230,30 @@ export default function Quotes() {
         align: "right",
         render: (quote) => (
           <div className="row-actions">
+            {canSend && quote.status === "DRAFT" && (
+              <Button
+                icon="send"
+                iconOnly
+                variant="secondary"
+                className="btn-icon-action btn-send"
+                aria-label="Enviar"
+                onClick={() => handleSend(quote)}
+              >
+                Enviar
+              </Button>
+            )}
+            {canAccept && (quote.status === "SENT" || quote.status === "VIEWED") && (
+              <Button
+                icon="check"
+                iconOnly
+                variant="primary"
+                className="btn-icon-action btn-accept"
+                aria-label="Aceptar cotización"
+                onClick={() => handleAccept(quote)}
+              >
+                Aceptar
+              </Button>
+            )}
             {canEdit && (
               <Button
                 icon="download"
@@ -173,7 +281,7 @@ export default function Quotes() {
         ),
       },
     ],
-    [canView, customerNameById, navigate],
+    [canView, canSend, canAccept, canEdit, customerNameById, navigate, handleSend, handleAccept],
   );
 
   if (error) {
@@ -186,7 +294,7 @@ export default function Quotes() {
     <main>
       <PageHeader
         title="Cotizaciones"
-        description={`${data?.data.length ?? 0} cotizaciones`}
+        description={`${quotes.length} cotizaciones`}
         actions={
           canCreate && (
             <Button
@@ -199,6 +307,16 @@ export default function Quotes() {
           )
         }
       />
+
+      <section className="sales-summary">
+        {summaryStatuses.map((status) => (
+          <StatCard
+            key={status}
+            label={STATUS_LABEL[status]}
+            value={String(statusCounts[status] ?? 0)}
+          />
+        ))}
+      </section>
 
       <DataListView<Quote>
         items={data?.data ?? []}
