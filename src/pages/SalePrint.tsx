@@ -1,16 +1,16 @@
-import { useCallback, useRef, useState } from "react";
-import html2pdf from "html2pdf.js";
+import { useCallback, useState } from "react";
 import Button from "../components/Button.js";
 import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
+import SalePrintTemplate from "../components/SalePrintTemplate.js";
 import { useAsyncData } from "../hooks/useAsyncData.js";
+import { downloadPdf } from "../lib/pdf.js";
 import { getCustomer } from "../services/customer-service.js";
 import { getCurrentTenant } from "../services/tenant-service.js";
 import { getSaleDetail } from "../services/sale-detail-service.js";
 import type { Customer } from "../types/customer.js";
 import type { Sale } from "../types/sale.js";
 import type { Tenant } from "../types/tenant.js";
-import SalePrintTemplate from "../components/SalePrintTemplate.js";
 import BackButton from "../components/BackButton.js";
 import { useNavigate } from "react-router-dom";
 
@@ -40,7 +40,6 @@ async function loadSalePrintData(saleId: string): Promise<SalePrintData> {
 }
 
 export default function SalePrint({ saleId }: SalePrintProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const fetcher = useCallback(() => loadSalePrintData(saleId), [saleId]);
@@ -48,24 +47,22 @@ export default function SalePrint({ saleId }: SalePrintProps) {
   const navigate = useNavigate();
 
   const handleDownloadPdf = async () => {
-    if (!contentRef.current || !data) return;
+    if (!data) return;
     setIsGeneratingPdf(true);
 
     try {
-      const element = contentRef.current;
-      const opt = {
-        margin: 10,
-        filename: `Venta_${data.sale.number}.pdf`,
-        image: { type: "jpeg" as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: {
-          unit: "mm" as const,
-          format: "a4",
-          orientation: "portrait" as const,
-        },
-      };
+      const { default: SalePdf } = await import(
+        "../components/pdf/SalePdf.js"
+      );
 
-      await html2pdf().set(opt).from(element).save();
+      await downloadPdf(
+        <SalePdf
+          tenant={data.tenant}
+          sale={data.sale}
+          customer={data.customer}
+        />,
+        `Venta_${data.sale.number}.pdf`,
+      );
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -119,7 +116,6 @@ export default function SalePrint({ saleId }: SalePrintProps) {
       </div>
 
       <SalePrintTemplate
-        ref={contentRef}
         tenant={tenant}
         sale={sale}
         customer={customer}

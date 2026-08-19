@@ -1,4 +1,3 @@
-import { forwardRef } from "react";
 import DocumentPrintTemplate from "./DocumentPrintTemplate.js";
 import type { Customer } from "../types/customer.js";
 import type { Sale } from "../types/sale.js";
@@ -10,21 +9,19 @@ interface SalePrintTemplateProps {
   customer: Customer;
 }
 
-const SalePrintTemplate = forwardRef<HTMLDivElement, SalePrintTemplateProps>(
-  ({ tenant, sale, customer }, ref) => {
-    return (
-      <DocumentPrintTemplate
-        ref={ref}
-        documentTypeLabel="Venta"
-        tenant={tenant}
-        document={sale}
-        customer={customer}
-        issueDateKey="soldAt"
-        showExpiryDate={false}
-      />
-    );
-  },
-);
-
-SalePrintTemplate.displayName = "SalePrintTemplate";
-export default SalePrintTemplate;
+export default function SalePrintTemplate({
+  tenant,
+  sale,
+  customer,
+}: SalePrintTemplateProps) {
+  return (
+    <DocumentPrintTemplate
+      documentTypeLabel="Venta"
+      tenant={tenant}
+      document={sale}
+      customer={customer}
+      issueDateKey="soldAt"
+      showExpiryDate={false}
+    />
+  );
+}
