@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { can } from "../lib/permissions.js";
 
 import BackButton from "../components/BackButton.js";
 import Button from "../components/Button.js";
@@ -13,6 +14,7 @@ import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDateTime } from "../lib/format.js";
 import { deleteSale, getSaleDetail } from "../services/sale-service.js";
+import { getUserRole } from "../services/auth-storage.js";
 
 interface SaleDetailProps {
   saleId: string;
@@ -25,6 +27,9 @@ export default function SaleDetail({ saleId }: SaleDetailProps) {
   const toast = useToast();
   const { confirm } = useConfirm();
   const [deleting, setDeleting] = useState(false);
+  const role = getUserRole(); // Replace this with the actual role from your auth context or state
+  const canView = can(role, "sales", "view");
+  const canDelete = can(role, "sales", "delete");
 
   if (loading) {
     return <LoadingOverlay title="Cargando venta..." />;
@@ -208,14 +213,29 @@ export default function SaleDetail({ saleId }: SaleDetailProps) {
             {deleting && <FormMessage kind="info">Procesando...</FormMessage>}
 
             <div className="master-detail-sidebar__actions">
-              <Button
-                type="button"
-                variant="danger"
-                disabled={deleting}
-                onClick={handleDelete}
-              >
-                {deleting ? "Eliminando..." : "Eliminar venta"}
-              </Button>
+              {canView && (
+                <Button
+                  icon="download"
+                  iconOnly
+                  disabled={deleting}
+                  className="btn-icon-action btn-view"
+                  onClick={() => navigate(`/sales/${sale._id}/print`)}
+                >
+                  Ver venta
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  icon="trash"
+                  iconOnly
+                  className="btn-icon-action btn-danger"
+                  variant="danger"
+                  disabled={deleting}
+                  onClick={handleDelete}
+                >
+                  {deleting ? "Eliminando..." : "Eliminar venta"}
+                </Button>
+              )}
             </div>
           </div>
         </aside>

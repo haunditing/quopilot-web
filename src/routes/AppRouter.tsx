@@ -28,6 +28,7 @@ import InternalAssistant from "../pages/InternalAssistant.js";
 import CompanySettings from "../pages/CompanySettings.js";
 import PublicChat from "../pages/PublicChat.js";
 import { getAccessToken, getUser } from "../services/auth-storage.js";
+import SalePrint from "../pages/SalePrint.js";
 
 export default function AppRouter() {
   return (
@@ -36,10 +37,7 @@ export default function AppRouter() {
 
       <Route path="/change-password" element={<ChangePasswordRoute />} />
 
-      <Route
-        path="/public/chat/:tenantId"
-        element={<PublicChatRoute />}
-      />
+      <Route path="/public/chat/:tenantId" element={<PublicChatRoute />} />
 
       <Route element={<ProtectedLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
@@ -58,11 +56,16 @@ export default function AppRouter() {
 
         <Route path="/sales/:saleId" element={<SaleDetailRoute />} />
 
+        <Route path="/sales/:saleId/print" element={<SalePrintRoute />} />
+
         <Route path="/customers" element={<Customers />} />
 
         <Route path="/customers/new" element={<CustomerDetail />} />
 
-        <Route path="/customers/:customerId" element={<CustomerDetailRoute />} />
+        <Route
+          path="/customers/:customerId"
+          element={<CustomerDetailRoute />}
+        />
 
         <Route path="/products" element={<Products />} />
 
@@ -151,6 +154,16 @@ function SaleDetailRoute() {
   return <SaleDetail saleId={saleId} />;
 }
 
+function SalePrintRoute() {
+  const { saleId } = useParams<{
+    saleId: string;
+  }>();
+  if (!saleId) {
+    return <Navigate to="/sales" replace />;
+  }
+
+  return <SalePrint saleId={saleId} />;
+}
 function CustomerDetailRoute() {
   const { customerId } = useParams<{
     customerId: string;

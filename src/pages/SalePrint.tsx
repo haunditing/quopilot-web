@@ -3,45 +3,45 @@ import html2pdf from "html2pdf.js";
 import Button from "../components/Button.js";
 import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageState from "../components/PageState.js";
-import QuotePrintTemplate from "../components/QuotePrintTemplate.js";
 import { useAsyncData } from "../hooks/useAsyncData.js";
 import { getCustomer } from "../services/customer-service.js";
-import { getQuoteDetail } from "../services/quote-detail-service.js";
 import { getCurrentTenant } from "../services/tenant-service.js";
+import { getSaleDetail } from "../services/sale-detail-service.js";
 import type { Customer } from "../types/customer.js";
-import type { Quote } from "../types/quote.js";
+import type { Sale } from "../types/sale.js";
 import type { Tenant } from "../types/tenant.js";
+import SalePrintTemplate from "../components/SalePrintTemplate.js";
 
-interface QuotePrintData {
-  quote: Quote;
+interface SalePrintData {
+  sale: Sale;
   customer: Customer;
   tenant: Tenant;
 }
 
-interface QuotePrintProps {
-  quoteId: string;
+interface SalePrintProps {
+  saleId: string;
 }
 
-async function loadQuotePrintData(quoteId: string): Promise<QuotePrintData> {
-  const [quoteData, tenant] = await Promise.all([
-    getQuoteDetail(quoteId),
+async function loadSalePrintData(saleId: string): Promise<SalePrintData> {
+  const [saleData, tenant] = await Promise.all([
+    getSaleDetail(saleId),
     getCurrentTenant(),
   ]);
 
-  const customer = await getCustomer(quoteData.quote.customerId);
+  const customer = await getCustomer(saleData.sale.customerId);
 
   return {
-    quote: quoteData.quote,
+    sale: saleData.sale,
     customer,
     tenant,
   };
 }
 
-export default function QuotePrint({ quoteId }: QuotePrintProps) {
+export default function SalePrint({ saleId }: SalePrintProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const fetcher = useCallback(() => loadQuotePrintData(quoteId), [quoteId]);
+  const fetcher = useCallback(() => loadSalePrintData(saleId), [saleId]);
   const { data, loading, error } = useAsyncData(fetcher);
 
   const handleDownloadPdf = async () => {
@@ -52,7 +52,7 @@ export default function QuotePrint({ quoteId }: QuotePrintProps) {
       const element = contentRef.current;
       const opt = {
         margin: 10,
-        filename: `Cotizacion_${data.quote.number}.pdf`,
+        filename: `Venta_${data.sale.number}.pdf`,
         image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: {
@@ -73,7 +73,7 @@ export default function QuotePrint({ quoteId }: QuotePrintProps) {
   if (loading || isGeneratingPdf) {
     return (
       <LoadingOverlay
-        title={isGeneratingPdf ? "Generando PDF..." : "Cargando cotización..."}
+        title={isGeneratingPdf ? "Generando PDF..." : "Cargando venta..."}
       />
     );
   }
@@ -83,12 +83,12 @@ export default function QuotePrint({ quoteId }: QuotePrintProps) {
       <PageState
         kind="error"
         title="Error"
-        message={error || "No fue posible cargar la cotización"}
+        message={error || "No fue posible cargar la venta"}
       />
     );
   }
 
-  const { quote, customer, tenant } = data;
+  const { sale, customer, tenant } = data;
 
   return (
     <main className="quote-print-page">
@@ -112,10 +112,10 @@ export default function QuotePrint({ quoteId }: QuotePrintProps) {
         </Button>
       </div>
 
-      <QuotePrintTemplate
+      <SalePrintTemplate
         ref={contentRef}
         tenant={tenant}
-        quote={quote}
+        sale={sale}
         customer={customer}
       />
     </main>

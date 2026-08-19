@@ -1,25 +1,25 @@
 import { forwardRef } from "react";
 import { formatCurrency, formatDate } from "../lib/format.js";
 import type { Customer } from "../types/customer.js";
-import type { Quote } from "../types/quote.js";
+import type { Sale } from "../types/sale.js";
 import type { Tenant } from "../types/tenant.js";
 
-interface QuotePrintTemplateProps {
+interface SalePrintTemplateProps {
   tenant: Tenant;
-  quote: Quote;
+  sale: Sale;
   customer: Customer;
 }
 
-const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
-  ({ tenant, quote, customer }, ref) => {
-    const issueDate = new Date(quote.createdAt);
-    const expiryDate = quote.validUntil ? new Date(quote.validUntil) : null;
+const SalePrintTemplate = forwardRef<HTMLDivElement, SalePrintTemplateProps>(
+  ({ tenant, sale, customer }, ref) => {
+    const issueDate = new Date(sale.createdAt);
+    const expiryDate = sale.soldAt ? new Date(sale.soldAt) : null;
 
-    const subtotalBruto = quote.items.reduce(
+    const subtotalBruto = sale.items.reduce(
       (sum, item) => sum + item.unitPrice * item.quantity,
       0,
     );
-    const totalGeneral = quote.total ?? subtotalBruto;
+    const totalGeneral = sale.total ?? subtotalBruto;
 
     return (
       <div
@@ -83,9 +83,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
                     verticalAlign: "top",
                   }}
                 >
-                  <span style={{ fontSize: "11px", color: "#444" }}>
-                    Cotización
-                  </span>
+                  <span style={{ fontSize: "11px", color: "#444" }}>Venta</span>
                   <h1
                     style={{
                       margin: "2px 0 0 0",
@@ -94,7 +92,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
                       whiteSpace: "nowrap",
                     }}
                   >
-                    No. {quote.number}
+                    No. {sale.number}
                   </h1>
                 </td>
               </tr>
@@ -290,7 +288,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
               </tr>
             </thead>
             <tbody>
-              {quote.items.map((item, index) => (
+              {sale.items.map((item, index) => (
                 <tr
                   key={index}
                   style={{ height: "22px", verticalAlign: "top" }}
@@ -310,7 +308,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
                       textAlign: "right",
                     }}
                   >
-                    {formatCurrency(item.unitPrice, quote.currency)}
+                    {formatCurrency(item.unitPrice, sale.currency)}
                   </td>
                   <td
                     style={{
@@ -331,7 +329,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
                     0.00%
                   </td>
                   <td style={{ padding: "3px 6px", textAlign: "right" }}>
-                    {formatCurrency(item.subtotal, quote.currency)}
+                    {formatCurrency(item.subtotal, sale.currency)}
                   </td>
                 </tr>
               ))}
@@ -381,7 +379,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
                       Subtotal
                     </td>
                     <td style={{ padding: "2px 0", textAlign: "right" }}>
-                      {formatCurrency(subtotalBruto, quote.currency)}
+                      {formatCurrency(subtotalBruto, sale.currency)}
                     </td>
                   </tr>
                   <tr style={{ fontWeight: "bold" }}>
@@ -400,7 +398,7 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
                         borderTop: "1px solid #000",
                       }}
                     >
-                      {formatCurrency(totalGeneral, quote.currency)}
+                      {formatCurrency(totalGeneral, sale.currency)}
                     </td>
                   </tr>
                 </tbody>
@@ -425,5 +423,5 @@ const QuotePrintTemplate = forwardRef<HTMLDivElement, QuotePrintTemplateProps>(
   },
 );
 
-QuotePrintTemplate.displayName = "QuotePrintTemplate";
-export default QuotePrintTemplate;
+SalePrintTemplate.displayName = "SalePrintTemplate";
+export default SalePrintTemplate;

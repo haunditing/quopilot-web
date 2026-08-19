@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye } from "lucide-react";
 
 import Button from "../components/Button.js";
 import PageHeader from "../components/PageHeader.js";
@@ -71,6 +70,7 @@ export default function Quotes() {
   const role = getUserRole();
   const canView = can(role, "quotes", "view");
   const canCreate = can(role, "quotes", "create");
+  const canEdit = can(role, "quotes", "update");
 
   const customerNameById = useMemo(
     () => new Map(customers.map((customer) => [customer._id, customer.name])),
@@ -146,16 +146,28 @@ export default function Quotes() {
         align: "right",
         render: (quote) => (
           <div className="row-actions">
+            {canEdit && (
+              <Button
+                icon="download"
+                iconOnly
+                className="btn-icon-action btn-download"
+                aria-label="Descargar PDF"
+                onClick={() => navigate(`/quotes/${quote._id}/print`)}
+              >
+                Descargar
+              </Button>
+            )}
             {canView && (
-              <button
-                type="button"
-                className="btn-icon-action"
-                title="Ver detalle"
+              <Button
+                icon="eye"
+                iconOnly
+                variant="primary"
                 aria-label="Ver detalle"
+                className="btn-icon-action btn-view"
                 onClick={() => navigate(`/quotes/${quote._id}`)}
               >
-                <Eye size={16} />
-              </button>
+                Ver detalle
+              </Button>
             )}
           </div>
         ),

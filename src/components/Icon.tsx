@@ -37,6 +37,7 @@ export type IconName =
   | "print"
   | "lock"
   | "upload"
+  | "download"
   | "chevron-down"
   | "cart"
   | "tag"
@@ -50,7 +51,9 @@ export type IconName =
   | "star"
   | "coffee"
   | "heart"
-  | "eye-off";
+  | "eye-off"
+  | "chevron-right"
+  | "chevron-left";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -333,6 +336,8 @@ const iconPaths: Record<IconName, ReactNode> = {
   ),
 
   "chevron-down": <path d="M6 9l6 6 6-6" />,
+  "chevron-right": <path d="M9 18l6-6-6-6" />,
+  "chevron-left": <path d="M15 18l-6-6 6-6" />,
 
   cart: (
     <>
@@ -432,6 +437,13 @@ const iconPaths: Record<IconName, ReactNode> = {
       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
       <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
       <line x1="1" y1="1" x2="23" y2="23" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </>
   ),
 };

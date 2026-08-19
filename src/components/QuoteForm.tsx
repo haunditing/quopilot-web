@@ -457,8 +457,8 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
 
   if (isEdit) {
     actions.push({
-      icon: "print",
-      ariaLabel: "Imprimir / PDF",
+      icon: "download",
+      ariaLabel: "Descargar PDF",
       variant: "secondary",
       onClick: () => navigate(`/quotes/${quoteId}/print`),
     });

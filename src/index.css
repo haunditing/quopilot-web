@@ -148,13 +148,13 @@
 
 .master-detail-sidebar__actions {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
 .master-detail-sidebar__actions .button {
   min-height: 44px;
-  width: 100%;
   justify-content: center;
 }
 
@@ -683,6 +683,33 @@ p {
     padding: 20px;
     transform: none;
     visibility: visible;
+  }
+
+  /* Collapsed State Styles */
+  .app-sidebar--collapsed {
+    inline-size: 80px;
+    padding-inline: 12px;
+  }
+  .app-sidebar--collapsed .app-brand__text,
+  .app-sidebar--collapsed .app-navigation__section,
+  .app-sidebar--collapsed .app-navigation__item span,
+  .app-sidebar--collapsed .app-user__info {
+    display: none;
+  }
+  .app-sidebar--collapsed .app-brand {
+    justify-content: center;
+    margin-block-end: 32px;
+  }
+  .app-sidebar--collapsed .app-navigation__item {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .app-sidebar--collapsed .app-user__card {
+    justify-content: center;
+    padding: 8px;
+  }
+  .app-sidebar--collapsed .app-user__avatar {
+    margin: 0;
   }
 
   .app-main {

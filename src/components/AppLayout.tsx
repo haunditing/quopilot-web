@@ -101,6 +101,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const user = getUser();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem("sidebarCollapsed") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("sidebarCollapsed", String(isCollapsed));
+  }, [isCollapsed]);
 
   const visibleNavigationGroups = navigationGroups
     .map((group) => ({
@@ -150,16 +157,59 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className={layoutClassName}>
       <aside
         id="app-sidebar"
-        className={menuOpen ? "app-sidebar app-sidebar--open" : "app-sidebar"}
+        className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${isCollapsed ? "app-sidebar--collapsed" : ""}`}
       >
-        <div className="app-brand">
-          <Icon name="brand" size={24} className="app-brand__icon" />
+        <div
+          className="app-brand"
+          style={{
+            display: "flex",
+            justifyContent: isCollapsed ? "center" : "space-between",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              display: isCollapsed ? "none" : "flex",
+              alignItems: "center",
+              gap: "10px",
+              overflow: "hidden",
+            }}
+          >
+            <Icon
+              name="brand"
+              size={24}
+              className="app-brand__icon"
+              style={{ flexShrink: 0 }}
+            />
 
-          <span className="app-brand__text">
-            <strong>QuoPilot</strong>
+            <span className="app-brand__text">
+              <strong>QuoPilot</strong>
 
-            {brandSubtitle && <small>{brandSubtitle}</small>}
-          </span>
+              {brandSubtitle && <small>{brandSubtitle}</small>}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="app-sidebar-toggle"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--shell-text-muted)",
+              cursor: "pointer",
+              padding: "6px",
+              borderRadius: "6px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
+          >
+            <Icon
+              name={isCollapsed ? "chevron-right" : "chevron-left"}
+              size={20}
+            />
+          </button>
         </div>
 
         <nav className="app-navigation" aria-label="Navegación principal">
@@ -209,14 +259,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
               {roleLabel && <span className="app-user__role">{roleLabel}</span>}
             </div>
 
-            <Button
-              icon="logout"
-              iconOnly
-              onClick={handleLogout}
-              aria-label="Cerrar sesión"
-            >
-              Cerrar sesión
-            </Button>
+            {!isCollapsed && (
+              <Button
+                icon="logout"
+                iconOnly
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+              >
+                Cerrar sesión
+              </Button>
+            )}
           </div>
         </div>
       </aside>

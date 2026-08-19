@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2 } from "lucide-react";
 
 import Button from "../components/Button.js";
 import PageHeader from "../components/PageHeader.js";
@@ -11,10 +10,7 @@ import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
 import { can } from "../lib/permissions.js";
 import { getUserRole } from "../services/auth-storage.js";
-import {
-  deleteCustomer,
-  getCustomers,
-} from "../services/customer-service.js";
+import { deleteCustomer, getCustomers } from "../services/customer-service.js";
 import type { Customer } from "../types/customer.js";
 import type {
   ColumnSpec,
@@ -111,26 +107,27 @@ export default function Customers() {
         render: (customer) => (
           <div className="row-actions">
             {canEdit && (
-              <button
-                type="button"
-                className="btn-icon-action"
-                title="Editar"
+              <Button
+                icon="edit"
+                className="btn-icon-action btn-edit"
+                iconOnly
                 aria-label="Editar"
                 onClick={() => navigate(`/customers/${customer._id}`)}
               >
-                <Edit2 size={16} />
-              </button>
+                Editar
+              </Button>
             )}
+
             {canDelete && (
-              <button
-                type="button"
+              <Button
+                icon="trash"
+                iconOnly
                 className="btn-icon-action btn-danger"
-                title="Eliminar"
                 aria-label="Eliminar"
                 onClick={() => handleDelete(customer)}
               >
-                <Trash2 size={16} />
-              </button>
+                Eliminar
+              </Button>
             )}
           </div>
         ),
@@ -152,7 +149,13 @@ export default function Customers() {
         description={`${data?.data.length ?? 0} clientes`}
         actions={
           canCreate && (
-            <Button icon="plus" iconOnly onClick={() => navigate("/customers/new")}>Nuevo cliente</Button>
+            <Button
+              icon="plus"
+              iconOnly
+              onClick={() => navigate("/customers/new")}
+            >
+              Nuevo cliente
+            </Button>
           )
         }
       />
