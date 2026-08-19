@@ -109,3 +109,40 @@ export interface SupportAssistantConfigInput {
   maxContextTokens?: number;
   agentTools?: AgentToolConfig[];
 }
+
+export interface PlanFeature {
+  key: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  config?: Record<string, unknown>;
+}
+
+export interface Plan {
+  _id: string;
+  key: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  isDefault: boolean;
+  features: PlanFeature[];
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlanInput {
+  key: string;
+  name: string;
+  description?: string;
+  isActive?: boolean;
+  isDefault?: boolean;
+  features?: Array<{
+    key: string;
+    label: string;
+    description?: string;
+    enabled?: boolean;
+    config?: Record<string, unknown>;
+  }>;
+  sortOrder?: number;
+}

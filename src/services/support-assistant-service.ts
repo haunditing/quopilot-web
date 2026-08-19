@@ -7,10 +7,13 @@ import type {
   SupportKnowledgeDoc,
   SupportMessage,
   SupportMetrics,
+  Plan,
+  PlanInput,
 } from "../types/support-assistant.js";
 
 export const SUPPORT_ASSISTANT_ENDPOINT = "/api/support/assistant";
 export const SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT = "/api/super-admin/support/assistant";
+export const SUPER_ADMIN_PLANS_ENDPOINT = "/api/super-admin/plans";
 
 export async function getSupportMessages(): Promise<SupportMessage[]> {
   return apiRequest<SupportMessage[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/messages`, {
@@ -23,10 +26,7 @@ export async function sendSupportMessage(
 ): Promise<SendSupportMessageResponse> {
   return apiRequest<SendSupportMessageResponse>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/messages`,
-    {
-      method: "POST",
-      body: JSON.stringify({ content }),
-    },
+    { method: "POST", body: JSON.stringify({ content }) },
   );
 }
 
@@ -42,35 +42,27 @@ export async function getSupportMetrics(): Promise<SupportMetrics> {
   });
 }
 
-export async function getSupportConfig(tenantId?: string): Promise<SupportAssistantConfig> {
-  const url = tenantId
-    ? `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config?tenantId=${encodeURIComponent(tenantId)}`
-    : `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`;
-  return apiRequest<SupportAssistantConfig>(url, {
-    method: "GET",
-  });
+export async function getSupportConfig(): Promise<SupportAssistantConfig> {
+  return apiRequest<SupportAssistantConfig>(
+    `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`,
+    { method: "GET" },
+  );
 }
 
 export async function updateSupportConfig(
   input: SupportAssistantConfigInput,
-  tenantId?: string,
 ): Promise<{ ok: boolean }> {
-  const url = tenantId
-    ? `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config?tenantId=${encodeURIComponent(tenantId)}`
-    : `${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`;
-  return apiRequest<{ ok: boolean }>(url, {
+  return apiRequest<{ ok: boolean }>(`${SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT}/config`, {
     method: "PUT",
-    body: JSON.stringify({ ...input, tenantId }),
+    body: JSON.stringify(input),
   });
 }
 
-export async function listKnowledgeDocs(tenantId?: string): Promise<SupportKnowledgeDoc[]> {
-  const url = tenantId
-    ? `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge?tenantId=${encodeURIComponent(tenantId)}`
-    : `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge`;
-  return apiRequest<SupportKnowledgeDoc[]>(url, {
-    method: "GET",
-  });
+export async function listKnowledgeDocs(): Promise<SupportKnowledgeDoc[]> {
+  return apiRequest<SupportKnowledgeDoc[]>(
+    `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge`,
+    { method: "GET" },
+  );
 }
 
 export async function createKnowledgeDoc(input: {
@@ -83,10 +75,7 @@ export async function createKnowledgeDoc(input: {
 }): Promise<SupportKnowledgeDoc> {
   return apiRequest<SupportKnowledgeDoc>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
+    { method: "POST", body: JSON.stringify(input) },
   );
 }
 
@@ -103,29 +92,19 @@ export async function updateKnowledgeDoc(
 ): Promise<SupportKnowledgeDoc> {
   return apiRequest<SupportKnowledgeDoc>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge/${docId}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(input),
-    },
+    { method: "PUT", body: JSON.stringify(input) },
   );
 }
 
-export async function deleteKnowledgeDoc(
-  docId: string,
-): Promise<{ id: string }> {
+export async function deleteKnowledgeDoc(docId: string): Promise<{ id: string }> {
   return apiRequest<{ id: string }>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/knowledge/${docId}`,
-    {
-      method: "DELETE",
-    },
+    { method: "DELETE" },
   );
 }
 
-export async function listSupportCases(tenantId?: string): Promise<SupportCase[]> {
-  const url = tenantId
-    ? `${SUPPORT_ASSISTANT_ENDPOINT}/cases?tenantId=${encodeURIComponent(tenantId)}`
-    : `${SUPPORT_ASSISTANT_ENDPOINT}/cases`;
-  return apiRequest<SupportCase[]>(url, {
+export async function listSupportCases(): Promise<SupportCase[]> {
+  return apiRequest<SupportCase[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/cases`, {
     method: "GET",
   });
 }
@@ -157,31 +136,54 @@ export async function updateSupportCase(
 ): Promise<SupportCase> {
   return apiRequest<SupportCase>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/cases/${caseId}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(input),
-    },
+    { method: "PUT", body: JSON.stringify(input) },
   );
 }
 
-export async function confirmSupportCase(
-  caseId: string,
-): Promise<SupportCase> {
+export async function confirmSupportCase(caseId: string): Promise<SupportCase> {
   return apiRequest<SupportCase>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/cases/${caseId}/confirm`,
-    {
-      method: "POST",
-    },
+    { method: "POST" },
   );
 }
 
-export async function deleteSupportCase(
-  caseId: string,
-): Promise<{ id: string }> {
+export async function deleteSupportCase(caseId: string): Promise<{ id: string }> {
   return apiRequest<{ id: string }>(
     `${SUPPORT_ASSISTANT_ENDPOINT}/cases/${caseId}`,
-    {
-      method: "DELETE",
-    },
+    { method: "DELETE" },
   );
+}
+
+export async function listPlans(): Promise<Plan[]> {
+  return apiRequest<Plan[]>(`${SUPER_ADMIN_PLANS_ENDPOINT}`, { method: "GET" });
+}
+
+export async function createPlan(input: PlanInput): Promise<Plan> {
+  return apiRequest<Plan>(`${SUPER_ADMIN_PLANS_ENDPOINT}`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updatePlan(key: string, input: PlanInput): Promise<Plan> {
+  return apiRequest<Plan>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deletePlan(key: string): Promise<{ id: string }> {
+  return apiRequest<{ id: string }>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}`, {
+    method: "DELETE",
+  });
+}
+
+export async function setDefaultPlan(key: string): Promise<Plan> {
+  return apiRequest<Plan>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}/default`, {
+    method: "POST",
+  });
+}
+
+export async function getPlan(key: string): Promise<Plan> {
+  return apiRequest<Plan>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}`, { method: "GET" });
 }
