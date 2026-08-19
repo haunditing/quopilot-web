@@ -292,7 +292,11 @@ export default function AssistantChat({
                     : "public-chat__bubble public-chat__bubble--ai"
                 }
               >
-                <p>{sanitizeChatContent(message.content)}</p>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeChatContent(message.content),
+                  }}
+                />{" "}
               </div>
             ))
           )}

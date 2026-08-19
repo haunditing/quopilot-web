@@ -25,7 +25,7 @@ import type {
   ChatMessage,
 } from "../types/agent-conversation.js";
 import type { Customer } from "../types/customer.js";
-import { sanitizeChatContent } from "../lib/sanitize.js";
+import { renderMarkdown, sanitizeChatContent } from "../lib/sanitize.js";
 
 type StatusFilter = "OPEN" | "CLOSED" | "ALL";
 
@@ -92,9 +92,9 @@ export default function AgentChat() {
   const tenantId = getUser()?.tenantId;
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("OPEN");
-  const [conversations, setConversations] = useState<
-    ChatConversation[] | null
-  >(null);
+  const [conversations, setConversations] = useState<ChatConversation[] | null>(
+    null,
+  );
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState("");
 
@@ -136,7 +136,9 @@ export default function AgentChat() {
       setConversations(result.data);
     } catch (error) {
       setListError(
-        error instanceof Error ? error.message : "No fue posible cargar el chat",
+        error instanceof Error
+          ? error.message
+          : "No fue posible cargar el chat",
       );
     } finally {
       setListLoading(false);
@@ -253,9 +255,8 @@ export default function AgentChat() {
           });
 
           setMessages((current) => {
-            const known = new Set(
-              current.map((message) => message._id),
-            );
+            const known = new Set(current.map((message) => message._id));
+
             const incoming = threadResult.filter(
               (message) => !known.has(message._id),
             );
@@ -317,7 +318,9 @@ export default function AgentChat() {
       setSendError(
         error instanceof Error ? error.message : "No fue posible enviar",
       );
+
       setDraft(content);
+
       setMessages((current) =>
         current.filter((message) => message._id !== optimisticMessage._id),
       );
@@ -367,6 +370,7 @@ export default function AgentChat() {
       setModalOpen(false);
       await loadConversations();
       await selectConversation(conversation._id);
+
       toast.success("Conversación abierta");
     } catch (error) {
       toast.error(
@@ -392,9 +396,7 @@ export default function AgentChat() {
       });
 
       if (channels.data.length === 0) {
-        toast.error(
-          "Configura primero un canal de Chat Web activo en Canales",
-        );
+        toast.error("Configura primero un canal de Chat Web activo en Canales");
 
         return;
       }
@@ -460,7 +462,10 @@ export default function AgentChat() {
           </div>
 
           {listLoading ? (
-            <LoadingOverlay title="Cargando conversaciones..." message="Esto puede tomar unos segundos" />
+            <LoadingOverlay
+              title="Cargando conversaciones..."
+              message="Esto puede tomar unos segundos"
+            />
           ) : listError ? (
             <PageState
               kind="error"
@@ -534,9 +539,7 @@ export default function AgentChat() {
                 <StatusBadge status={selectedConversation.status} />
               </header>
 
-              {threadLoading ? (
-                null
-              ) : threadError ? (
+              {threadLoading ? null : threadError ? (
                 <PageState
                   kind="error"
                   title="No fue posible cargar"
@@ -565,14 +568,25 @@ export default function AgentChat() {
                           {formatRelativeTime(message.createdAt)}
                         </span>
 
-                        <p>{sanitizeChatContent(message.content)}</p>
+                        {message.direction === "INBOUND" ? (
+                          <p>{sanitizeChatContent(message.content)}</p>
+                        ) : (
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: renderMarkdown(message.content),
+                            }}
+                          />
+                        )}
                       </div>
                     ))
                   )}
 
                   {sending && (
                     <div className="agent-chat__bubble agent-chat__bubble--ai agent-chat__bubble--typing">
-                      <span className="agent-chat__typing" aria-label="Escribiendo...">
+                      <span
+                        className="agent-chat__typing"
+                        aria-label="Escribiendo..."
+                      >
                         <i />
                         <i />
                         <i />
@@ -601,7 +615,9 @@ export default function AgentChat() {
                     placeholder="Escribe el mensaje del cliente..."
                     aria-label="Mensaje del cliente"
                     onChange={(event) => setDraft(event.target.value)}
-                    disabled={sending || selectedConversation.status === "CLOSED"}
+                    disabled={
+                      sending || selectedConversation.status === "CLOSED"
+                    }
                   />
 
                   <Button

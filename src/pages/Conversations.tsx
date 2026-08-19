@@ -1156,9 +1156,10 @@ export default function Conversations() {
                             <div
                               key={message._id}
                               className="inbox__system-banner"
-                            >
-                              {sanitizeChatContent(message.content)}
-                            </div>
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizeChatContent(message.content),
+                              }}
+                            />
                           );
                         }
 
@@ -1171,8 +1172,11 @@ export default function Conversations() {
                                 : "inbox__bubble inbox__bubble--agent"
                             }
                           >
-                            <p>{sanitizeChatContent(message.content)}</p>
-
+                            <p
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizeChatContent(message.content),
+                              }}
+                            />
                             <span className="inbox__bubble-meta">
                               {senderLabel(message)}
                               {" · "}

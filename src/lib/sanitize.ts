@@ -21,65 +21,50 @@ function stripControlCharacters(value: string): string {
   return result;
 }
 
-function markdownToHtml(content: string): string {
-  let html = content;
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-  // Headers
+function markdownToHtml(content: string): string {
+  let html = escapeHtml(content);
+
   html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
   html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
   html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
 
-  // Bold (process before italic to avoid conflicts)
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
-  // Italic (single asterisks, not preceded or followed by another asterisk on the same word)
-  html = html.replace(/\*(?!\*)(.+?)(?!\*)\*/g, "<em>$1</em>");
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, "<em>$1</em>");
 
-  // Links
-  html = html.replace(/\[(.+?)\]\((.+?)\)/g, "<a href='$2'>$1</a>");
+  html = html.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
+  );
 
-  // Inline code
-  html = html.replace(/`(.+?)`/g, "<code>$1</code>");
+  html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
 
-  // Line breaks -> br
   html = html.replace(/\n/g, "<br>");
 
   return html;
 }
 
 export function sanitizeChatContent(content: string): string {
-  const cleaned = DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: [
-      "strong",
-      "em",
-      "a",
-      "code",
-      "br",
-      "h1",
-      "h2",
-      "h3",
-    ],
-    ALLOWED_ATTR: [
-      "href",
-    ],
+  const html = markdownToHtml(content);
+
+  const sanitized = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ["strong", "em", "a", "code", "br", "h1", "h2", "h3"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+    ALLOW_DATA_ATTR: false,
   });
 
-  return stripControlCharacters(cleaned).trim();
+  return stripControlCharacters(sanitized).trim();
 }
 
 export function renderMarkdown(content: string): string {
-  const html = markdownToHtml(content);
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "strong",
-      "em",
-      "a",
-      "code",
-      "br",
-      "h1",
-      "h2",
-      "h3",
-    ],
-    ALLOWED_ATTR: ["href"],
-  });
+  return sanitizeChatContent(content);
 }
