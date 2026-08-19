@@ -195,15 +195,17 @@ export default function Sales() {
             >
               <Eye size={16} />
             </button>
-            <button
-              type="button"
-              className="btn-icon-action btn-danger"
-              title="Eliminar"
-              aria-label="Eliminar"
-              onClick={() => handleDelete(sale)}
-            >
-              <Trash2 size={16} />
-            </button>
+            {sale.status === "CANCELLED" && (
+              <button
+                type="button"
+                className="btn-icon-action btn-danger"
+                title="Eliminar"
+                aria-label="Eliminar"
+                onClick={() => handleDelete(sale)}
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
           </div>
         ),
       },

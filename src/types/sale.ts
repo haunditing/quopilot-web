@@ -1,6 +1,3 @@
-import type { Customer } from "./customer.js";
-import type { Quote } from "./quote.js";
-
 export type SaleStatus = "CONFIRMED" | "CANCELLED";
 
 export interface SaleItem {
@@ -20,9 +17,12 @@ export interface Sale {
   _id: string;
   tenantId: string;
   customerId: string;
-  quoteId: string;
+  quoteId?: string;
   items: SaleItem[];
   number: string;
+  subtotal: number;
+  totalDiscount: number;
+  totalTax: number;
   total: number;
   currency: string;
   status: SaleStatus;
@@ -41,10 +41,4 @@ export interface SalePagination {
 export interface SaleListResponse {
   data: Sale[];
   pagination: SalePagination;
-}
-
-export interface SaleDetailResponse {
-  sale: Sale;
-  quote: Quote | null;
-  customer: Customer | null;
 }

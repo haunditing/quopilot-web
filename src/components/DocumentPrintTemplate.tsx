@@ -49,6 +49,8 @@ export interface DocumentPrintTemplateProps {
   document: PrintDocumentInfo;
   customer: PrintCustomerInfo;
   notes?: string;
+  issueDateKey?: "createdAt" | "soldAt";
+  showExpiryDate?: boolean;
 }
 
 interface BrandingState {
@@ -62,12 +64,24 @@ interface BrandingState {
 const DocumentPrintTemplate = forwardRef<
   HTMLDivElement,
   DocumentPrintTemplateProps
->(({ documentTypeLabel, tenant, document, customer, notes }, ref) => {
-  const issueDate = new Date(document.createdAt);
-  const expiryDate = document.validUntil
-    ? new Date(document.validUntil)
-    : document.soldAt
-      ? new Date(document.soldAt)
+>(
+  (
+    {
+      documentTypeLabel,
+      tenant,
+      document,
+      customer,
+      notes,
+      issueDateKey = "createdAt",
+      showExpiryDate = true,
+    },
+    ref,
+  ) => {
+    const issueDate = new Date(document[issueDateKey] ?? document.createdAt);
+    const expiryDate = showExpiryDate
+      ? document.validUntil
+        ? new Date(document.validUntil)
+        : null
       : null;
 
   const subtotalBruto = document.items.reduce(
@@ -298,7 +312,8 @@ const DocumentPrintTemplate = forwardRef<
       </div>
     </div>
   );
-});
+  },
+);
 
 DocumentPrintTemplate.displayName = "DocumentPrintTemplate";
 export default DocumentPrintTemplate;

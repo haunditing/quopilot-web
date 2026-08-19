@@ -69,9 +69,25 @@ const mockSale: Sale = {
   customerId: mockCustomer._id,
   quoteId: mockQuote._id,
   number: "SL-MOCK-001",
+  subtotal: 1000,
+  totalDiscount: 0,
+  totalTax: 190,
   total: 1190,
   currency: "COP",
   status: "CONFIRMED",
+  items: [
+    {
+      productId: mockProduct._id,
+      name: mockProduct.name,
+      quantity: 1,
+      unitPrice: 1190,
+      subtotal: 1190,
+      taxRate: 19,
+      discountPercent: 0,
+      taxAmount: 190,
+      totalLine: 1190,
+    },
+  ],
   soldAt: getIsoDate(),
   createdAt: getIsoDate(),
   updatedAt: getIsoDate(),
@@ -94,7 +110,12 @@ function getBaseMockResponse(path: string): unknown {
   
   if (path.includes("/api/sales")) {
     if (path.split("/").length > 3 && !path.includes("?")) {
-      return { sale: mockSale, quote: mockQuote, customer: mockCustomer };
+      return {
+        sale: mockSale,
+        quote: mockQuote,
+        customer: mockCustomer,
+        events: [],
+      };
     }
     return { data: [mockSale], pagination: { page: 1, limit: 10, total: 1, pages: 1 } };
   }

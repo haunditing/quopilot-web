@@ -19,6 +19,8 @@ const SalePrintTemplate = forwardRef<HTMLDivElement, SalePrintTemplateProps>(
         tenant={tenant}
         document={sale}
         customer={customer}
+        issueDateKey="soldAt"
+        showExpiryDate={false}
       />
     );
   },

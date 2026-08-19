@@ -6,6 +6,7 @@ export interface GetSalesParams {
   limit?: number;
   status?: string;
   customerId?: string;
+  productId?: string;
   search?: string;
 }
 
@@ -14,6 +15,7 @@ export async function getSales({
   limit = 20,
   status,
   customerId,
+  productId,
   search,
 }: GetSalesParams = {}): Promise<SaleListResponse> {
   const params = new URLSearchParams();
@@ -29,6 +31,10 @@ export async function getSales({
     params.set("customerId", customerId);
   }
 
+  if (productId) {
+    params.set("productId", productId);
+  }
+
   if (search) {
     params.set("search", search);
   }
@@ -38,66 +44,9 @@ export async function getSales({
   });
 }
 
-export interface CreateSaleItemInput {
-  productId: string;
-  quantity: number;
-  unitPrice?: number;
-  discountPercent?: number;
-  taxRate?: number;
-}
-
-export interface CreateSaleInput {
-  customerId: string;
-  quoteId?: string;
-  items: CreateSaleItemInput[];
-  notes?: string;
-  terms?: string;
-}
-
-export async function createSale(
-  input: CreateSaleInput,
-): Promise<{ sale: Sale }> {
-  return apiRequest<{ sale: Sale }>(`/api/sales`, {
+export async function cancelSale(saleId: string): Promise<{ sale: Sale }> {
+  return apiRequest<{ sale: Sale }>(`/api/sales/${saleId}/cancel`, {
     method: "POST",
-    body: JSON.stringify(input),
-  });
-}
-
-export async function sendSale(saleId: string): Promise<Sale> {
-  return apiRequest<Sale>(`/api/sales/${saleId}/send`, {
-    method: "POST",
-  });
-}
-
-export async function acceptSale(saleId: string): Promise<Sale> {
-  return apiRequest<Sale>(`/api/sales/${saleId}/accept`, {
-    method: "POST",
-  });
-}
-
-export interface UpdateSaleItemInput {
-  productId: string;
-  quantity: number;
-  unitPrice?: number;
-  discountPercent?: number;
-  taxRate?: number;
-}
-
-export interface UpdateSaleInput {
-  customerId: string;
-  quoteId?: string;
-  items: UpdateSaleItemInput[];
-  notes?: string;
-  terms?: string;
-}
-
-export async function updateSale(
-  saleId: string,
-  input: UpdateSaleInput,
-): Promise<Sale> {
-  return apiRequest<Sale>(`/api/sales/${saleId}`, {
-    method: "PATCH",
-    body: JSON.stringify(input),
   });
 }
 
@@ -105,11 +54,4 @@ export async function deleteSale(saleId: string): Promise<void> {
   await apiRequest<void>(`/api/sales/${saleId}`, {
     method: "DELETE",
   });
-}
-
-export async function getNextSaleNumber(): Promise<string> {
-  const response = await apiRequest<{ number: string }>(
-    "/api/sales/next-number",
-  );
-  return response.number;
 }

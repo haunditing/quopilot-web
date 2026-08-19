@@ -1,3 +1,5 @@
+import type { Customer } from "./customer.js";
+import type { Quote } from "./quote.js";
 import type { Sale } from "./sale.js";
 
 export type SaleEventType =
@@ -6,7 +8,7 @@ export type SaleEventType =
   | "VIEWED"
   | "ACCEPTED"
   | "REJECTED"
-  | "EXPIRED";
+  | "CANCELLED";
 
 export interface SaleEvent {
   _id: string;
@@ -18,5 +20,7 @@ export interface SaleEvent {
 
 export interface SaleDetailResponse {
   sale: Sale;
+  quote: Quote | null;
+  customer: Customer | null;
   events: SaleEvent[];
 }
