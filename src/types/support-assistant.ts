@@ -187,11 +187,7 @@ export interface PlanInput {
   sortOrder?: number;
 }
 
-export type CapabilityDependencyType =
-  | "OBLIGATORIA"
-  | "FUNCIONAL"
-  | "TECNICA"
-  | "CONFIGURACION";
+export type CapabilityDependencyType = "OBLIGATORIA" | "OPCIONAL";
 
 export type CapabilityStatus = "ACTIVE" | "POR_CONFIRMAR";
 
@@ -241,6 +237,7 @@ export type CapabilityEffectivenessReason =
   | "ok"
   | "feature_disabled"
   | "capability_disabled"
+  | "dependency_missing"
   | "non_configurable";
 
 export interface CapabilityMatrixEntry {

@@ -136,22 +136,6 @@ function CapabilitiesPanel() {
     void load();
   }, [selectedPlanKey, loadMatrix]);
 
-  // Capacidades configurables de módulos habilitados en el plan.
-  const allAllowed = useMemo(() => {
-    if (!matrix) {
-      return new Set<string>();
-    }
-    return new Set(
-      matrix.entries
-        .filter((e) => e.configurableByPlan && e.reason !== "feature_disabled")
-        .map((e) => e.code),
-    );
-  }, [matrix]);
-
-  function baseSet(): Set<string> {
-    return enabledCaps.length === 0 ? new Set(allAllowed) : new Set(enabledCaps);
-  }
-
   function isEffective(entry: CapabilityMatrixEntry): boolean {
     if (!entry.configurableByPlan) {
       return true;
@@ -159,11 +143,11 @@ function CapabilitiesPanel() {
     if (entry.reason === "feature_disabled") {
       return false;
     }
-    return baseSet().has(entry.code);
+    return enabledCaps.includes(entry.code);
   }
 
   function handleToggle(entry: CapabilityMatrixEntry, checked: boolean) {
-    const base = baseSet();
+    const base = new Set(enabledCaps);
     if (checked) {
       base.add(entry.code);
     } else {
@@ -171,8 +155,7 @@ function CapabilitiesPanel() {
     }
 
     const list = [...base].sort();
-    const allList = [...allAllowed].sort();
-    setEnabledCaps(list.join("|") === allList.join("|") ? [] : list);
+    setEnabledCaps(list);
   }
 
   async function handleSave() {
@@ -365,6 +348,11 @@ function CapabilitiesPanel() {
                                 {!effective && entry.reason === "capability_disabled" && (
                                   <span className="capability-row__reason">Capacidad deshabilitada</span>
                                 )}
+                                {!effective && entry.reason === "dependency_missing" && (
+                                  <span className="capability-row__reason">
+                                    Falta dependencia obligatoria
+                                  </span>
+                                )}
                                 {!entry.configurableByPlan && entry.nonConfigurableReason && (
                                   <span className="capability-row__reason" title={entry.nonConfigurableReason}>
                                     <Icon name="lock" size={14} /> {entry.nonConfigurableReason}
@@ -393,8 +381,8 @@ function CapabilitiesPanel() {
               <div className="settings-preview__title">Regla de efectividad</div>
               <p className="settings-preview__text">
                 Una capacidad es efectiva cuando el módulo está habilitado en el plan y la
-                capacidad está activa. Si el plan no define capacidades explícitas, todas las
-                capacidades de los módulos habilitados quedan efectivas.
+                capacidad está activada explícitamente. Si la lista está vacía, ninguna
+                capacidad configurable será efectiva (fail-closed).
               </p>
               <div className="settings-preview__title">Gate fino</div>
               <p className="settings-preview__text">
@@ -403,8 +391,8 @@ function CapabilitiesPanel() {
               </p>
               <div className="settings-preview__title">Dependencias</div>
               <p className="settings-preview__text">
-                Se listan las dependencias por capacidad (obligatoria, funcional, técnica o de
-                configuración). Son informativas para el diseño de planes.
+                Las dependencias OBLIGATORIAS bloquean la efectividad de una capacidad si su
+                dependencia no está activa. Las OPCIONALES son informativas.
               </p>
             </div>
           </aside>
