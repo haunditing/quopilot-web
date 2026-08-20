@@ -8,14 +8,16 @@ import type {
   SupportMessage,
   SupportMetrics,
   Plan,
+  PlanAppFeature,
   PlanInput,
-  FunctionalityCapabilities,
+  ToolPermission,
 } from "../types/support-assistant.js";
 
 export const SUPPORT_ASSISTANT_ENDPOINT = "/api/support/assistant";
 export const SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT = "/api/super-admin/support/assistant";
 export const SUPER_ADMIN_PLANS_ENDPOINT = "/api/super-admin/plans";
 export const SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT = "/api/super-admin/assistant-capabilities";
+export const SUPER_ADMIN_FEATURES_ENDPOINT = "/api/admin/features";
 
 export async function getSupportMessages(): Promise<SupportMessage[]> {
   return apiRequest<SupportMessage[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/messages`, {
@@ -190,8 +192,16 @@ export async function getPlan(key: string): Promise<Plan> {
   return apiRequest<Plan>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}`, { method: "GET" });
 }
 
-export async function getAssistantCapabilities(planKey: string): Promise<FunctionalityCapabilities[]> {
-  return apiRequest<FunctionalityCapabilities[]>(
+export async function getPlanEnabledFeatures(key: string): Promise<string[]> {
+  return apiRequest<string[]>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}/features`, { method: "GET" });
+}
+
+export async function getAppFeatures(): Promise<PlanAppFeature[]> {
+  return apiRequest<PlanAppFeature[]>(`${SUPER_ADMIN_FEATURES_ENDPOINT}`, { method: "GET" });
+}
+
+export async function getAssistantCapabilities(planKey: string): Promise<ToolPermission[]> {
+  return apiRequest<ToolPermission[]>(
     `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}`,
     { method: "GET" },
   );
@@ -199,21 +209,26 @@ export async function getAssistantCapabilities(planKey: string): Promise<Functio
 
 export async function updateAssistantCapabilities(
   planKey: string,
-  functionalities: FunctionalityCapabilities[],
+  toolPermissions: ToolPermission[],
 ): Promise<{ ok: boolean }> {
   return apiRequest<{ ok: boolean }>(
     `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}`,
-    { method: "PUT", body: JSON.stringify({ functionalities }) },
+    { method: "PUT", body: JSON.stringify({ toolPermissions }) },
   );
 }
 
-export async function updateFunctionalityCapabilities(
+export async function updateToolPermission(
   planKey: string,
-  functionalityKey: string,
-  capabilities: Record<string, boolean>,
+  toolKey: string,
+  updates: {
+    allowedActions?: string[];
+    executionLevel?: "READ_ONLY" | "ASSISTED_DRAFT" | "FULL_AUTOMATION";
+    requiresConfirmation?: boolean;
+    conditions?: Record<string, unknown>;
+  },
 ): Promise<{ ok: boolean }> {
   return apiRequest<{ ok: boolean }>(
-    `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}/${functionalityKey}`,
-    { method: "PUT", body: JSON.stringify({ capabilities }) },
+    `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}/tools/${toolKey}`,
+    { method: "PUT", body: JSON.stringify(updates) },
   );
 }

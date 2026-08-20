@@ -36,8 +36,8 @@ import type {
   SupportKnowledgeDoc,
   SupportMetrics,
   Plan,
-  FunctionalityCapabilities,
-  AssistantCapability,
+  ToolPermission,
+  AIToolAction,
 } from "../types/support-assistant.js";
 import { useToast } from "../hooks/useToast.js";
 
@@ -57,24 +57,22 @@ const CASE_STATUS_CLASS: Record<string, string> = {
   VERIFIED: "badge badge-neutral",
 };
 
-const QUILOPILOT_FEATURES = [
-  { key: "dashboard", label: "Dashboard", description: "Panel principal de métricas" },
-  { key: "customers", label: "Clientes", description: "Gestión de clientes y contactos" },
-  { key: "products", label: "Productos", description: "Catálogo de productos y servicios" },
-  { key: "quotes", label: "Cotizaciones", description: "Creación y gestión de cotizaciones" },
-  { key: "sales", label: "Ventas", description: "Pipeline y registro de ventas" },
-  { key: "channels", label: "Canales", description: "Canales de comunicación (WhatsApp, Web Chat, etc.)" },
-  { key: "agent", label: "Agente IA", description: "Configuración del agente comercial" },
-  { key: "reports", label: "Reportes", description: "Reportes y analytics" },
-  { key: "integrations", label: "Integraciones", description: "API, webhooks e integraciones externas" },
-  { key: "settings", label: "Configuración", description: "Configuración general del tenant" },
+const CAPABILITY_KEYS: AIToolAction[] = ["consult", "explain", "create", "modify", "delete", "execute"];
+
+const AI_TOOLS = [
+  { key: "tools_dashboard", label: "Dashboard" },
+  { key: "tools_customers", label: "Clientes" },
+  { key: "tools_products", label: "Productos" },
+  { key: "tools_quotes", label: "Cotizaciones" },
+  { key: "tools_sales", label: "Ventas" },
+  { key: "tools_channels", label: "Canales" },
+  { key: "tools_agent", label: "Agente Comercial" },
+  { key: "tools_reports", label: "Reportes" },
+  { key: "tools_integrations", label: "Integraciones" },
+  { key: "tools_settings", label: "Configuración" },
+  { key: "tools_knowledge", label: "Base de Conocimiento" },
+  { key: "tools_cases", label: "Casos CBR" },
 ];
-
-const FEATURE_LABELS: Record<string, string> = Object.fromEntries(
-  QUILOPILOT_FEATURES.map(f => [f.key, f.label])
-);
-
-const CAPABILITY_KEYS: AssistantCapability[] = ["consult", "explain", "create", "modify", "delete", "execute"];
 
 const CAPABILITY_LABELS: Record<string, string> = {
   consult: "Consultar",
@@ -193,14 +191,15 @@ function SupportAssistantPanel() {
 
   
 
-  const [capabilitiesModalOpen, setCapabilitiesModalOpen] = useState(false);
+const [capabilitiesModalOpen, setCapabilitiesModalOpen] = useState(false);
   const [editingCapabilitiesPlan, setEditingCapabilitiesPlan] = useState<string | null>(null);
-  const [capabilitiesForm, setCapabilitiesForm] = useState<Record<string, FunctionalityCapabilities[]>>({});
+  const [capabilitiesForm, setCapabilitiesForm] = useState<Record<string, ToolPermission[]>>({});
   const [capabilitiesSaving, setCapabilitiesSaving] = useState(false);
   const [capabilitiesError, setCapabilitiesError] = useState("");
+
   const [capabilitiesLoading, setCapabilitiesLoading] = useState(false);
 
-  const [assistantCapabilities, setAssistantCapabilities] = useState<Record<string, FunctionalityCapabilities[]> | null>(null);
+  const [assistantCapabilities, setAssistantCapabilities] = useState<Record<string, ToolPermission[]> | null>(null);
 
   const loadConfig = useCallback(async () => {
     setConfigLoading(true);
@@ -280,7 +279,7 @@ function SupportAssistantPanel() {
 
     try {
       const allPlans = await listPlans();
-      const capsMap: Record<string, FunctionalityCapabilities[]> = {};
+      const capsMap: Record<string, ToolPermission[]> = {};
 
       for (const plan of allPlans) {
         const caps = await getAssistantCapabilities(plan.key);
@@ -475,20 +474,65 @@ function SupportAssistantPanel() {
     const caps = assistantCapabilities?.[planKey] ?? [];
     setEditingCapabilitiesPlan(planKey);
     setCapabilitiesError("");
-    setCapabilitiesForm({ [planKey]: caps });
+    setCapabilitiesForm({ [planKey]: caps.map((p) => ({ ...p, allowedActions: [...p.allowedActions] })) });
     setCapabilitiesModalOpen(true);
   }
 
-  function updateCapability(planKey: string, functionalityKey: string, capability: AssistantCapability, value: boolean) {
+  function updateCapability(planKey: string, toolKey: string, capability: AIToolAction, value: boolean) {
     setCapabilitiesForm((current) => {
       const planCaps = current[planKey] ?? [];
-      const funcIndex = planCaps.findIndex((f) => f.functionalityKey === functionalityKey);
-      if (funcIndex === -1) return current;
+      const permIndex = planCaps.findIndex((p) => p.toolKey === toolKey);
+      if (permIndex === -1) {
+        const perm: ToolPermission = {
+          toolKey,
+          allowedActions: value ? [capability] : [],
+          executionLevel: "READ_ONLY",
+          requiresConfirmation: true,
+        };
+        return { ...current, [planKey]: [...planCaps, perm] };
+      }
 
       const newCaps = [...planCaps];
-      newCaps[funcIndex] = {
-        ...newCaps[funcIndex],
-        capabilities: { ...newCaps[funcIndex].capabilities, [capability]: value },
+      const currentPerm = newCaps[permIndex];
+      const allowedActions = new Set(currentPerm.allowedActions);
+      if (value) {
+        allowedActions.add(capability);
+      } else {
+        allowedActions.delete(capability);
+      }
+      newCaps[permIndex] = {
+        ...currentPerm,
+        allowedActions: Array.from(allowedActions),
+      };
+      return { ...current, [planKey]: newCaps };
+    });
+  }
+
+  function updateCapabilityExecutionLevel(planKey: string, toolKey: string, executionLevel: string) {
+    setCapabilitiesForm((current) => {
+      const planCaps = current[planKey] ?? [];
+      const permIndex = planCaps.findIndex((p) => p.toolKey === toolKey);
+      if (permIndex === -1) return current;
+
+      const newCaps = [...planCaps];
+      newCaps[permIndex] = {
+        ...newCaps[permIndex],
+        executionLevel: executionLevel as "READ_ONLY" | "ASSISTED_DRAFT" | "FULL_AUTOMATION",
+      };
+      return { ...current, [planKey]: newCaps };
+    });
+  }
+
+  function updateCapabilityRequiresConfirmation(planKey: string, toolKey: string, value: boolean) {
+    setCapabilitiesForm((current) => {
+      const planCaps = current[planKey] ?? [];
+      const permIndex = planCaps.findIndex((p) => p.toolKey === toolKey);
+      if (permIndex === -1) return current;
+
+      const newCaps = [...planCaps];
+      newCaps[permIndex] = {
+        ...newCaps[permIndex],
+        requiresConfirmation: value,
       };
       return { ...current, [planKey]: newCaps };
     });
@@ -503,9 +547,9 @@ function SupportAssistantPanel() {
       const planKey = editingCapabilitiesPlan;
       if (!planKey) return;
 
-      const functionalities = capabilitiesForm[planKey] ?? [];
+      const toolPermissions = capabilitiesForm[planKey] ?? [];
 
-      await updateAssistantCapabilities(planKey, functionalities);
+      await updateAssistantCapabilities(planKey, toolPermissions);
       toast.success("Capacidades actualizadas");
 
       setCapabilitiesModalOpen(false);
@@ -977,26 +1021,29 @@ const tabs = [
                           </tr>
                         </thead>
                         <tbody>
-                          {plan.features.map((feature) => (
-                            <tr key={feature.key}>
-                              <td>
-                                <strong>{FEATURE_LABELS[feature.key] ?? feature.key}</strong>
-                                <span className="cell-sub">{feature.key}</span>
-                              </td>
-                              {CAPABILITY_KEYS.map((cap) => (
-                                <td key={cap}>
-                                  <label className="capability-checkbox">
-                                    <input
-                                      type="checkbox"
-                                      checked={assistantCapabilities?.[plan.key]?.find((f) => f.functionalityKey === feature.key)?.capabilities[cap] ?? false}
-                                      onChange={(event) => updateCapability(plan.key, feature.key, cap, event.target.checked)}
-                                    />
-                                    <span>{CAPABILITY_LABELS[cap]}</span>
-                                  </label>
+                          {AI_TOOLS.map((tool) => {
+                            const perm = assistantCapabilities?.[plan.key]?.find((p) => p.toolKey === tool.key);
+                            return (
+                              <tr key={tool.key}>
+                                <td>
+                                  <strong>{tool.label}</strong>
+                                  <span className="cell-sub">{tool.key}</span>
                                 </td>
-                              ))}
-                            </tr>
-                          ))}
+                                {CAPABILITY_KEYS.map((cap) => (
+                                  <td key={cap}>
+                                    <label className="capability-checkbox">
+                                      <input
+                                        type="checkbox"
+                                        checked={perm?.allowedActions?.includes(cap) ?? false}
+                                        onChange={(event) => updateCapability(plan.key, tool.key, cap, event.target.checked)}
+                                      />
+                                      <span>{CAPABILITY_LABELS[cap]}</span>
+                                    </label>
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -1076,26 +1123,50 @@ const tabs = [
       <Modal open={capabilitiesModalOpen} title={editingCapabilitiesPlan ? "Editar capacidades" : "Capacidades IA"} onClose={() => setCapabilitiesModalOpen(false)} panelClassName="modal__panel--wide">
         <form className="modal__form" onSubmit={handleSaveCapabilities}>
           <div className="capabilities-modal-grid">
-            {editingCapabilitiesPlan && plans && plans.find(p => p.key === editingCapabilitiesPlan)?.features.map((feature) => (
-              <div key={feature.key} className="capability-modal-item">
-                <label className="capability-modal-label">
-                  <strong>{FEATURE_LABELS[feature.key] ?? feature.key}</strong>
-                  <span className="cell-sub">{feature.key}</span>
-                </label>
-                <div className="capability-modal-checkboxes">
-                  {CAPABILITY_KEYS.map((cap) => (
-                    <label key={cap} className="capability-checkbox">
+            {editingCapabilitiesPlan && AI_TOOLS.map((tool) => {
+              const perm = capabilitiesForm[editingCapabilitiesPlan]?.find((p) => p.toolKey === tool.key);
+              return (
+                <div key={tool.key} className="capability-modal-item">
+                  <label className="capability-modal-label">
+                    <strong>{tool.label}</strong>
+                    <span className="cell-sub">{tool.key}</span>
+                  </label>
+                  <div className="capability-modal-checkboxes">
+                    {CAPABILITY_KEYS.map((cap) => (
+                      <label key={cap} className="capability-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={perm?.allowedActions?.includes(cap) ?? false}
+                          onChange={(event) => updateCapability(editingCapabilitiesPlan!, tool.key, cap, event.target.checked)}
+                        />
+                        <span>{CAPABILITY_LABELS[cap]}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="capability-modal-level">
+                    <label>
+                      Nivel de ejecución
+                      <select
+                        value={perm?.executionLevel ?? "READ_ONLY"}
+                        onChange={(event) => updateCapabilityExecutionLevel(editingCapabilitiesPlan!, tool.key, event.target.value)}
+                      >
+                        <option value="READ_ONLY">Solo Lectura</option>
+                        <option value="ASSISTED_DRAFT">Borrador Asistido</option>
+                        <option value="FULL_AUTOMATION">Automatización Total</option>
+                      </select>
+                    </label>
+                    <label className="capability-checkbox">
                       <input
                         type="checkbox"
-                        checked={capabilitiesForm[editingCapabilitiesPlan]?.find(f => f.functionalityKey === feature.key)?.capabilities[cap] ?? false}
-                        onChange={(event) => updateCapability(editingCapabilitiesPlan!, feature.key, cap, event.target.checked)}
+                        checked={perm?.requiresConfirmation ?? true}
+                        onChange={(event) => updateCapabilityRequiresConfirmation(editingCapabilitiesPlan!, tool.key, event.target.checked)}
                       />
-                      <span>{CAPABILITY_LABELS[cap]}</span>
+                      <span>Requiere confirmación</span>
                     </label>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {capabilitiesError && <FormMessage kind="error">{capabilitiesError}</FormMessage>}

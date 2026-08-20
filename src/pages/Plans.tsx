@@ -17,7 +17,7 @@ import {
   deletePlan,
   setDefaultPlan,
 } from "../services/support-assistant-service.js";
-import type { Plan, PlanAppFeature } from "../types/support-assistant.js";
+import type { Plan } from "../types/support-assistant.js";
 import { useToast } from "../hooks/useToast.js";
 
 const QUILOPILOT_FEATURES = [
@@ -32,34 +32,6 @@ const QUILOPILOT_FEATURES = [
   { key: "integrations", label: "Integraciones", description: "API, webhooks e integraciones externas" },
   { key: "settings", label: "Configuración", description: "Configuración general del tenant" },
 ];
-
-interface PlanFormState {
-  key: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  isDefault: boolean;
-  sortOrder: string;
-  features: PlanAppFeature[];
-}
-
-function emptyPlanForm(): PlanFormState {
-  return {
-    key: "",
-    name: "",
-    description: "",
-    isActive: true,
-    isDefault: false,
-    sortOrder: "0",
-    features: QUILOPILOT_FEATURES.map(f => ({
-      key: f.key,
-      label: f.label,
-      description: f.description,
-      enabled: false,
-      config: {},
-    })),
-  };
-}
 
 export default function Plans() {
   const role = getUserRole();
@@ -80,7 +52,15 @@ function PlansPanel() {
 
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
-  const [planForm, setPlanForm] = useState<PlanFormState>(emptyPlanForm());
+  const [planForm, setPlanForm] = useState<{ key: string; name: string; description: string; isActive: boolean; isDefault: boolean; sortOrder: string; enabledFeatures: string[] }>({
+    key: "",
+    name: "",
+    description: "",
+    isActive: true,
+    isDefault: false,
+    sortOrder: "0",
+    enabledFeatures: [],
+  });
   const [planSaving, setPlanSaving] = useState(false);
   const [planError, setPlanError] = useState("");
 
@@ -116,19 +96,19 @@ function PlansPanel() {
             isActive: plan.isActive,
             isDefault: plan.isDefault,
             sortOrder: String(plan.sortOrder),
-            features: plan.features,
+            enabledFeatures: plan.enabledFeatures ?? [],
           }
-        : emptyPlanForm(),
+        : { key: "", name: "", description: "", isActive: true, isDefault: false, sortOrder: "0", enabledFeatures: [] },
     );
     setPlanModalOpen(true);
   }
 
-  function updatePlanAppFeature(featureKey: string, updates: Partial<PlanAppFeature>) {
+  function updatePlanFeature(featureKey: string, enabled: boolean) {
     setPlanForm((current) => ({
       ...current,
-      features: current.features.map((f) =>
-        f.key === featureKey ? { ...f, ...updates } : f
-      ),
+      enabledFeatures: enabled
+        ? [...current.enabledFeatures, featureKey]
+        : current.enabledFeatures.filter((k) => k !== featureKey),
     }));
   }
 
@@ -144,7 +124,7 @@ function PlansPanel() {
       isActive: planForm.isActive,
       isDefault: planForm.isDefault,
       sortOrder: Number(planForm.sortOrder),
-      features: planForm.features,
+      enabledFeatures: planForm.enabledFeatures,
     };
 
     try {
@@ -240,7 +220,7 @@ function PlansPanel() {
                       </td>
                       <td>
                         <span className="cell-sub">
-                          {plan.features.filter((f) => f.enabled).length} / {QUILOPILOT_FEATURES.length}
+                          {(plan.enabledFeatures ?? []).length} / {QUILOPILOT_FEATURES.length}
                         </span>
                       </td>
                       <td>
@@ -380,25 +360,21 @@ function PlansPanel() {
             </header>
 
             <div className="features-config-grid">
-              {QUILOPILOT_FEATURES.map((feature) => {
-                const existing = planForm.features.find(f => f.key === feature.key);
-                const enabled = existing?.enabled ?? false;
-                return (
-                  <div key={feature.key} className="feature-config-item">
-                    <label className="feature-config-label">
-                      <input
-                        type="checkbox"
-                        checked={enabled}
-                        onChange={(event) => updatePlanAppFeature(feature.key, { enabled: event.target.checked })}
-                      />
-                      <span>
-                        <strong>{feature.label}</strong>
-                        {feature.description && <span className="feature-config-desc">{feature.description}</span>}
-                      </span>
-                    </label>
-                  </div>
-                );
-              })}
+              {QUILOPILOT_FEATURES.map((feature) => (
+                <div key={feature.key} className="feature-config-item">
+                  <label className="feature-config-label">
+                    <input
+                      type="checkbox"
+                      checked={planForm.enabledFeatures.includes(feature.key)}
+                      onChange={(event) => updatePlanFeature(feature.key, event.target.checked)}
+                    />
+                    <span>
+                      <strong>{feature.label}</strong>
+                      {feature.description && <span className="feature-config-desc">{feature.description}</span>}
+                    </span>
+                  </label>
+                </div>
+              ))}
             </div>
           </section>
 

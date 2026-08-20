@@ -102,17 +102,54 @@ export interface SupportMetrics {
   confirmedCases: number;
 }
 
-export type AssistantCapability = "consult" | "explain" | "create" | "modify" | "delete" | "execute";
+export type AssistantCapability =
+  | "consult"
+  | "explain"
+  | "create"
+  | "modify"
+  | "delete"
+  | "execute";
+
+export type AIExecutionLevel = "READ_ONLY" | "ASSISTED_DRAFT" | "FULL_AUTOMATION";
+
+export type AIToolAction = "consult" | "explain" | "create" | "modify" | "delete" | "execute";
 
 export interface FunctionalityCapabilities {
   functionalityKey: string;
   capabilities: Record<AssistantCapability, boolean>;
 }
 
+export interface ToolPermission {
+  toolKey: string;
+  allowedActions: AIToolAction[];
+  executionLevel: AIExecutionLevel;
+  requiresConfirmation: boolean;
+  conditions?: Record<string, unknown>;
+}
+
 export interface AssistantPlanCapabilities {
   _id: string;
   planKey: string;
-  functionalities: FunctionalityCapabilities[];
+  toolPermissions: ToolPermission[];
+  globalDefaults: {
+    defaultExecutionLevel: AIExecutionLevel;
+    requireConfirmationFor: string[];
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AIAssistantTool {
+  _id: string;
+  key: string;
+  label: string;
+  description: string;
+  category: string;
+  defaultExecutionLevel: AIExecutionLevel;
+  availableActions: AIToolAction[];
+  requiresConfirmation: boolean;
+  isActive: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -132,18 +169,10 @@ export interface Plan {
   description: string;
   isActive: boolean;
   isDefault: boolean;
-  features: PlanAppFeature[];
+  enabledFeatures: string[];
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface PlanAppFeature {
-  key: string;
-  label: string;
-  description: string;
-  enabled: boolean;
-  config?: Record<string, unknown>;
 }
 
 export interface PlanInput {
@@ -152,12 +181,6 @@ export interface PlanInput {
   description?: string;
   isActive?: boolean;
   isDefault?: boolean;
-  features?: PlanAppFeature[];
+  enabledFeatures?: string[];
   sortOrder?: number;
-}
-
-export interface AgentToolConfig {
-  name: string;
-  enabled: boolean;
-  planRequired?: string[];
 }
