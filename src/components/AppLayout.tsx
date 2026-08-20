@@ -94,6 +94,12 @@ const navigationGroups: NavigationGroup[] = [
         roles: ["SUPER_ADMIN"],
       },
       {
+        to: "/admin/capabilities",
+        label: "Capacidades",
+        icon: "cpu",
+        roles: ["SUPER_ADMIN"],
+      },
+      {
         to: "/support/assistant",
         label: "Asistente de soporte",
         icon: "bot",

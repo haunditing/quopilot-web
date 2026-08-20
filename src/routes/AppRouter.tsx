@@ -21,6 +21,7 @@ import Users from "../pages/Users.js";
 import UserForm from "../pages/UserForm.js";
 import Tenants from "../pages/Tenants.js";
 import Plans from "../pages/Plans.js";
+import CapabilitiesDashboard from "../pages/CapabilitiesDashboard.js";
 import AgentChat from "../pages/AgentChat.js";
 import AgentConfig from "../pages/AgentConfig.js";
 import AgentAssistant from "../pages/AgentAssistant.js";
@@ -45,6 +46,8 @@ export default function AppRouter() {
         <Route path="/tenants" element={<Tenants />} />
 
         <Route path="/admin/plans" element={<Plans />} />
+
+        <Route path="/admin/capabilities" element={<CapabilitiesDashboard />} />
 
         <Route path="/quotes" element={<Quotes />} />
 
