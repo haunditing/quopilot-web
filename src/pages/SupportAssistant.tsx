@@ -12,6 +12,7 @@ import PageState from "../components/PageState.js";
 import StatCard from "../components/StatCard.js";
 import Tabs from "../components/Tabs.js";
 import { getUserRole } from "../services/auth-storage.js";
+import { formatDate } from "../lib/format.js";
 import {
   confirmSupportCase,
   createKnowledgeDoc,
@@ -23,13 +24,11 @@ import {
   listKnowledgeDocs,
   listSupportCases,
   listPlans,
-  createPlan,
-  updatePlan,
-  deletePlan,
-  setDefaultPlan,
   updateKnowledgeDoc,
   updateSupportCase,
   updateSupportConfig,
+  getAssistantCapabilities,
+  updateAssistantCapabilities,
 } from "../services/support-assistant-service.js";
 import type {
   SupportAssistantConfig,
@@ -37,10 +36,10 @@ import type {
   SupportKnowledgeDoc,
   SupportMetrics,
   Plan,
-  PlanAppFeature,
+  FunctionalityCapabilities,
+  AssistantCapability,
 } from "../types/support-assistant.js";
 import { useToast } from "../hooks/useToast.js";
-import { formatDate } from "../lib/format.js";
 
 const LLM_PROVIDER_OPTIONS = [
   { value: "openai", label: "OpenAI" },
@@ -58,30 +57,32 @@ const CASE_STATUS_CLASS: Record<string, string> = {
   VERIFIED: "badge badge-neutral",
 };
 
-const FEATURE_KEYS = [
-  "support_assistant",
-  "troubleshooting",
-  "history",
-  "knowledge_base",
-  "cases",
-  "tools_quotes",
-  "tools_sales",
-  "tools_products",
-  "tools_customers",
-  "tools_channels",
+const QUILOPILOT_FEATURES = [
+  { key: "dashboard", label: "Dashboard", description: "Panel principal de métricas" },
+  { key: "customers", label: "Clientes", description: "Gestión de clientes y contactos" },
+  { key: "products", label: "Productos", description: "Catálogo de productos y servicios" },
+  { key: "quotes", label: "Cotizaciones", description: "Creación y gestión de cotizaciones" },
+  { key: "sales", label: "Ventas", description: "Pipeline y registro de ventas" },
+  { key: "channels", label: "Canales", description: "Canales de comunicación (WhatsApp, Web Chat, etc.)" },
+  { key: "agent", label: "Agente IA", description: "Configuración del agente comercial" },
+  { key: "reports", label: "Reportes", description: "Reportes y analytics" },
+  { key: "integrations", label: "Integraciones", description: "API, webhooks e integraciones externas" },
+  { key: "settings", label: "Configuración", description: "Configuración general del tenant" },
 ];
 
-const FEATURE_LABELS: Record<string, string> = {
-  support_assistant: "Asistente de Soporte",
-  troubleshooting: "Troubleshooting",
-  history: "Historial",
-  knowledge_base: "Base de Conocimiento",
-  cases: "Casos (CBR)",
-  tools_quotes: "Consulta Cotizaciones",
-  tools_sales: "Consulta Ventas",
-  tools_products: "Consulta Productos",
-  tools_customers: "Consulta Clientes",
-  tools_channels: "Consulta Canales",
+const FEATURE_LABELS: Record<string, string> = Object.fromEntries(
+  QUILOPILOT_FEATURES.map(f => [f.key, f.label])
+);
+
+const CAPABILITY_KEYS: AssistantCapability[] = ["consult", "explain", "create", "modify", "delete", "execute"];
+
+const CAPABILITY_LABELS: Record<string, string> = {
+  consult: "Consultar",
+  explain: "Explicar",
+  create: "Crear",
+  modify: "Modificar",
+  delete: "Eliminar",
+  execute: "Ejecutar",
 };
 
 interface ConfigFormState {
@@ -117,40 +118,12 @@ interface CaseFormState {
   keywords: string;
 }
 
-interface PlanFormState {
-  key: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  isDefault: boolean;
-  sortOrder: string;
-  features: PlanAppFeature[];
-}
-
 function emptyKnowledgeForm(): KnowledgeFormState {
   return { title: "", module: "", summary: "", content: "", keywords: "", enabled: true };
 }
 
 function emptyCaseForm(): CaseFormState {
   return { title: "", module: "", problem: "", solution: "", keywords: "" };
-}
-
-function emptyPlanForm(): PlanFormState {
-  return {
-    key: "",
-    name: "",
-    description: "",
-    isActive: true,
-    isDefault: false,
-    sortOrder: "0",
-    features: FEATURE_KEYS.map((key) => ({
-      key,
-      label: FEATURE_LABELS[key] ?? key,
-      description: "",
-      enabled: false,
-      config: {},
-    })),
-  };
 }
 
 function keywordsToArray(value: string): string[] {
@@ -187,8 +160,6 @@ function SupportAssistantPanel() {
   const [casesError, setCasesError] = useState("");
 
   const [plans, setPlans] = useState<Plan[] | null>(null);
-  const [plansLoading, setPlansLoading] = useState(false);
-  const [plansError, setPlansError] = useState("");
 
   const [configForm, setConfigForm] = useState<ConfigFormState>({
     status: "ACTIVE",
@@ -220,11 +191,16 @@ function SupportAssistantPanel() {
   const [caseSaving, setCaseSaving] = useState(false);
   const [caseError, setCaseError] = useState("");
 
-  const [planModalOpen, setPlanModalOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
-  const [planForm, setPlanForm] = useState<PlanFormState>(emptyPlanForm());
-  const [planSaving, setPlanSaving] = useState(false);
-  const [planError, setPlanError] = useState("");
+  
+
+  const [capabilitiesModalOpen, setCapabilitiesModalOpen] = useState(false);
+  const [editingCapabilitiesPlan, setEditingCapabilitiesPlan] = useState<string | null>(null);
+  const [capabilitiesForm, setCapabilitiesForm] = useState<Record<string, FunctionalityCapabilities[]>>({});
+  const [capabilitiesSaving, setCapabilitiesSaving] = useState(false);
+  const [capabilitiesError, setCapabilitiesError] = useState("");
+  const [capabilitiesLoading, setCapabilitiesLoading] = useState(false);
+
+  const [assistantCapabilities, setAssistantCapabilities] = useState<Record<string, FunctionalityCapabilities[]> | null>(null);
 
   const loadConfig = useCallback(async () => {
     setConfigLoading(true);
@@ -291,15 +267,31 @@ function SupportAssistantPanel() {
   }, []);
 
   const loadPlans = useCallback(async () => {
-    setPlansLoading(true);
-    setPlansError("");
-
     try {
       setPlans(await listPlans());
     } catch (error) {
-      setPlansError(error instanceof Error ? error.message : "No fue posible cargar los planes");
+      console.error("Error loading plans:", error);
+    }
+  }, []);
+
+  const loadCapabilities = useCallback(async () => {
+    setCapabilitiesLoading(true);
+    setCapabilitiesError("");
+
+    try {
+      const allPlans = await listPlans();
+      const capsMap: Record<string, FunctionalityCapabilities[]> = {};
+
+      for (const plan of allPlans) {
+        const caps = await getAssistantCapabilities(plan.key);
+        capsMap[plan.key] = caps;
+      }
+
+      setAssistantCapabilities(capsMap);
+    } catch (error) {
+      setCapabilitiesError(error instanceof Error ? error.message : "No fue posible cargar capacidades");
     } finally {
-      setPlansLoading(false);
+      setCapabilitiesLoading(false);
     }
   }, []);
 
@@ -312,7 +304,7 @@ function SupportAssistantPanel() {
       await loadPlans();
     }
     void loadAll();
-  }, [loadConfig, loadMetrics, loadDocs, loadCases, loadPlans]);
+  }, [loadConfig, loadMetrics, loadDocs, loadCases, loadPlans, loadCapabilities]);
 
   function handleTabChange(id: string) {
     setActiveTab(id);
@@ -479,104 +471,59 @@ function SupportAssistantPanel() {
     }
   }
 
-  function openPlanModal(plan?: Plan) {
-    setEditingPlan(plan ?? null);
-    setPlanError("");
-    setPlanForm(
-      plan
-        ? {
-            key: plan.key,
-            name: plan.name,
-            description: plan.description,
-            isActive: plan.isActive,
-            isDefault: plan.isDefault,
-            sortOrder: String(plan.sortOrder),
-            features: plan.features.map((f) => ({
-              key: f.key,
-              label: f.label,
-              description: f.description,
-              enabled: f.enabled,
-              config: f.config ?? {},
-            })),
-          }
-        : emptyPlanForm(),
-    );
-    setPlanModalOpen(true);
+  function openCapabilitiesModal(planKey: string) {
+    const caps = assistantCapabilities?.[planKey] ?? [];
+    setEditingCapabilitiesPlan(planKey);
+    setCapabilitiesError("");
+    setCapabilitiesForm({ [planKey]: caps });
+    setCapabilitiesModalOpen(true);
   }
 
-  function updatePlanAppFeature(featureKey: string, updates: Partial<PlanAppFeature>) {
-    setPlanForm((current) => ({
-      ...current,
-      features: current.features.map((f) =>
-        f.key === featureKey ? { ...f, ...updates } : f
-      ),
-    }));
+  function updateCapability(planKey: string, functionalityKey: string, capability: AssistantCapability, value: boolean) {
+    setCapabilitiesForm((current) => {
+      const planCaps = current[planKey] ?? [];
+      const funcIndex = planCaps.findIndex((f) => f.functionalityKey === functionalityKey);
+      if (funcIndex === -1) return current;
+
+      const newCaps = [...planCaps];
+      newCaps[funcIndex] = {
+        ...newCaps[funcIndex],
+        capabilities: { ...newCaps[funcIndex].capabilities, [capability]: value },
+      };
+      return { ...current, [planKey]: newCaps };
+    });
   }
 
-  async function handleSavePlan(event: FormEvent<HTMLFormElement>) {
+  async function handleSaveCapabilities(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPlanSaving(true);
-    setPlanError("");
-
-    const payload = {
-      key: planForm.key.trim().toUpperCase(),
-      name: planForm.name.trim(),
-      description: planForm.description.trim() || undefined,
-      isActive: planForm.isActive,
-      isDefault: planForm.isDefault,
-      sortOrder: Number(planForm.sortOrder),
-      features: planForm.features.map((f) => ({
-        key: f.key,
-        label: f.label,
-        description: f.description,
-        enabled: f.enabled,
-        config: f.config,
-      })),
-    };
+    setCapabilitiesSaving(true);
+    setCapabilitiesError("");
 
     try {
-      if (editingPlan) {
-        await updatePlan(editingPlan.key, payload);
-        toast.success("Plan actualizado");
-      } else {
-        await createPlan(payload);
-        toast.success("Plan creado");
-      }
+      const planKey = editingCapabilitiesPlan;
+      if (!planKey) return;
 
-      setPlanModalOpen(false);
-      await loadPlans();
+      const functionalities = capabilitiesForm[planKey] ?? [];
+
+      await updateAssistantCapabilities(planKey, functionalities);
+      toast.success("Capacidades actualizadas");
+
+      setCapabilitiesModalOpen(false);
+      await loadCapabilities();
     } catch (error) {
-      setPlanError(error instanceof Error ? error.message : "No fue posible guardar");
+      setCapabilitiesError(
+        error instanceof Error ? error.message : "No fue posible guardar",
+      );
     } finally {
-      setPlanSaving(false);
-    }
-  }
-
-  async function handleDeletePlan(plan: Plan) {
-    try {
-      await deletePlan(plan.key);
-      toast.success("Plan eliminado");
-      await loadPlans();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No fue posible eliminar");
-    }
-  }
-
-  async function handleSetDefaultPlan(plan: Plan) {
-    try {
-      await setDefaultPlan(plan.key);
-      toast.success("Plan predeterminado actualizado");
-      await loadPlans();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No fue posible actualizar");
+      setCapabilitiesSaving(false);
     }
   }
 
   const activeConfigStatus = config?.status === "ACTIVE" ? "Asistente activo" : "Asistente inactivo";
 
-  const tabs = [
+const tabs = [
     { id: "config", label: "Configuración" },
-    { id: "plans", label: "Planes" },
+    { id: "capabilities", label: "Capacidades IA", count: plans?.length },
     { id: "knowledge", label: "Base de conocimiento", count: docs?.length },
     { id: "cases", label: "Casos", count: cases?.length },
     { id: "metrics", label: "Métricas" },
@@ -852,79 +799,6 @@ function SupportAssistantPanel() {
           )
         )}
 
-        {activeTab === "plans" && (
-          <section className="settings-card">
-            <header className="settings-card__header">
-              <div>
-                <h2>Administrador de Planes</h2>
-                <p>Define planes con funcionalidades atómicas. Cada funcionalidad se habilita por plan.</p>
-              </div>
-              <Button icon="plus" iconOnly onClick={() => openPlanModal()}>Nuevo plan</Button>
-            </header>
-
-            {plansLoading ? (
-              <p className="assistant-chat__state">Cargando planes...</p>
-            ) : plansError ? (
-              <FormMessage kind="error">{plansError}</FormMessage>
-            ) : plans && plans.length > 0 ? (
-              <ul className="support-admin__list">
-                {plans.map((plan) => (
-                  <li key={plan._id} className="support-admin__item">
-                    <div className="support-admin__item-main">
-                      <strong>{plan.name}</strong>
-                      <span className="cell-sub">{plan.key}</span>
-                      {plan.description && <span className="cell-sub">{plan.description}</span>}
-                    </div>
-
-                    <div className="support-admin__item-meta">
-                      {plan.isActive ? (
-                        <span className="badge badge-success">Activo</span>
-                      ) : (
-                        <span className="badge badge-danger">Inactivo</span>
-                      )}
-                      {plan.isDefault && <span className="badge badge-info">Predeterminado</span>}
-                      <span className="cell-sub">{plan.features.filter((f) => f.enabled).length} funcionalidades</span>
-
-                      <div className="row-actions">
-                        <button
-                          type="button"
-                          className="btn-icon-action"
-                          title={plan.isDefault ? "Es predeterminado" : "Establecer como predeterminado"}
-                          aria-label={plan.isDefault ? "Es predeterminado" : "Establecer como predeterminado"}
-                          onClick={() => void handleSetDefaultPlan(plan)}
-                          disabled={plan.isDefault}
-                        >
-                          {plan.isDefault ? "✓ Predeterminado" : "★ Predeterminado"}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-icon-action"
-                          title="Editar"
-                          aria-label="Editar"
-                          onClick={() => openPlanModal(plan)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-icon-action btn-danger"
-                          title="Eliminar"
-                          aria-label="Eliminar"
-                          onClick={() => void handleDeletePlan(plan)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <EmptyState title="Sin planes" message="Crea planes para definir las funcionalidades disponibles por tenant." />
-            )}
-          </section>
-        )}
-
         {activeTab === "knowledge" && (
           <section className="settings-card">
             <header className="settings-card__header">
@@ -1056,6 +930,85 @@ function SupportAssistantPanel() {
           </section>
         )}
 
+        {activeTab === "capabilities" && (
+          <section className="settings-card">
+            <header className="settings-card__header">
+              <div>
+                <h2>Capacidades del Asistente por Plan</h2>
+                <p>Configura atómicamente qué puede hacer el asistente sobre cada funcionalidad según el plan.</p>
+              </div>
+            </header>
+
+            {capabilitiesLoading ? (
+              <p className="assistant-chat__state">Cargando capacidades...</p>
+            ) : capabilitiesError ? (
+              <FormMessage kind="error">{capabilitiesError}</FormMessage>
+            ) : plans && plans.length > 0 ? (
+              <div className="capabilities-admin">
+                {plans.map((plan) => (
+                  <div key={plan.key} className="capability-plan-card">
+                    <header className="capability-plan-header">
+                      <div>
+                        <strong>{plan.name}</strong>
+                        <span className="cell-sub">{plan.key}</span>
+                        {plan.isDefault && <span className="badge badge-info">Predeterminado</span>}
+                      </div>
+                      <Button
+                        icon="edit"
+                        iconOnly
+                        onClick={() => openCapabilitiesModal(plan.key)}
+                        title="Editar capacidades"
+                      >
+                        Editar
+                      </Button>
+                    </header>
+
+                    <div className="capability-table">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Funcionalidad</th>
+                            <th>Consultar</th>
+                            <th>Explicar</th>
+                            <th>Crear</th>
+                            <th>Modificar</th>
+                            <th>Eliminar</th>
+                            <th>Ejecutar</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {plan.features.map((feature) => (
+                            <tr key={feature.key}>
+                              <td>
+                                <strong>{FEATURE_LABELS[feature.key] ?? feature.key}</strong>
+                                <span className="cell-sub">{feature.key}</span>
+                              </td>
+                              {CAPABILITY_KEYS.map((cap) => (
+                                <td key={cap}>
+                                  <label className="capability-checkbox">
+                                    <input
+                                      type="checkbox"
+                                      checked={assistantCapabilities?.[plan.key]?.find((f) => f.functionalityKey === feature.key)?.capabilities[cap] ?? false}
+                                      onChange={(event) => updateCapability(plan.key, feature.key, cap, event.target.checked)}
+                                    />
+                                    <span>{CAPABILITY_LABELS[cap]}</span>
+                                  </label>
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState title="Sin planes" message="Crea planes primero para definir capacidades." />
+            )}
+          </section>
+        )}
+
         {activeTab === "metrics" && (
           <section className="support-admin__metrics">
             {metrics ? (
@@ -1120,62 +1073,36 @@ function SupportAssistantPanel() {
         </form>
       </Modal>
 
-      <Modal open={planModalOpen} title={editingPlan ? "Editar plan" : "Nuevo plan"} onClose={() => setPlanModalOpen(false)} panelClassName="modal__panel--wide">
-        <form className="modal__form" onSubmit={handleSavePlan}>
-          <div className="form-card__grid">
-            <Field id="plan-key" label="Key" type="text" value={planForm.key} onChange={(event) => setPlanForm((current) => ({ ...current, key: event.target.value.toUpperCase() }))} required disabled={!!editingPlan} />
-            <Field id="plan-name" label="Nombre" type="text" value={planForm.name} onChange={(event) => setPlanForm((current) => ({ ...current, name: event.target.value }))} required />
-            <Field id="plan-sort" label="Orden" type="number" value={planForm.sortOrder} onChange={(event) => setPlanForm((current) => ({ ...current, sortOrder: event.target.value }))} />
-            <div className="form-field">
-              <label htmlFor="plan-active">Estado</label>
-              <select id="plan-active" value={planForm.isActive ? "1" : "0"} onChange={(event) => setPlanForm((current) => ({ ...current, isActive: event.target.value === "1" }))}>
-                <option value="1">Activo</option>
-                <option value="0">Inactivo</option>
-              </select>
-            </div>
-            <div className="form-field">
-              <label htmlFor="plan-default">Predeterminado</label>
-              <select id="plan-default" value={planForm.isDefault ? "1" : "0"} onChange={(event) => setPlanForm((current) => ({ ...current, isDefault: event.target.value === "1" }))}>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="plan-desc">Descripción</label>
-            <textarea id="plan-desc" rows={2} value={planForm.description} onChange={(event) => setPlanForm((current) => ({ ...current, description: event.target.value }))} />
-          </div>
-
-          <section className="settings-card__section">
-            <header className="settings-card__header">
-              <div>
-                <h2>Funcionalidades atómicas</h2>
-                <p>Configura cada funcionalidad independientemente para este plan.</p>
-              </div>
-            </header>
-
-            <div className="tools-config-grid">
-              {planForm.features.map((feature) => (
-                <div key={feature.key} className="tool-config-item">
-                  <label className="tool-config-label">
-                    <input
-                      type="checkbox"
-                      checked={feature.enabled}
-                      onChange={(event) => updatePlanAppFeature(feature.key, { enabled: event.target.checked })}
-                    />
-                    <span>
-                      <strong>{feature.label}</strong>
-                      {feature.description && <span className="tool-config-plan">{feature.description}</span>}
-                    </span>
-                  </label>
+      <Modal open={capabilitiesModalOpen} title={editingCapabilitiesPlan ? "Editar capacidades" : "Capacidades IA"} onClose={() => setCapabilitiesModalOpen(false)} panelClassName="modal__panel--wide">
+        <form className="modal__form" onSubmit={handleSaveCapabilities}>
+          <div className="capabilities-modal-grid">
+            {editingCapabilitiesPlan && plans && plans.find(p => p.key === editingCapabilitiesPlan)?.features.map((feature) => (
+              <div key={feature.key} className="capability-modal-item">
+                <label className="capability-modal-label">
+                  <strong>{FEATURE_LABELS[feature.key] ?? feature.key}</strong>
+                  <span className="cell-sub">{feature.key}</span>
+                </label>
+                <div className="capability-modal-checkboxes">
+                  {CAPABILITY_KEYS.map((cap) => (
+                    <label key={cap} className="capability-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={capabilitiesForm[editingCapabilitiesPlan]?.find(f => f.functionalityKey === feature.key)?.capabilities[cap] ?? false}
+                        onChange={(event) => updateCapability(editingCapabilitiesPlan!, feature.key, cap, event.target.checked)}
+                      />
+                      <span>{CAPABILITY_LABELS[cap]}</span>
+                    </label>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            ))}
+          </div>
 
-          {planError && <FormMessage kind="error">{planError}</FormMessage>}
-          <Button type="submit" icon="check" iconOnly disabled={planSaving}>{planSaving ? "Guardando..." : "Guardar plan"}</Button>
+          {capabilitiesError && <FormMessage kind="error">{capabilitiesError}</FormMessage>}
+
+          <Button type="submit" icon="check" iconOnly disabled={capabilitiesSaving}>
+            {capabilitiesSaving ? "Guardando..." : "Guardar capacidades"}
+          </Button>
         </form>
       </Modal>
     </main>

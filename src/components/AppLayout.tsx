@@ -88,6 +88,12 @@ const navigationGroups: NavigationGroup[] = [
         roles: ["TENANT_ADMIN"],
       },
       {
+        to: "/admin/plans",
+        label: "Planes",
+        icon: "briefcase",
+        roles: ["SUPER_ADMIN"],
+      },
+      {
         to: "/support/assistant",
         label: "Asistente de soporte",
         icon: "bot",
