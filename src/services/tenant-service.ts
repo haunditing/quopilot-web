@@ -1,6 +1,17 @@
 import { apiRequest } from "../lib/api.js";
 import type { Tenant, TenantListResponse, TenantStatus } from "../types/tenant.js";
 import type { UserListResponse } from "../types/user.js";
+import type { CapabilityMatrixEntry } from "../types/support-assistant.js";
+
+export async function getMyTenantCapabilities(): Promise<{
+  planKey: string;
+  featureKeys: string[];
+  capabilityCodes: string[];
+  effectiveCodes: string[];
+  entries: CapabilityMatrixEntry[];
+}> {
+  return apiRequest("/api/tenants/me/capabilities", { method: "GET" });
+}
 
 export interface TenantInput {
   name: string;

@@ -15,6 +15,7 @@ import Button from "./Button.js";
 import FloatingPanel from "./FloatingPanel.js";
 import AssistantChat from "./AssistantChat.js";
 import { SUPPORT_ASSISTANT_ENDPOINT } from "../services/support-assistant-service.js";
+import { useTenantCapabilities } from "../hooks/useTenantCapabilities.js";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -25,6 +26,7 @@ interface NavigationItem {
   label: string;
   icon: IconName;
   roles?: UserRole[];
+  requiredCapability?: string;
   end?: boolean;
 }
 
@@ -40,6 +42,7 @@ const navigationGroups: NavigationGroup[] = [
         to: "/dashboard",
         label: "Dashboard",
         icon: "dashboard",
+        requiredCapability: "dashboard.view",
       },
     ],
   },
@@ -51,30 +54,35 @@ const navigationGroups: NavigationGroup[] = [
         label: "Conversaciones",
         icon: "inbox",
         roles: ["TENANT_ADMIN", "AGENT"],
+        requiredCapability: "conversations.view",
       },
       {
         to: "/customers",
         label: "Clientes",
         icon: "customers",
         roles: ["TENANT_ADMIN", "AGENT"],
+        requiredCapability: "customers.view",
       },
       {
         to: "/quotes",
         label: "Cotizaciones",
         icon: "quotes",
         roles: ["TENANT_ADMIN", "AGENT"],
+        requiredCapability: "quotes.view",
       },
       {
         to: "/sales",
         label: "Ventas",
         icon: "sales",
         roles: ["TENANT_ADMIN", "AGENT"],
+        requiredCapability: "sales.view",
       },
       {
         to: "/products",
         label: "Productos",
         icon: "products",
         roles: ["TENANT_ADMIN", "AGENT"],
+        requiredCapability: "products.view",
       },
     ],
   },
@@ -118,6 +126,7 @@ const navigationGroups: NavigationGroup[] = [
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const user = getUser();
+  const { effectiveCodes, loading: capsLoading } = useTenantCapabilities();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem("sidebarCollapsed") === "true";
@@ -131,11 +140,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
     .map((group) => ({
       label: group.label,
       items: group.items.filter((item) => {
-        if (!item.roles) {
-          return true;
+        if (item.roles && (!user?.role || !item.roles.includes(user.role))) {
+          return false;
         }
 
-        return user?.role !== undefined && item.roles.includes(user.role);
+        if (
+          !capsLoading &&
+          item.requiredCapability &&
+          !effectiveCodes.includes(item.requiredCapability)
+        ) {
+          return false;
+        }
+
+        return true;
       }),
     }))
     .filter((group) => group.items.length > 0);
@@ -181,13 +198,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
           className="app-brand"
           style={{
             display: "flex",
-            justifyContent: isCollapsed ? "center" : "space-between",
+            justifyContent: "space-between",
             width: "100%",
           }}
         >
           <div
             style={{
-              display: isCollapsed ? "none" : "flex",
+              display: "flex",
               alignItems: "center",
               gap: "10px",
               overflow: "hidden",
@@ -200,7 +217,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
               style={{ flexShrink: 0 }}
             />
 
-            <span className="app-brand__text">
+            <span
+              className="app-brand__text"
+              style={{
+                display: isCollapsed ? "none" : "flex",
+              }}
+            >
               <strong>QuoPilot</strong>
 
               {brandSubtitle && <small>{brandSubtitle}</small>}
@@ -320,10 +342,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {user?.role === "TENANT_ADMIN" && (
-          <FloatingPanel
-            icon="bot"
-            ariaLabel="Abrir asistente de soporte"
-          >
+          <FloatingPanel icon="bot" ariaLabel="Abrir asistente de soporte">
             <AssistantChat
               embedded
               endpoint={SUPPORT_ASSISTANT_ENDPOINT}
