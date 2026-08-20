@@ -683,6 +683,7 @@ p {
     padding: 20px;
     transform: none;
     visibility: visible;
+    transition: inline-size 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   /* Collapsed State Styles */
@@ -707,6 +708,8 @@ p {
   .app-sidebar--collapsed .app-user__card {
     justify-content: center;
     padding: 8px;
+    background-color: transparent;
+    border-color: transparent;
   }
   .app-sidebar--collapsed .app-user__avatar {
     margin: 0;
@@ -5859,7 +5862,6 @@ input[type="number"] {
 .quote-erp__table-header .quote-erp__card-title {
   margin-bottom: 0;
 }
-
 
 /* =========================================
    CUSTOMER DETAIL (editar/crear contacto)

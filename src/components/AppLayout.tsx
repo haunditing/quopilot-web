@@ -132,9 +132,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return localStorage.getItem("sidebarCollapsed") === "true";
   });
 
+  const [isHovered, setIsHovered] = useState(false);
+
   useEffect(() => {
     localStorage.setItem("sidebarCollapsed", String(isCollapsed));
   }, [isCollapsed]);
+
+  const effectivelyCollapsed = isCollapsed && !isHovered;
 
   const visibleNavigationGroups = navigationGroups
     .map((group) => ({
@@ -192,14 +196,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className={layoutClassName}>
       <aside
         id="app-sidebar"
-        className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${isCollapsed ? "app-sidebar--collapsed" : ""}`}
+        className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${effectivelyCollapsed ? "app-sidebar--collapsed" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         <div
           className="app-brand"
           style={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: effectivelyCollapsed ? "center" : "space-between",
             width: "100%",
+            alignItems: "center",
           }}
         >
           <div
@@ -216,40 +223,38 @@ export default function AppLayout({ children }: AppLayoutProps) {
               className="app-brand__icon"
               style={{ flexShrink: 0 }}
             />
+            {!effectivelyCollapsed && (
+              <span className="app-brand__text">
+                <strong>QuoPilot</strong>
 
-            <span
-              className="app-brand__text"
-              style={{
-                display: isCollapsed ? "none" : "flex",
-              }}
-            >
-              <strong>QuoPilot</strong>
-
-              {brandSubtitle && <small>{brandSubtitle}</small>}
-            </span>
+                {brandSubtitle && <small>{brandSubtitle}</small>}
+              </span>
+            )}
           </div>
-          <button
-            type="button"
-            className="app-sidebar-toggle"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--shell-text-muted)",
-              cursor: "pointer",
-              padding: "6px",
-              borderRadius: "6px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
-          >
-            <Icon
-              name={isCollapsed ? "chevron-right" : "chevron-left"}
-              size={20}
-            />
-          </button>
+          {!effectivelyCollapsed && (
+            <button
+              type="button"
+              className="app-sidebar-toggle"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--shell-text-muted)",
+                cursor: "pointer",
+                padding: "6px",
+                borderRadius: "6px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
+            >
+              <Icon
+                name={isCollapsed ? "chevron-right" : "chevron-left"}
+                size={20}
+              />
+            </button>
+          )}
         </div>
 
         <nav className="app-navigation" aria-label="Navegación principal">
@@ -288,18 +293,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <span className="app-user__avatar" aria-hidden="true">
               {avatarInitial}
             </span>
+            {!effectivelyCollapsed && (
+              <div className="app-user__info">
+                <strong className="app-user__name">
+                  {user?.name ?? "Usuario"}
+                </strong>
+                {user?.email && (
+                  <span className="app-user__email">{user.email}</span>
+                )}
+                {roleLabel && (
+                  <span className="app-user__role">{roleLabel}</span>
+                )}
+              </div>
+            )}
 
-            <div className="app-user__info">
-              <strong className="app-user__name">
-                {user?.name ?? "Usuario"}
-              </strong>
-              {user?.email && (
-                <span className="app-user__email">{user.email}</span>
-              )}
-              {roleLabel && <span className="app-user__role">{roleLabel}</span>}
-            </div>
-
-            {!isCollapsed && (
+            {!effectivelyCollapsed && (
               <Button
                 icon="logout"
                 iconOnly
