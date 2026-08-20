@@ -162,6 +162,22 @@ export interface PlanAppFeature {
   config?: Record<string, unknown>;
 }
 
+export interface PlanUsageLimitEntry {
+  code: string;
+  limit: number;
+}
+
+export interface AppUsageLimit {
+  _id: string;
+  code: string;
+  name: string;
+  description: string;
+  unit: string;
+  defaultValue: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
 export interface Plan {
   _id: string;
   key: string;
@@ -171,6 +187,7 @@ export interface Plan {
   isDefault: boolean;
   enabledFeatures: string[];
   enabledCapabilities: string[];
+  usageLimits: PlanUsageLimitEntry[];
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -184,6 +201,7 @@ export interface PlanInput {
   isDefault?: boolean;
   enabledFeatures?: string[];
   enabledCapabilities?: string[];
+  usageLimits?: PlanUsageLimitEntry[];
   sortOrder?: number;
 }
 

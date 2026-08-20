@@ -16,8 +16,9 @@ import {
   updatePlan,
   deletePlan,
   setDefaultPlan,
+  getUsageLimits,
 } from "../services/support-assistant-service.js";
-import type { Plan } from "../types/support-assistant.js";
+import type { Plan, AppUsageLimit } from "../types/support-assistant.js";
 import { useToast } from "../hooks/useToast.js";
 
 const QUILOPILOT_FEATURES = [
@@ -50,9 +51,20 @@ function PlansPanel() {
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansError, setPlansError] = useState("");
 
+  const [usageLimitsCatalog, setUsageLimitsCatalog] = useState<AppUsageLimit[]>([]);
+
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
-  const [planForm, setPlanForm] = useState<{ key: string; name: string; description: string; isActive: boolean; isDefault: boolean; sortOrder: string; enabledFeatures: string[] }>({
+  const [planForm, setPlanForm] = useState<{
+    key: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    isDefault: boolean;
+    sortOrder: string;
+    enabledFeatures: string[];
+    usageLimits: Record<string, number>;
+  }>({
     key: "",
     name: "",
     description: "",
@@ -60,18 +72,24 @@ function PlansPanel() {
     isDefault: false,
     sortOrder: "0",
     enabledFeatures: [],
+    usageLimits: {},
   });
   const [planSaving, setPlanSaving] = useState(false);
   const [planError, setPlanError] = useState("");
 
-  const loadPlans = useCallback(async () => {
+  const loadData = useCallback(async () => {
     setPlansLoading(true);
     setPlansError("");
 
     try {
-      setPlans(await listPlans());
+      const [loadedPlans, loadedLimits] = await Promise.all([
+        listPlans(),
+        getUsageLimits(),
+      ]);
+      setPlans(loadedPlans);
+      setUsageLimitsCatalog(loadedLimits);
     } catch (error) {
-      setPlansError(error instanceof Error ? error.message : "No fue posible cargar los planes");
+      setPlansError(error instanceof Error ? error.message : "No fue posible cargar la información");
     } finally {
       setPlansLoading(false);
     }
@@ -79,14 +97,25 @@ function PlansPanel() {
 
   useEffect(() => {
     async function load() {
-      await loadPlans();
+      await loadData();
     }
     void load();
-  }, [loadPlans]);
+  }, [loadData]);
 
   function openPlanModal(plan?: Plan) {
     setEditingPlan(plan ?? null);
     setPlanError("");
+
+    const limitsMap: Record<string, number> = {};
+    for (const ul of usageLimitsCatalog) {
+      limitsMap[ul.code] = ul.defaultValue;
+    }
+    if (plan && Array.isArray(plan.usageLimits)) {
+      for (const entry of plan.usageLimits) {
+        limitsMap[entry.code] = entry.limit;
+      }
+    }
+
     setPlanForm(
       plan
         ? {
@@ -97,8 +126,18 @@ function PlansPanel() {
             isDefault: plan.isDefault,
             sortOrder: String(plan.sortOrder),
             enabledFeatures: plan.enabledFeatures ?? [],
+            usageLimits: limitsMap,
           }
-        : { key: "", name: "", description: "", isActive: true, isDefault: false, sortOrder: "0", enabledFeatures: [] },
+        : {
+            key: "",
+            name: "",
+            description: "",
+            isActive: true,
+            isDefault: false,
+            sortOrder: "0",
+            enabledFeatures: [],
+            usageLimits: limitsMap,
+          },
     );
     setPlanModalOpen(true);
   }
@@ -112,10 +151,26 @@ function PlansPanel() {
     }));
   }
 
+  function updateUsageLimitValue(code: string, val: string) {
+    const num = val === "" ? -1 : Number(val);
+    setPlanForm((current) => ({
+      ...current,
+      usageLimits: {
+        ...current.usageLimits,
+        [code]: isNaN(num) ? -1 : num,
+      },
+    }));
+  }
+
   async function handleSavePlan(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPlanSaving(true);
     setPlanError("");
+
+    const usageLimitsPayload = Object.entries(planForm.usageLimits).map(([code, limit]) => ({
+      code,
+      limit,
+    }));
 
     const payload = {
       key: planForm.key.trim().toUpperCase(),
@@ -125,6 +180,7 @@ function PlansPanel() {
       isDefault: planForm.isDefault,
       sortOrder: Number(planForm.sortOrder),
       enabledFeatures: planForm.enabledFeatures,
+      usageLimits: usageLimitsPayload,
     };
 
     try {
@@ -137,7 +193,7 @@ function PlansPanel() {
       }
 
       setPlanModalOpen(false);
-      await loadPlans();
+      await loadData();
     } catch (error) {
       setPlanError(error instanceof Error ? error.message : "No fue posible guardar");
     } finally {
@@ -149,7 +205,7 @@ function PlansPanel() {
     try {
       await deletePlan(plan.key);
       toast.success("Plan eliminado");
-      await loadPlans();
+      await loadData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No fue posible eliminar");
     }
@@ -159,7 +215,7 @@ function PlansPanel() {
     try {
       await setDefaultPlan(plan.key);
       toast.success("Plan predeterminado actualizado");
-      await loadPlans();
+      await loadData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No fue posible actualizar");
     }
@@ -169,7 +225,7 @@ function PlansPanel() {
     <main className="master-detail">
       <PageHeader
         title="Planes"
-        description="Define planes con funcionalidades atómicas de la aplicación QuoPilot"
+        description="Define planes, funcionalidades atómicas y límites de uso dinámicos de QuoPilot"
         actions={
           <Button icon="plus" iconOnly onClick={() => openPlanModal()}>
             Nuevo plan
@@ -193,6 +249,7 @@ function PlansPanel() {
                     <th>Estado</th>
                     <th>Predeterminado</th>
                     <th>Funcionalidades</th>
+                    <th>Límites de uso</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -224,6 +281,11 @@ function PlansPanel() {
                         </span>
                       </td>
                       <td>
+                        <span className="cell-sub">
+                          {(plan.usageLimits ?? []).length} configurados
+                        </span>
+                      </td>
+                      <td>
                         <div className="row-actions">
                           <button
                             type="button"
@@ -233,7 +295,7 @@ function PlansPanel() {
                             onClick={() => void handleSetDefaultPlan(plan)}
                             disabled={plan.isDefault}
                           >
-                            {plan.isDefault ? "✓ Predeterminado" : "★ Predeterminado"}
+                            {plan.isDefault ? "✓ Pred." : "★ Pred."}
                           </button>
                           <button
                             type="button"
@@ -374,6 +436,30 @@ function PlansPanel() {
                     </span>
                   </label>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="settings-card__section">
+            <header className="settings-card__header">
+              <div>
+                <h2>Límites de Uso del Plan</h2>
+                <p>Configura las cuotas máximas de recursos. Ingresa -1 para ilimitado.</p>
+              </div>
+            </header>
+
+            <div className="form-card__grid">
+              {usageLimitsCatalog.map((ul) => (
+                <Field
+                  key={ul.code}
+                  id={`limit-${ul.code}`}
+                  label={`${ul.name} (${ul.unit})`}
+                  type="number"
+                  value={String(planForm.usageLimits[ul.code] ?? ul.defaultValue)}
+                  helper={ul.description}
+                  onChange={(event) => updateUsageLimitValue(ul.code, event.target.value)}
+                  required
+                />
               ))}
             </div>
           </section>

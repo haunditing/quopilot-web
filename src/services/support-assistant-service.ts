@@ -13,6 +13,7 @@ import type {
   PlanInput,
   ToolPermission,
   AppCapability,
+  AppUsageLimit,
 } from "../types/support-assistant.js";
 
 export const SUPPORT_ASSISTANT_ENDPOINT = "/api/support/assistant";
@@ -255,4 +256,10 @@ export async function updateToolPermission(
     `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}/tools/${toolKey}`,
     { method: "PUT", body: JSON.stringify(updates) },
   );
+}
+
+export const SUPER_ADMIN_USAGE_LIMITS_ENDPOINT = "/api/admin/usage-limits";
+
+export async function getUsageLimits(): Promise<AppUsageLimit[]> {
+  return apiRequest<AppUsageLimit[]>(SUPER_ADMIN_USAGE_LIMITS_ENDPOINT, { method: "GET" });
 }

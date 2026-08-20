@@ -26,9 +26,14 @@ import {
   getTenantUsers,
   updateTenant,
   updateTenantStatus,
+  updateTenantPlan,
+  getTenantUsage,
 } from "../services/tenant-service.js";
+import type { TenantUsageItem } from "../services/tenant-service.js";
+import { listPlans } from "../services/support-assistant-service.js";
 import type { Tenant, TenantStatus } from "../types/tenant.js";
 import type { User } from "../types/user.js";
+import type { Plan } from "../types/support-assistant.js";
 import { isValidEmail } from "../lib/validation.js";
 
 const DEFAULT_CURRENCY = "COP";
@@ -130,10 +135,18 @@ export default function Tenants() {
   const closeCreate = useCallback(() => setCreateOpen(false), []);
 
   const [viewTenant, setViewTenant] = useState<Tenant | null>(null);
-  const [viewTab, setViewTab] = useState<"general" | "users">("general");
+  const [viewTab, setViewTab] = useState<"general" | "plan" | "users">("general");
   const [tenantUsers, setTenantUsers] = useState<User[] | null>(null);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState("");
+
+  const [tenantUsage, setTenantUsage] = useState<TenantUsageItem[] | null>(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [usageError, setUsageError] = useState("");
+  const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+  const [selectedPlanKey, setSelectedPlanKey] = useState("");
+  const [planUpdating, setPlanUpdating] = useState(false);
+
   const [viewForm, setViewForm] = useState<TenantViewForm>({
     name: "",
     legalName: "",
@@ -153,11 +166,19 @@ export default function Tenants() {
     setViewTenant(tenant);
     setViewTab("general");
     setViewForm(viewFormFrom(tenant));
+    setSelectedPlanKey(tenant.plan ?? "FREE");
     setTenantUsers(null);
+    setTenantUsage(null);
     setUsersLoading(false);
     setUsersError("");
+    setUsageLoading(false);
+    setUsageError("");
     setViewFormError("");
     setViewNameError("");
+
+    if (availablePlans.length === 0) {
+      void listPlans().then(setAvailablePlans).catch(() => {});
+    }
   }
 
   function setViewField(field: keyof TenantViewForm, value: string) {
@@ -232,11 +253,54 @@ export default function Tenants() {
     }
   }
 
+  async function loadTenantUsage(tenantId: string) {
+    if (tenantUsage !== null || usageLoading) {
+      return;
+    }
+
+    setUsageLoading(true);
+    setUsageError("");
+
+    try {
+      const result = await getTenantUsage(tenantId);
+      setTenantUsage(result.usage);
+    } catch (requestError) {
+      setUsageError(
+        requestError instanceof Error
+          ? requestError.message
+          : "No fue posible cargar el uso de recursos",
+      );
+    } finally {
+      setUsageLoading(false);
+    }
+  }
+
   function handleViewTabChange(id: string) {
-    setViewTab(id as "general" | "users");
+    setViewTab(id as "general" | "plan" | "users");
 
     if (id === "users" && viewTenant) {
       loadTenantUsers(viewTenant._id);
+    } else if (id === "plan" && viewTenant) {
+      loadTenantUsage(viewTenant._id);
+    }
+  }
+
+  async function handleUpdatePlan(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!viewTenant || !selectedPlanKey) return;
+
+    setPlanUpdating(true);
+    try {
+      const updated = await updateTenantPlan(viewTenant._id, selectedPlanKey);
+      setViewTenant(updated);
+      reload();
+      toast.success("Plan del tenant actualizado");
+      setTenantUsage(null);
+      await loadTenantUsage(viewTenant._id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No fue posible actualizar el plan");
+    } finally {
+      setPlanUpdating(false);
     }
   }
 
@@ -376,6 +440,13 @@ export default function Tenants() {
             <span className="cell-sub">{tenant.legalName}</span>
           )}
         </div>
+      ),
+    },
+    {
+      key: "plan",
+      label: "Plan",
+      render: (tenant) => (
+        <span className="badge badge-info">{tenant.plan ?? "FREE"}</span>
       ),
     },
     {
@@ -655,6 +726,7 @@ export default function Tenants() {
             <Tabs
               tabs={[
                 { id: "general", label: "Información general" },
+                { id: "plan", label: "Plan y consumo" },
                 {
                   id: "users",
                   label: "Usuarios",
@@ -782,6 +854,73 @@ export default function Tenants() {
                     {viewSaving ? "Guardando..." : "Guardar cambios"}
                   </Button>
                 </form>
+              )}
+
+              {viewTab === "plan" && (
+                <div className="tenant-plan-view">
+                  <form className="modal__form" onSubmit={handleUpdatePlan}>
+                    <div className="form-card__grid">
+                      <div className="form-field">
+                        <label htmlFor="tenant-plan-select">Plan comercial</label>
+                        <select
+                          id="tenant-plan-select"
+                          value={selectedPlanKey}
+                          onChange={(e) => setSelectedPlanKey(e.target.value)}
+                        >
+                          {availablePlans.map((p) => (
+                            <option key={p.key} value={p.key}>
+                              {p.name} ({p.key})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <Button type="submit" icon="check" iconOnly disabled={planUpdating}>
+                      {planUpdating ? "Actualizando plan..." : "Cambiar plan"}
+                    </Button>
+                  </form>
+
+                  <h3 style={{ marginTop: "24px", marginBottom: "12px" }}>Consumo de Recursos vs Límites</h3>
+                  {usageLoading ? (
+                    <p className="tenant-view__status">Cargando consumo...</p>
+                  ) : usageError ? (
+                    <FormMessage kind="error">{usageError}</FormMessage>
+                  ) : tenantUsage && tenantUsage.length > 0 ? (
+                    <div className="plans-table">
+                      <table className="plans-table__table">
+                        <thead>
+                          <tr>
+                            <th>Recurso</th>
+                            <th>Actual</th>
+                            <th>Límite del Plan</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tenantUsage.map((item) => (
+                            <tr key={item.code}>
+                              <td>
+                                <strong>{item.name}</strong>
+                                <span className="cell-sub">{item.description}</span>
+                              </td>
+                              <td>{item.current} {item.unit}</td>
+                              <td>{item.limit < 0 ? "Ilimitado" : `${item.limit} ${item.unit}`}</td>
+                              <td>
+                                {item.allowed ? (
+                                  <span className="badge badge-success">Dentro del límite</span>
+                                ) : (
+                                  <span className="badge badge-danger">Límite excedido</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <FormMessage kind="info">No hay datos de uso disponibles.</FormMessage>
+                  )}
+                </div>
               )}
 
               {viewTab === "users" &&

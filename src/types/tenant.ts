@@ -26,6 +26,7 @@ export interface Tenant {
   brandColor?: string;
   footerText?: string;
   status: TenantStatus;
+  plan?: string;
   createdAt: string;
   updatedAt: string;
 }

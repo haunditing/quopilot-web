@@ -13,6 +13,27 @@ export async function getMyTenantCapabilities(): Promise<{
   return apiRequest("/api/tenants/me/capabilities", { method: "GET" });
 }
 
+export interface TenantUsageItem {
+  code: string;
+  name: string;
+  description: string;
+  unit: string;
+  limit: number;
+  current: number;
+  allowed: boolean;
+}
+
+export async function getTenantUsage(tenantId: string): Promise<{ planKey: string; usage: TenantUsageItem[] }> {
+  return apiRequest(`/api/tenants/${tenantId}/usage`, { method: "GET" });
+}
+
+export async function updateTenantPlan(tenantId: string, planKey: string): Promise<Tenant> {
+  return apiRequest<Tenant>(`/api/tenants/${tenantId}/plan`, {
+    method: "PATCH",
+    body: JSON.stringify({ plan: planKey }),
+  });
+}
+
 export interface TenantInput {
   name: string;
   legalName?: string;
