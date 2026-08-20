@@ -819,18 +819,6 @@ const tabs = [
                 </div>
               </section>
 
-              <section className="settings-card__section">
-                <header className="settings-card__header">
-                  <div>
-                    <h2>Tools del agente</h2>
-                    <p>Las herramientas disponibles para el asistente se configuran ahora por plan en la pestaña "Capacidades IA". Cada funcionalidad del plan define qué capacidades (consultar, crear, modificar, etc.) tiene el asistente.</p>
-                  </div>
-                </header>
-
-                <div className="settings-card__form">
-                  <p>La configuración de herramientas por plan se gestiona ahora en la pestaña "Capacidades IA". Allí puedes definir atómicamente qué operaciones (consultar, crear, modificar, eliminar, ejecutar) tiene el asistente sobre cada funcionalidad para cada plan.</p>
-                </div>
-              </section>
 
               {configSaveError && <FormMessage kind="error">{configSaveError}</FormMessage>}
 
