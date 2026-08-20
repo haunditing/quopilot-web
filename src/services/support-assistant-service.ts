@@ -9,11 +9,13 @@ import type {
   SupportMetrics,
   Plan,
   PlanInput,
+  FunctionalityCapabilities,
 } from "../types/support-assistant.js";
 
 export const SUPPORT_ASSISTANT_ENDPOINT = "/api/support/assistant";
 export const SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT = "/api/super-admin/support/assistant";
 export const SUPER_ADMIN_PLANS_ENDPOINT = "/api/super-admin/plans";
+export const SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT = "/api/super-admin/assistant-capabilities";
 
 export async function getSupportMessages(): Promise<SupportMessage[]> {
   return apiRequest<SupportMessage[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/messages`, {
@@ -186,4 +188,32 @@ export async function setDefaultPlan(key: string): Promise<Plan> {
 
 export async function getPlan(key: string): Promise<Plan> {
   return apiRequest<Plan>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}`, { method: "GET" });
+}
+
+export async function getAssistantCapabilities(planKey: string): Promise<FunctionalityCapabilities[]> {
+  return apiRequest<FunctionalityCapabilities[]>(
+    `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}`,
+    { method: "GET" },
+  );
+}
+
+export async function updateAssistantCapabilities(
+  planKey: string,
+  functionalities: FunctionalityCapabilities[],
+): Promise<{ ok: boolean }> {
+  return apiRequest<{ ok: boolean }>(
+    `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}`,
+    { method: "PUT", body: JSON.stringify({ functionalities }) },
+  );
+}
+
+export async function updateFunctionalityCapabilities(
+  planKey: string,
+  functionalityKey: string,
+  capabilities: Record<string, boolean>,
+): Promise<{ ok: boolean }> {
+  return apiRequest<{ ok: boolean }>(
+    `${SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT}/${planKey}/${functionalityKey}`,
+    { method: "PUT", body: JSON.stringify({ capabilities }) },
+  );
 }

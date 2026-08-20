@@ -45,13 +45,24 @@ export interface SupportAssistantConfig {
   ragMinScore: number;
   memoryWindow: number;
   maxContextTokens: number;
-  agentTools: AgentToolConfig[];
 }
 
-export interface AgentToolConfig {
-  name: string;
-  enabled: boolean;
-  planRequired?: string[];
+export interface SupportAssistantConfigInput {
+  status?: "ACTIVE" | "INACTIVE";
+  llm?: {
+    provider?: string;
+    apiKey?: string;
+    model?: string;
+    baseUrl?: string;
+    maxTokens?: number;
+    timeoutMs?: number;
+  };
+  systemPrompt?: string;
+  caseThreshold?: number;
+  ragMaxDocs?: number;
+  ragMinScore?: number;
+  memoryWindow?: number;
+  maxContextTokens?: number;
 }
 
 export interface SupportKnowledgeDoc {
@@ -91,26 +102,22 @@ export interface SupportMetrics {
   confirmedCases: number;
 }
 
-export interface SupportAssistantConfigInput {
-  status?: "ACTIVE" | "INACTIVE";
-  llm?: {
-    provider?: string;
-    apiKey?: string;
-    model?: string;
-    baseUrl?: string;
-    maxTokens?: number;
-    timeoutMs?: number;
-  };
-  systemPrompt?: string;
-  caseThreshold?: number;
-  ragMaxDocs?: number;
-  ragMinScore?: number;
-  memoryWindow?: number;
-  maxContextTokens?: number;
-  agentTools?: AgentToolConfig[];
+export type AssistantCapability = "consult" | "explain" | "create" | "modify" | "delete" | "execute";
+
+export interface FunctionalityCapabilities {
+  functionalityKey: string;
+  capabilities: Record<AssistantCapability, boolean>;
 }
 
-export interface PlanFeature {
+export interface AssistantPlanCapabilities {
+  _id: string;
+  planKey: string;
+  functionalities: FunctionalityCapabilities[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlanAppFeature {
   key: string;
   label: string;
   description: string;
@@ -125,10 +132,18 @@ export interface Plan {
   description: string;
   isActive: boolean;
   isDefault: boolean;
-  features: PlanFeature[];
+  features: PlanAppFeature[];
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PlanAppFeature {
+  key: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  config?: Record<string, unknown>;
 }
 
 export interface PlanInput {
@@ -137,12 +152,12 @@ export interface PlanInput {
   description?: string;
   isActive?: boolean;
   isDefault?: boolean;
-  features?: Array<{
-    key: string;
-    label: string;
-    description?: string;
-    enabled?: boolean;
-    config?: Record<string, unknown>;
-  }>;
+  features?: PlanAppFeature[];
   sortOrder?: number;
+}
+
+export interface AgentToolConfig {
+  name: string;
+  enabled: boolean;
+  planRequired?: string[];
 }

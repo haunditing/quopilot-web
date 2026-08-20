@@ -36,9 +36,8 @@ import type {
   SupportCase,
   SupportKnowledgeDoc,
   SupportMetrics,
-  AgentToolConfig,
   Plan,
-  PlanFeature,
+  PlanAppFeature,
 } from "../types/support-assistant.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatDate } from "../lib/format.js";
@@ -49,13 +48,6 @@ const LLM_PROVIDER_OPTIONS = [
   { value: "openrouter", label: "OpenRouter" },
 ];
 
-const PLAN_OPTIONS = [
-  { value: "FREE", label: "Free" },
-  { value: "STARTER", label: "Starter" },
-  { value: "PRO", label: "Pro" },
-  { value: "ENTERPRISE", label: "Enterprise" },
-];
-
 const CASE_STATUS_LABEL: Record<string, string> = {
   RESOLVED: "Resuelto",
   VERIFIED: "Verificado",
@@ -64,17 +56,6 @@ const CASE_STATUS_LABEL: Record<string, string> = {
 const CASE_STATUS_CLASS: Record<string, string> = {
   RESOLVED: "badge badge-success",
   VERIFIED: "badge badge-neutral",
-};
-
-const TOOL_LABELS: Record<string, string> = {
-  getTenantSummary: "Resumen del tenant",
-  getAgentConfig: "Configuración del agente",
-  getSystemStatus: "Estado del sistema",
-  getQuotes: "Consulta Cotizaciones",
-  getSales: "Consulta Ventas",
-  getProducts: "Consulta Productos",
-  getCustomers: "Consulta Clientes",
-  getChannels: "Consulta Canales",
 };
 
 const FEATURE_KEYS = [
@@ -117,7 +98,6 @@ interface ConfigFormState {
   ragMinScore: string;
   memoryWindow: string;
   maxContextTokens: string;
-  agentTools: AgentToolConfig[];
 }
 
 interface KnowledgeFormState {
@@ -144,7 +124,7 @@ interface PlanFormState {
   isActive: boolean;
   isDefault: boolean;
   sortOrder: string;
-  features: PlanFeature[];
+  features: PlanAppFeature[];
 }
 
 function emptyKnowledgeForm(): KnowledgeFormState {
@@ -171,19 +151,6 @@ function emptyPlanForm(): PlanFormState {
       config: {},
     })),
   };
-}
-
-function defaultAgentTools(): AgentToolConfig[] {
-  return [
-    { name: "getTenantSummary", enabled: true },
-    { name: "getAgentConfig", enabled: true },
-    { name: "getSystemStatus", enabled: true },
-    { name: "getQuotes", enabled: true, planRequired: ["PRO", "ENTERPRISE"] },
-    { name: "getSales", enabled: true, planRequired: ["PRO", "ENTERPRISE"] },
-    { name: "getProducts", enabled: true, planRequired: ["STARTER", "PRO", "ENTERPRISE"] },
-    { name: "getCustomers", enabled: true, planRequired: ["STARTER", "PRO", "ENTERPRISE"] },
-    { name: "getChannels", enabled: true, planRequired: ["PRO", "ENTERPRISE"] },
-  ];
 }
 
 function keywordsToArray(value: string): string[] {
@@ -237,7 +204,6 @@ function SupportAssistantPanel() {
     ragMinScore: "0.3",
     memoryWindow: "8",
     maxContextTokens: "6000",
-    agentTools: defaultAgentTools(),
   });
   const [configSaving, setConfigSaving] = useState(false);
   const [configSaveError, setConfigSaveError] = useState("");
@@ -282,7 +248,6 @@ function SupportAssistantPanel() {
         ragMinScore: String(data.ragMinScore),
         memoryWindow: String(data.memoryWindow),
         maxContextTokens: String(data.maxContextTokens),
-        agentTools: data.agentTools ?? defaultAgentTools(),
       });
     } catch (error) {
       setConfigError(error instanceof Error ? error.message : "No fue posible cargar la config");
@@ -353,24 +318,6 @@ function SupportAssistantPanel() {
     setActiveTab(id);
   }
 
-  function updateToolConfig(name: string, enabled: boolean) {
-    setConfigForm((current) => ({
-      ...current,
-      agentTools: current.agentTools.map((tool) =>
-        tool.name === name ? { ...tool, enabled } : tool
-      ),
-    }));
-  }
-
-  function updateToolPlanRequired(name: string, plans: string[]) {
-    setConfigForm((current) => ({
-      ...current,
-      agentTools: current.agentTools.map((tool) =>
-        tool.name === name ? { ...tool, planRequired: plans } : tool
-      ),
-    }));
-  }
-
   async function handleSaveConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setConfigSaving(true);
@@ -393,7 +340,6 @@ function SupportAssistantPanel() {
         ragMinScore: configForm.ragMinScore ? Number(configForm.ragMinScore) : undefined,
         memoryWindow: configForm.memoryWindow ? Number(configForm.memoryWindow) : undefined,
         maxContextTokens: configForm.maxContextTokens ? Number(configForm.maxContextTokens) : undefined,
-        agentTools: configForm.agentTools,
       });
 
       toast.success("Configuración actualizada");
@@ -558,7 +504,7 @@ function SupportAssistantPanel() {
     setPlanModalOpen(true);
   }
 
-  function updatePlanFeature(featureKey: string, updates: Partial<PlanFeature>) {
+  function updatePlanAppFeature(featureKey: string, updates: Partial<PlanAppFeature>) {
     setPlanForm((current) => ({
       ...current,
       features: current.features.map((f) =>
@@ -885,53 +831,13 @@ function SupportAssistantPanel() {
               <section className="settings-card__section">
                 <header className="settings-card__header">
                   <div>
-                    <h2>Tools del agente (por plan)</h2>
-                    <p>Configura qué herramientas puede usar el asistente. Las herramientas con plan requerido solo estarán disponibles si el tenant tiene ese plan.</p>
+                    <h2>Tools del agente</h2>
+                    <p>Las herramientas disponibles para el asistente se configuran ahora por plan en la pestaña "Capacidades IA". Cada funcionalidad del plan define qué capacidades (consultar, crear, modificar, etc.) tiene el asistente.</p>
                   </div>
                 </header>
 
-                <div className="tools-config-grid">
-                  {configForm.agentTools.map((tool) => (
-                    <div key={tool.name} className="tool-config-item">
-                      <label className="tool-config-label">
-                        <input
-                          type="checkbox"
-                          checked={tool.enabled}
-                          onChange={(event) => updateToolConfig(tool.name, event.target.checked)}
-                        />
-                        <span>
-                          <strong>{TOOL_LABELS[tool.name] ?? tool.name}</strong>
-                          {tool.planRequired && tool.planRequired.length > 0 && (
-                            <span className="tool-config-plan">
-                              Requiere: {tool.planRequired.join(", ")}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-
-                      {tool.planRequired && tool.planRequired.length > 0 && (
-                        <div className="tool-config-plans">
-                          <label>Planes habilitados:</label>
-                          {PLAN_OPTIONS.map((plan) => (
-                            <label key={plan.value} className="plan-checkbox">
-                              <input
-                                type="checkbox"
-                                checked={tool.planRequired!.includes(plan.value)}
-                                onChange={(event) => {
-                                  const currentPlans = tool.planRequired ?? [];
-                                  const newPlans = event.target.checked
-                                    ? [...currentPlans, plan.value]
-                                    : currentPlans.filter((p) => p !== plan.value);
-                                  updateToolPlanRequired(tool.name, newPlans);
-                                }}
-                              />
-                              {plan.label}
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                <div className="settings-card__form">
+                  <p>La configuración de herramientas por plan se gestiona ahora en la pestaña "Capacidades IA". Allí puedes definir atómicamente qué operaciones (consultar, crear, modificar, eliminar, ejecutar) tiene el asistente sobre cada funcionalidad para cada plan.</p>
                 </div>
               </section>
 
@@ -1256,7 +1162,7 @@ function SupportAssistantPanel() {
                     <input
                       type="checkbox"
                       checked={feature.enabled}
-                      onChange={(event) => updatePlanFeature(feature.key, { enabled: event.target.checked })}
+                      onChange={(event) => updatePlanAppFeature(feature.key, { enabled: event.target.checked })}
                     />
                     <span>
                       <strong>{feature.label}</strong>
