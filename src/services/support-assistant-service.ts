@@ -9,8 +9,10 @@ import type {
   SupportMetrics,
   Plan,
   PlanAppFeature,
+  PlanCapabilityMatrix,
   PlanInput,
   ToolPermission,
+  AppCapability,
 } from "../types/support-assistant.js";
 
 export const SUPPORT_ASSISTANT_ENDPOINT = "/api/support/assistant";
@@ -18,6 +20,7 @@ export const SUPER_ADMIN_SUPPORT_ASSISTANT_ENDPOINT = "/api/super-admin/support/
 export const SUPER_ADMIN_PLANS_ENDPOINT = "/api/super-admin/plans";
 export const SUPER_ADMIN_ASSISTANT_CAPABILITIES_ENDPOINT = "/api/super-admin/assistant-capabilities";
 export const SUPER_ADMIN_FEATURES_ENDPOINT = "/api/admin/features";
+export const SUPER_ADMIN_CAPABILITIES_ENDPOINT = "/api/admin/capabilities";
 
 export async function getSupportMessages(): Promise<SupportMessage[]> {
   return apiRequest<SupportMessage[]>(`${SUPPORT_ASSISTANT_ENDPOINT}/messages`, {
@@ -196,8 +199,29 @@ export async function getPlanEnabledFeatures(key: string): Promise<string[]> {
   return apiRequest<string[]>(`${SUPER_ADMIN_PLANS_ENDPOINT}/${key}/features`, { method: "GET" });
 }
 
+export async function getPlanCapabilities(key: string): Promise<PlanCapabilityMatrix> {
+  return apiRequest<PlanCapabilityMatrix>(
+    `${SUPER_ADMIN_PLANS_ENDPOINT}/${key}/capabilities`,
+    { method: "GET" },
+  );
+}
+
+export async function updatePlanCapabilities(
+  key: string,
+  enabledCapabilities: string[],
+): Promise<Plan> {
+  return apiRequest<Plan>(
+    `${SUPER_ADMIN_PLANS_ENDPOINT}/${key}/capabilities`,
+    { method: "PUT", body: JSON.stringify({ enabledCapabilities }) },
+  );
+}
+
 export async function getAppFeatures(): Promise<PlanAppFeature[]> {
   return apiRequest<PlanAppFeature[]>(`${SUPER_ADMIN_FEATURES_ENDPOINT}`, { method: "GET" });
+}
+
+export async function getAppCapabilities(): Promise<AppCapability[]> {
+  return apiRequest<AppCapability[]>(`${SUPER_ADMIN_CAPABILITIES_ENDPOINT}`, { method: "GET" });
 }
 
 export async function getAssistantCapabilities(planKey: string): Promise<ToolPermission[]> {

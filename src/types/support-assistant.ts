@@ -170,6 +170,7 @@ export interface Plan {
   isActive: boolean;
   isDefault: boolean;
   enabledFeatures: string[];
+  enabledCapabilities: string[];
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -182,5 +183,84 @@ export interface PlanInput {
   isActive?: boolean;
   isDefault?: boolean;
   enabledFeatures?: string[];
+  enabledCapabilities?: string[];
   sortOrder?: number;
+}
+
+export type CapabilityDependencyType =
+  | "OBLIGATORIA"
+  | "FUNCIONAL"
+  | "TECNICA"
+  | "CONFIGURACION";
+
+export type CapabilityStatus = "ACTIVE" | "POR_CONFIRMAR";
+
+export type CapabilityKind =
+  | "VISUALIZACION"
+  | "BUSQUEDA"
+  | "CONSULTA"
+  | "CREACION"
+  | "EDICION"
+  | "ELIMINACION"
+  | "CAMBIO_ESTADO"
+  | "OPERACION_COMERCIAL"
+  | "DOCUMENTO"
+  | "COMUNICACION"
+  | "CONFIGURACION"
+  | "ANALISIS"
+  | "IA"
+  | "TECNICA"
+  | "ADMINISTRACION"
+  | "SEGURIDAD"
+  | "AUTENTICACION";
+
+export interface CapabilityDependency {
+  code: string;
+  type: CapabilityDependencyType;
+}
+
+export interface AppCapability {
+  _id: string;
+  module: string;
+  code: string;
+  name: string;
+  description: string;
+  kind: CapabilityKind;
+  configurableByPlan: boolean;
+  nonConfigurableReason?: string;
+  dependencies: CapabilityDependency[];
+  evidence: string;
+  status: CapabilityStatus;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CapabilityEffectivenessReason =
+  | "ok"
+  | "feature_disabled"
+  | "capability_disabled"
+  | "non_configurable";
+
+export interface CapabilityMatrixEntry {
+  code: string;
+  module: string;
+  name: string;
+  description: string;
+  kind: string;
+  configurableByPlan: boolean;
+  nonConfigurableReason?: string;
+  status: string;
+  dependencies: CapabilityDependency[];
+  evidence: string;
+  effective: boolean;
+  reason: CapabilityEffectivenessReason;
+}
+
+export interface PlanCapabilityMatrix {
+  planKey: string;
+  featureKeys: string[];
+  capabilityCodes: string[];
+  entries: CapabilityMatrixEntry[];
 }
