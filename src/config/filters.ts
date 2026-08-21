@@ -1,7 +1,7 @@
 import type {
   FilterFieldConfig,
   FilterOption,
-} from "../components/FilterPanel.js";
+} from "../components/filter-types.js";
 import { CURRENCY_OPTIONS } from "./options.js";
 
 export { CURRENCY_OPTIONS };
