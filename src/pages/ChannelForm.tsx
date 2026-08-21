@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import ColorPicker from "../components/ColorPicker.js";
 import FormField from "../components/FormField.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
@@ -26,7 +27,6 @@ import {
   isValidHexColor,
   POSITION_OPTIONS,
   publicChatUrl,
-  swatchColor,
   webhookUrlFor,
 } from "../lib/channels.js";
 import type {
@@ -528,77 +528,17 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                       error={colorError}
                       hint="Color del widget en el chat público. Déjalo vacío para usar el color por defecto."
                     >
-                      <div className="color-picker">
-                        <label
-                          className="color-picker__swatch"
-                          style={{
-                            background: swatchColor(form.widgetColor),
-                          }}
-                          title="Elegir color"
-                        >
-                          <input
-                            type="color"
-                            value={swatchColor(form.widgetColor)}
-                            onChange={(event) => {
-                              setField("widgetColor", event.target.value);
-                              setColorError("");
-                            }}
-                          />
-                        </label>
-
-                        <input
-                          id="channel-widget-color"
-                          className="color-picker__value"
-                          type="text"
-                          value={form.widgetColor}
-                          placeholder="#2563eb"
-                          spellCheck={false}
-                          autoComplete="off"
-                          onChange={(event) => {
-                            setField("widgetColor", event.target.value);
-                            setColorError("");
-                          }}
-                        />
-
-                        {form.widgetColor.trim() && (
-                          <button
-                            type="button"
-                            className="color-picker__clear"
-                            title="Quitar color personalizado"
-                            aria-label="Quitar color personalizado"
-                            onClick={() => {
-                              setField("widgetColor", "");
-                              setColorError("");
-                            }}
-                          >
-                            <Icon name="close" size={14} />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="color-picker__presets">
-                        {COLOR_PRESETS.map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            className={
-                              form.widgetColor.trim().toLowerCase() === preset
-                                ? "color-picker__preset color-picker__preset--active"
-                                : "color-picker__preset"
-                            }
-                            style={{
-                              background: preset,
-                            }}
-                            title={preset}
-                            aria-label={`Usar color ${preset}`}
-                            onClick={() => {
-                              setField("widgetColor", preset);
-                              setColorError("");
-                            }}
-                          />
-                        ))}
-                      </div>
-</FormField>
+                      <ColorPicker
+                      id="channel-widget-color"
+                      value={form.widgetColor}
+                      onChange={(value) => {
+                        setField("widgetColor", value);
+                        setColorError("");
+                      }}
+                      onClear={() => setField("widgetColor", "")}
+                      presets={COLOR_PRESETS}
+                      swatchTitle="Elegir color"
+                    /></FormField>
 
                     <Field
                       id="channel-widget-position"

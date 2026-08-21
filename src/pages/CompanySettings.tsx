@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ColorPicker from "../components/ColorPicker.js";
 import FormField from "../components/FormField.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
@@ -437,82 +438,24 @@ function CompanySettingsPanel() {
                     label="Color primario de marca"
                     hint="Personaliza el encabezado de las propuestas exportadas."
                   >
-                    <div className="color-picker">
-                      <label
-                        className="color-picker__swatch"
-                        style={{ background: swatchColor(branding.brandColor) }}
-                        title="Elegir color"
-                      >
-                        <input
-                          type="color"
-                          value={swatchColor(branding.brandColor)}
-                          onChange={(event) =>
-                            setBranding((current) => ({
-                              ...current,
-                              brandColor: event.target.value,
-                            }))
-                          }
-                        />
-                      </label>
-
-                      <input
-                        id="company-brand-color"
-                        className="color-picker__value"
-                        type="text"
-                        value={branding.brandColor}
-                        placeholder="#2563eb"
-                        spellCheck={false}
-                        autoComplete="off"
-                        onChange={(event) =>
-                          setBranding((current) => ({
-                            ...current,
-                            brandColor: event.target.value,
-                          }))
-                        }
-                      />
-
-                      {branding.brandColor.trim() && (
-                        <button
-                          type="button"
-                          className="color-picker__clear"
-                          title="Quitar color personalizado"
-                          aria-label="Quitar color personalizado"
-                          onClick={() =>
-                            setBranding((current) => ({
-                              ...current,
-                              brandColor: "",
-                            }))
-                          }
-                        >
-                          <Icon name="close" size={14} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="color-picker__presets">
-                      {COLOR_PRESETS.map((preset) => (
-                        <button
-                          key={preset}
-                          type="button"
-                          className={
-                            branding.brandColor.trim().toLowerCase() === preset
-                              ? "color-picker__preset color-picker__preset--active"
-                              : "color-picker__preset"
-                          }
-                          style={{ background: preset }}
-                          title={preset}
-                          aria-label={`Usar color ${preset}`}
-                          onClick={() =>
-                            setBranding((current) => ({
-                              ...current,
-                              brandColor: preset,
-                            }))
-                          }
-                        />
-                      ))}
-                    </div>
-
-                  </FormField>
+                    <ColorPicker
+                    id="company-brand-color"
+                    value={branding.brandColor}
+                    onChange={(value) =>
+                      setBranding((current) => ({
+                        ...current,
+                        brandColor: value,
+                      }))
+                    }
+                      onClear={() =>
+                        setBranding((current) => ({
+                          ...current,
+                          brandColor: "",
+                        }))
+                      }
+                      presets={COLOR_PRESETS}
+                      swatchTitle="Elegir color"
+                    /></FormField>
                 </div>
 
                 <div className="settings-card__grid">

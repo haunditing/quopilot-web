@@ -646,7 +646,7 @@ export default function AgentChat() {
         title="Nueva conversación"
         onClose={() => setModalOpen(false)}
       >
-        <div className="modal__form">
+        <div className="flex flex-col gap-[18px]">
           <Field
             id="chat-customer-search"
             label="Buscar cliente"

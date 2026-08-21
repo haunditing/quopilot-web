@@ -21,9 +21,7 @@ export default function FloatingPanel({
   const [open, setOpen] = useState(false);
 
   const positionClass =
-    position === "bottom-left"
-      ? "floating-panel--left"
-      : "floating-panel--right";
+    position === "bottom-left" ? "left-6 right-auto" : "";
 
   const label = open ? "Cerrar panel" : ariaLabel;
 
@@ -31,7 +29,7 @@ export default function FloatingPanel({
     <>
       <button
         type="button"
-        className={`floating-panel__fab ${positionClass}`}
+        className={"fixed bottom-6 right-6 z-60 inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent text-white shadow-card cursor-pointer transition-transform duration-150 hover:brightness-110 active:scale-95 " + positionClass}
         aria-label={label}
         aria-expanded={open}
         title={label}
@@ -42,11 +40,11 @@ export default function FloatingPanel({
 
       {open && (
         <div
-          className={`floating-panel ${positionClass}`}
+          className={"fixed bottom-24 right-6 z-60 flex flex-col w-[min(400px,calc(100vw-48px))] h-[min(600px,calc(100vh-140px))] rounded-2xl overflow-hidden bg-surface-card shadow-card " + positionClass}
           role="dialog"
           aria-label={ariaLabel}
         >
-          <div className="floating-panel__body">{children}</div>
+          <div className="flex flex-col flex-1 min-h-0">{children}</div>
         </div>
       )}
     </>

@@ -40,14 +40,16 @@ export default function ConfirmProvider({
           open
           title={options.title}
           onClose={() => settle(false)}
-          panelClassName="modal__panel--confirm"
+          size="confirm"
         >
-          <div className="confirm-dialog">
+          <div>
             {options.message && (
-              <p className="confirm-dialog__message">{options.message}</p>
+              <p className="mb-5 text-[15px] leading-normal [overflow-wrap:anywhere] text-ink-muted">
+              {options.message}
+            </p>
             )}
 
-            <div className="confirm-dialog__actions">
+            <div className="flex flex-row justify-end gap-2.5">
               <Button
                 variant="secondary"
                 icon="close"

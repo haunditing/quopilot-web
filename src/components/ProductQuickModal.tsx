@@ -120,7 +120,7 @@ export default function ProductQuickModal({
       onClose={onCancel}
       panelClassName="product-modal"
     >
-      <form className="modal__form" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-[18px]" onSubmit={handleSubmit}>
         {/* Selector de tipo */}
         <div
           className="product-modal__type"

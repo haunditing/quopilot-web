@@ -116,7 +116,7 @@ export default function ImageUploader({
           <div className="image-uploader__preview-actions">
             <button
               type="button"
-              className="button button--secondary button--small"
+              className="inline-flex items-center gap-2 min-h-[32px] px-3 py-1.5 text-[13px] rounded-md font-semibold border cursor-pointer transition-colors border-line bg-surface-card text-ink-strong hover:border-accent-border hover:bg-accent-soft hover:text-accent"
               onClick={() => inputRef.current?.click()}
             >
               <Icon name="upload" size={16} />
@@ -125,7 +125,7 @@ export default function ImageUploader({
 
             <button
               type="button"
-              className="button button--danger button--small"
+              className="inline-flex items-center gap-2 min-h-[32px] px-3 py-1.5 text-[13px] rounded-md font-semibold border cursor-pointer transition-colors border-red-200 bg-red-50 text-danger hover:bg-danger hover:text-white"
               onClick={() => onChange(undefined)}
             >
               Quitar

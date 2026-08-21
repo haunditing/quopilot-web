@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Color picker: resets webkit no expresables como utilidades */
+.color-picker-native::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker-native::-webkit-color-swatch {
+  border: none;
+}
+
 /* ============================================================
    CSS LEGADO (migración Strangler Fig → docs/tailwind-migration-plan.md)
    Las utilidades Tailwind van ARRIBA a propósito: mientras exista
@@ -162,11 +171,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-}
-
-.master-detail-sidebar__actions .button {
-  min-height: 44px;
-  justify-content: center;
 }
 
 @media (max-width: 860px) {
@@ -1155,70 +1159,6 @@ p {
   line-height: 1.5;
 }
 
-/* =========================================
-   MODAL (mobile-first: bottom sheet → centered)
-   ========================================= */
-
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.modal__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(8, 6, 13, 0.5);
-}
-
-.modal__panel {
-  position: relative;
-  inline-size: 100%;
-  max-block-size: 92svh;
-  overflow-y: auto;
-  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
-  background: var(--surface);
-  border-radius: 16px 16px 0 0;
-  animation: modal-slide-up 200ms ease;
-}
-
-.modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-block-end: 20px;
-}
-
-.modal__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 40px;
-  block-size: 40px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-h);
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.modal__close:hover {
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
-.modal__form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
 @keyframes modal-slide-up {
   from {
     transform: translateY(24px);
@@ -1228,46 +1168,6 @@ p {
   to {
     transform: translateY(0);
     opacity: 1;
-  }
-}
-
-.modal__panel--confirm {
-  max-inline-size: 440px;
-}
-
-.modal__panel--wide {
-  max-inline-size: 720px;
-  block-size: min(680px, 88svh);
-  display: flex;
-  flex-direction: column;
-}
-
-.modal__panel--wide .modal__body {
-  flex: 1;
-  min-block-size: 0;
-  overflow: hidden;
-  display: flex;
-}
-
-@media (min-width: 768px) {
-  .modal__panel--wide {
-    block-size: min(680px, 90svh);
-  }
-}
-
-@media (min-width: 768px) {
-  .modal {
-    align-items: center;
-    padding: 24px;
-  }
-
-  .modal__panel {
-    inline-size: 100%;
-    max-inline-size: 560px;
-    max-block-size: 90svh;
-    padding: 24px;
-    border-radius: 16px;
-    animation: none;
   }
 }
 
@@ -1708,112 +1608,6 @@ p {
   }
 }
 
-/* =========================================
-   COLOR PICKER
-   ========================================= */
-
-.color-picker {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.color-picker__swatch {
-  position: relative;
-  inline-size: 44px;
-  block-size: 44px;
-  flex-shrink: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  cursor: pointer;
-  overflow: hidden;
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.color-picker__swatch:hover,
-.color-picker__swatch:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-bg);
-}
-
-.color-picker__swatch input[type="color"] {
-  position: absolute;
-  inset: -6px;
-  inline-size: calc(100% + 12px);
-  block-size: calc(100% + 12px);
-  border: none;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.color-picker__swatch input[type="color"]::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.color-picker__swatch input[type="color"]::-webkit-color-swatch {
-  border: none;
-}
-
-.color-picker__value {
-  flex: 1;
-  min-inline-size: 0;
-  text-transform: lowercase;
-}
-
-.color-picker__clear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 32px;
-  block-size: 32px;
-  flex-shrink: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  transition:
-    border-color 150ms ease,
-    color 150ms ease;
-}
-
-.color-picker__clear:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.color-picker__presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-block-start: 10px;
-}
-
-.color-picker__preset {
-  inline-size: 24px;
-  block-size: 24px;
-  padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 6px;
-  cursor: pointer;
-  transition:
-    transform 120ms ease,
-    box-shadow 120ms ease;
-}
-
-.color-picker__preset:hover {
-  transform: scale(1.15);
-}
-
-.color-picker__preset--active {
-  box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--accent);
-}
-
 .password-strength__bar {
   display: flex;
   gap: 4px;
@@ -1830,66 +1624,6 @@ p {
 .password-strength__label {
   font-size: 12px;
   color: var(--text);
-}
-
-/* =========================================
-   BUTTON (reusable, mobile-first)
-   ========================================= */
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-block-size: 44px;
-  padding: 10px 16px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease,
-    opacity 150ms ease;
-}
-
-.button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.button--secondary {
-  border-color: var(--border);
-  background: var(--surface);
-  color: var(--text-h);
-}
-
-.button--secondary:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
-.button--danger {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.button--danger:hover {
-  background: #dc2626;
-  color: #ffffff;
-}
-
-.button--icon {
-  flex: 0 0 auto;
-  inline-size: 44px;
-  padding: 0;
 }
 
 .button__spinner,
@@ -2038,25 +1772,6 @@ p {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* =========================================
-   CONFIRM DIALOG
-   ========================================= */
-
-.confirm-dialog__message {
-  margin-block-end: 20px;
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-.confirm-dialog__actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  gap: 10px;
 }
 
 /* =========================================
@@ -3304,7 +3019,6 @@ p {
   gap: 14px;
 }
 
-
 .public-chat__form-submit {
   inline-size: 100%;
   justify-content: center;
@@ -4270,64 +3984,6 @@ p {
 }
 
 /* =========================================
-   FLOATING PANEL
-   ========================================= */
-
-.floating-panel__fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 60;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border: none;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #ffffff;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease;
-}
-
-.floating-panel__fab:hover {
-  filter: brightness(1.12);
-}
-
-.floating-panel__fab:active {
-  transform: scale(0.96);
-}
-
-.floating-panel {
-  position: fixed;
-  bottom: 96px;
-  right: 24px;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  width: min(400px, calc(100vw - 48px));
-  height: min(600px, calc(100vh - 140px));
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.floating-panel--left {
-  right: auto;
-  left: 24px;
-}
-
-.floating-panel__body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-/* =========================================
    CHANNELS
    ========================================= */
 
@@ -4348,24 +4004,6 @@ p {
   align-items: center;
   gap: 8px;
   margin-left: auto;
-}
-
-.channel-webhook__actions .button {
-  min-height: 36px;
-  padding: 6px 14px;
-  font-size: 13px;
-}
-
-@media (max-width: 480px) {
-  .channel-webhook__actions {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .channel-webhook__actions .button {
-    flex: 1;
-    justify-content: center;
-  }
 }
 
 .channel-webhook--modal {
@@ -4416,7 +4054,6 @@ p {
   flex-direction: column;
   gap: 24px;
 }
-
 
 .channel-form__panel {
   position: sticky;
@@ -6117,17 +5754,6 @@ input[type="number"] {
 }
 
 /* =========================================
-   BUTTON - SMALL
-   ========================================= */
-
-.button--small {
-  min-height: 32px;
-  padding: 6px 12px;
-  font-size: 13px;
-  border-radius: 6px;
-}
-
-/* =========================================
    IMAGE UPLOADER
    ========================================= */
 
@@ -6878,32 +6504,6 @@ input[type="number"] {
   font-size: 12px;
   color: var(--text);
   margin-block-start: 4px;
-}
-
-/* =========================================
-   SALE DETAIL
-   ========================================= */
-
-.sale-card__label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.sale-card__value {
-  display: block;
-  color: var(--text-h);
-  font-size: 14px;
-}
-
-@media (max-width: 860px) {
-}
-
-@media (max-width: 520px) {
 }
 
 /* =========================================
