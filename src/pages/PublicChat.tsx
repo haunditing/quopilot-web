@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { CSSProperties, FormEvent } from "react";
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
-import PageState from "../components/PageState.js";
 import {
   closePublicChat,
   getPublicChatConfig,
@@ -853,18 +852,13 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             )}
           </header>
           <>
-            {loading ? (
-              <LoadingOverlay
-                title="Cargando conversación..."
-                message="Esto puede tomar unos segundos"
-              />
-            ) : loadError ? (
-              <PageState
-                kind="error"
-                title="No fue posible cargar"
-                message={loadError}
-              />
-            ) : (
+            <AsyncBoundary
+              loading={loading}
+              error={loadError}
+              loadingLabel="Cargando conversación..."
+              loadingMessage="Esto puede tomar unos segundos"
+              errorTitle="No fue posible cargar"
+            >
               <div className="public-chat__messages">
                 {messages.length === 0 && !sending ? (
                   <p className="public-chat__empty">
@@ -956,7 +950,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
 
                 <div ref={threadEndRef} />
               </div>
-            )}
+            </AsyncBoundary>
 
             {closed && (
               <div className="public-chat__closed" role="status">

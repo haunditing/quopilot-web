@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import Button from "../components/Button.js";
-import EmptyState from "../components/EmptyState.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import Modal from "../components/Modal.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import StatusBadge from "../components/StatusBadge.js";
 import { useToast } from "../hooks/useToast.js";
 import { getUser } from "../services/auth-storage.js";
@@ -461,25 +460,18 @@ export default function AgentChat() {
             ))}
           </div>
 
-          {listLoading ? (
-            <LoadingOverlay
-              title="Cargando conversaciones..."
-              message="Esto puede tomar unos segundos"
-            />
-          ) : listError ? (
-            <PageState
-              kind="error"
-              title="No fue posible cargar"
-              message={listError}
-            />
-          ) : !conversations || conversations.length === 0 ? (
-            <EmptyState
-              title="No hay conversaciones"
-              message="Abre una conversación para empezar a probar al agente"
-            />
-          ) : (
+          <AsyncBoundary
+            loading={listLoading}
+            error={listError}
+            empty={!conversations || conversations.length === 0}
+            loadingLabel="Cargando conversaciones..."
+            loadingMessage="Esto puede tomar unos segundos"
+            errorTitle="No fue posible cargar"
+            emptyTitle="No hay conversaciones"
+            emptyMessage="Abre una conversación para empezar a probar al agente"
+          >
             <div className="agent-chat__items">
-              {conversations.map((conversation) => (
+              {(conversations ?? []).map((conversation) => (
                 <button
                   key={conversation._id}
                   type="button"
@@ -513,7 +505,7 @@ export default function AgentChat() {
                 </button>
               ))}
             </div>
-          )}
+          </AsyncBoundary>
         </aside>
 
         <section className="agent-chat__thread">

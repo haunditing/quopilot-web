@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { LoadingGlyph } from "./Loading.js";
 import { getProducts } from "../services/product-service.js";
 import { formatCurrency } from "../lib/format.js";
 import type { Product } from "../types/product.js";
@@ -25,8 +26,11 @@ export default function ProductSearch({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchSequenceRef = useRef(0);
 
   const searchProducts = useCallback(async (search: string) => {
+    const requestId = ++searchSequenceRef.current;
+
     if (search.trim().length < MIN_QUERY_LENGTH) {
       setResults([]);
       setNoResults(false);
@@ -44,16 +48,25 @@ export default function ProductSearch({
         status: "ACTIVE",
       });
 
+      if (requestId !== searchSequenceRef.current) {
+        return; // llegó una respuesta obsoleta: ignorar
+      }
+
       setResults(response.data);
       setNoResults(response.data.length === 0);
       setOpen(true);
       setActiveIndex(-1);
     } catch {
+      if (requestId !== searchSequenceRef.current) {
+        return;
+      }
       setResults([]);
       setNoResults(true);
       setOpen(true);
     } finally {
-      setLoading(false);
+      if (requestId === searchSequenceRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -155,7 +168,7 @@ export default function ProductSearch({
       />
 
       {loading && (
-        <span className="product-search__spinner" aria-hidden="true" />
+        <LoadingGlyph size="sm" className="product-search__spinner" />
       )}
 
       {open && (

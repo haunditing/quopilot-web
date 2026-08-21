@@ -1,6 +1,6 @@
 import Icon from "./Icon.js";
 import type { IconName } from "./Icon.js";
-import Spinner from "./Spinner.js";
+import { LoadingGlyph } from "./Loading.js";
 
 export interface EntityAction {
   icon?: IconName;
@@ -53,7 +53,7 @@ export default function CardActions({ actions }: CardActionsProps) {
             disabled={action.busy || action.disabled}
           >
             {action.busy ? (
-              <Spinner size="xs" className="entity-card__action-spinner" />
+              <LoadingGlyph size="xs" className="entity-card__action-spinner" />
             ) : (
               action.icon && <Icon name={action.icon} size={18} />
             )}

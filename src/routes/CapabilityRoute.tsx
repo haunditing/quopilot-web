@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import type { CapabilityDomain } from "../services/me-capabilities-service.js";
 import { useCapabilities } from "../hooks/useCapabilities.js";
+import LoadingOverlay from "../components/LoadingOverlay.js";
 
 interface CapabilityRouteProps {
   requireAny?: string[];
@@ -25,11 +26,7 @@ export default function CapabilityRoute({
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Cargando…
-      </div>
-    );
+    return <LoadingOverlay title="Verificando acceso…" />;
   }
 
   const domainOk =

@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import Button from "./Button.js";
 import FormMessage from "./FormMessage.js";
 import Icon from "./Icon.js";
+import Loading from "./Loading.js";
 import {
   AGENT_ASSISTANT_ENDPOINT,
   getAssistantMessages,
@@ -248,7 +249,7 @@ export default function AssistantChat({
 
       {loading ? (
         <div className="assistant-chat__state">
-          <p>Cargando conversación...</p>
+          <Loading variant="inline" label="Cargando conversación…" />
         </div>
       ) : loadError ? (
         <div className="assistant-chat__state">

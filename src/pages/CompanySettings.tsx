@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import Combobox from "../components/Combobox.js";
@@ -7,9 +8,7 @@ import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import ImageUploader from "../components/ImageUploader.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
-import PageState from "../components/PageState.js";
 import SettingsTabs from "../components/SettingsTabs.js";
 import {
   AGENT_TONE_OPTIONS,
@@ -24,7 +23,6 @@ import {
   updateCurrentTenant,
 } from "../services/tenant-service.js";
 import type { Tenant } from "../types/tenant.js";
-import EmptyState from "../components/EmptyState.js";
 
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -346,23 +344,16 @@ function CompanySettingsPanel() {
         description="Centraliza la identidad legal, el branding y las preferencias de tu empresa"
       />
       <SettingsTabs />
-      {loading ? (
-        <LoadingOverlay
-          title="Cargando configuración del agente..."
-          message="Esto puede tomar unos segundos"
-        />
-      ) : loadError ? (
-        <PageState
-          kind="error"
-          title="No fue posible cargar"
-          message={loadError}
-        />
-      ) : !tenant ? (
-        <EmptyState
-          title="No hay canales"
-          message="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
-        ></EmptyState>
-      ) : (
+      <AsyncBoundary
+        loading={loading}
+        error={loadError}
+        empty={!tenant}
+        loadingLabel="Cargando configuración..."
+        loadingMessage="Esto puede tomar unos segundos"
+        errorTitle="No fue posible cargar"
+        emptyTitle="No hay datos de empresa"
+        emptyMessage="No se encontró información del tenant para editar"
+      >
         <div className="master-detail__body">
           <div className="master-detail__main">
             {/* Sección 1: Identificación legal y fiscal (solo lectura) */}
@@ -1002,7 +993,7 @@ function CompanySettingsPanel() {
             </div>
           </aside>
         </div>
-      )}
+      </AsyncBoundary>
     </main>
   );
 }

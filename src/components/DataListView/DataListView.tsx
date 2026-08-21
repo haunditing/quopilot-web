@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import Loading from "../Loading.js";
 import {
   Search,
   Filter,
@@ -262,7 +263,7 @@ export default function DataListView<T extends object>({
               {loading ? (
                 <tr>
                   <td colSpan={columns.length} className="state-cell">
-                    Cargando...
+                    <Loading variant="inline" label="Cargando…" />
                   </td>
                 </tr>
               ) : paginatedItems.length === 0 ? (
@@ -301,7 +302,9 @@ export default function DataListView<T extends object>({
         {/* Vista móvil: lista vertical tipo inbox */}
         <div className="data-list-mobile">
           {loading ? (
-            <div className="data-list-mobile__state">Cargando...</div>
+            <div className="data-list-mobile__state">
+              <Loading variant="inline" label="Cargando…" />
+            </div>
           ) : paginatedItems.length === 0 ? (
             <div className="data-list-mobile__state">{emptyState}</div>
           ) : (

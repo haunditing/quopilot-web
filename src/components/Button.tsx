@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import Icon from "./Icon.js";
 import type { IconName } from "./Icon.js";
-import Spinner from "./Spinner.js";
+import { LoadingGlyph } from "./Loading.js";
 
 export type ButtonVariant = "primary" | "secondary" | "danger";
 
@@ -45,7 +45,7 @@ export default function Button({
       title={props.title ?? iconOnlyLabel}
     >
       {loading ? (
-        <Spinner size="xs" className="button__spinner" />
+        <LoadingGlyph size="xs" className="button__spinner" />
       ) : (
         icon && <Icon name={icon} size={18} />
       )}

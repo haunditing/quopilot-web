@@ -1,6 +1,5 @@
 import DashboardRenderer from "../components/dashboard/DashboardRenderer.js";
-import EmptyState from "../components/EmptyState.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import PageState from "../components/PageState.js";
 import { createAgentDashboard } from "../config/agent-dashboard.js";
 import { createSuperAdminDashboard } from "../config/super-admin-dashboard.js";
@@ -24,21 +23,18 @@ function DashboardView<T>({ fetcher, buildConfig }: DashboardViewProps<T>) {
 
   return (
     <main>
-      {loading ? (
-        <LoadingOverlay
-          title="Cargando panel administrativo..."
-          message="Esto puede tomar unos segundos"
-        />
-      ) : error ? (
-        <PageState kind="error" title="No fue posible cargar" message={error} />
-      ) : !data ? (
-        <EmptyState
-          title="No hay datos"
-          message="Todavía no existen datos para mostrar con los filtros actuales."
-        />
-      ) : (
-        <DashboardRenderer config={buildConfig(data)} />
-      )}
+      <AsyncBoundary
+        loading={loading}
+        error={error}
+        empty={!data}
+        loadingLabel="Cargando panel administrativo..."
+        loadingMessage="Esto puede tomar unos segundos"
+        errorTitle="No fue posible cargar"
+        emptyTitle="No hay datos"
+        emptyMessage="Todavía no existen datos para mostrar con los filtros actuales."
+      >
+        {data ? <DashboardRenderer config={buildConfig(data)} /> : null}
+      </AsyncBoundary>
     </main>
   );
 }
