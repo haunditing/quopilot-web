@@ -10,8 +10,8 @@ import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import {
   createCustomer,
   getCustomer,
@@ -113,7 +113,8 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  const canEdit = can(getUserRole(), "customers", "update");
+  const { hasCapability } = useCapabilities();
+  const canEdit = hasCapability("customers.update");
 
   useEffect(() => {
     if (!customerId) {

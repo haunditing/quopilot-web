@@ -16,8 +16,8 @@ import { useConfirm } from "../hooks/useConfirm.js";
 import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDate } from "../lib/format.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { getCustomers } from "../services/customer-service.js";
 import { getProducts } from "../services/product-service.js";
 import {
@@ -69,9 +69,9 @@ export default function Sales() {
   const toast = useToast();
   const { confirm } = useConfirm();
 
-  const role = getUserRole();
-  const canView = can(role, "sales", "view");
-  const canDelete = can(role, "sales", "delete");
+  const { hasCapability } = useCapabilities();
+  const canView = hasCapability("sales.view");
+  const canDelete = hasCapability("sales.delete");
 
   const handleCancel = useCallback(
     async (sale: Sale) => {

@@ -16,8 +16,8 @@ import { useConfirm } from "../hooks/useConfirm.js";
 import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDate } from "../lib/format.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { getCustomers } from "../services/customer-service.js";
 import {
   acceptQuote,
@@ -78,12 +78,12 @@ export default function Quotes() {
     };
   }, []);
 
-  const role = getUserRole();
-  const canView = can(role, "quotes", "view");
-  const canCreate = can(role, "quotes", "create");
-  const canEdit = can(role, "quotes", "update");
-  const canSend = can(role, "quotes", "send");
-  const canAccept = can(role, "quotes", "accept");
+  const { hasCapability } = useCapabilities();
+  const canView = hasCapability("quotes.view");
+  const canCreate = hasCapability("quotes.create");
+  const canEdit = hasCapability("quotes.update");
+  const canSend = hasCapability("quotes.send");
+  const canAccept = hasCapability("quotes.accept");
 
   const runQuoteAction = useCallback(
     async (

@@ -94,6 +94,7 @@ const navigationGroups: NavigationGroup[] = [
         label: "Empresa",
         icon: "settings",
         roles: ["TENANT_ADMIN"],
+        requiredCapability: "tenants.updateMe",
       },
     ],
   },

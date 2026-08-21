@@ -10,8 +10,8 @@ import { USER_STATUS_OPTIONS } from "../config/filters.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import {
   deleteUser,
   getUsers,
@@ -63,11 +63,11 @@ export default function Users() {
     status: "",
   });
 
-  const role = getUserRole();
-  const canCreate = can(role, "users", "create");
-  const canChangeStatus = can(role, "users", "changeStatus");
-  const canEdit = can(role, "users", "update");
-  const canDelete = can(role, "users", "delete");
+  const { hasCapability } = useCapabilities();
+  const canCreate = hasCapability("users.create");
+  const canChangeStatus = hasCapability("users.changeStatus");
+  const canEdit = hasCapability("users.update");
+  const canDelete = hasCapability("users.delete");
 
   const toast = useToast();
   const { confirm } = useConfirm();

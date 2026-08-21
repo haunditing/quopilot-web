@@ -8,8 +8,8 @@ import PageState from "../components/PageState.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { deleteCustomer, getCustomers } from "../services/customer-service.js";
 import type { Customer } from "../types/customer.js";
 import type {
@@ -42,10 +42,10 @@ export default function Customers() {
     country: "",
   });
 
-  const role = getUserRole();
-  const canCreate = can(role, "customers", "create");
-  const canEdit = can(role, "customers", "update");
-  const canDelete = can(role, "customers", "delete");
+  const { hasCapability } = useCapabilities();
+  const canCreate = hasCapability("customers.create");
+  const canEdit = hasCapability("customers.update");
+  const canDelete = hasCapability("customers.delete");
 
   const toast = useToast();
   const { confirm } = useConfirm();

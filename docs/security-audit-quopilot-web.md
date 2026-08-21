@@ -71,8 +71,8 @@ Coexistían el nuevo modelo rol∩plan (`GET /api/me/capabilities`) con la matri
 - Paridad servidor: cada endpoint sensible re-valida con `authorize()`, `requireCapability()`, límites de uso y motor de entitlements (plan∩rol∩dominio).
 - `PublicChat` público por diseño con rate-limits en backend.
 
-## Fase 2 (pendiente, no bloqueante)
+## Fase 2 (estado: ✅ aplicada 2026-08-21)
 
-1. Migrar los `can()` de páginas individuales (`CustomerDetail`, `Channels`, etc.) desde `permissions.ts` hacia `useCapabilities`.
-2. Considerar refresh tokens o cookies httpOnly para reducir superficie XSS del JWT.
-3. Registrar intentos no autorizados (telemetría ligera en `/unauthorized`).
+1. **Migración de `can()` a `useCapabilities`**: los 11 archivos consumidores (`DocumentDetailForm`, `QuoteForm`, `SaleForm`, `Channels`, `Customers`, `CustomerDetail`, `Products`, `ProductDetail`, `Quotes`, `Sales`, `Users`) ahora usan capacidades rol∩plan del backend. `lib/permissions.ts` **eliminado** del código.
+2. **Tokens (JWT en localStorage) — evaluado, diferido**: migrar a cookies httpOnly + refresh tokens exige cambios coordinados en `quopilot-api` (CORS con credenciales, endpoints refresh, CSRF), `quopilot-web` y `quopilot-web-admin`. Riesgo/beneficio no justifica hacerlo sin un diseño dedicado; mitigación actual: interceptor 401 global + ausencia de mocks. Recomendado como proyecto independiente.
+3. **Telemetría de accesos denegados**: `CapabilityRoute` registra `{route, at, role, required}` vía `console.warn` + `localStorage["last-denied-access"]` antes de redirigir a `/unauthorized`. Paridad aplicada en el guard de `quopilot-web-admin`.

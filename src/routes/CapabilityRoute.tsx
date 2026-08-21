@@ -41,6 +41,18 @@ export default function CapabilityRoute({
   const allOk = !requireAll || requireAll.every((c) => hasCapability(c));
 
   if (!domainOk || !anyOk || !allOk) {
+    // Telemetría ligera de autorización: evidencia para soporte/auditoría.
+    const denied = {
+      route: location.pathname,
+      at: new Date().toISOString(),
+      required: { any: requireAny, all: requireAll, domains: requireDomains },
+    };
+    console.warn("[Authz] Acceso denegado:", denied);
+    try {
+      localStorage.setItem("last-denied-access", JSON.stringify(denied));
+    } catch {
+      // almacenamiento no disponible: ignorar
+    }
     return (
       <Navigate to="/unauthorized" replace state={{ from: location.pathname }} />
     );

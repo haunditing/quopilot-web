@@ -17,9 +17,9 @@ import {
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
 import { TYPE_LABELS, publicChatUrl, webhookUrlFor } from "../lib/channels.js";
-import { getUser, getUserRole } from "../services/auth-storage.js";
+import { getUser,} from "../services/auth-storage.js";
 import {
   deleteChannel,
   getChannels,
@@ -56,12 +56,12 @@ export default function Channels() {
     status: "",
   });
 
-  const role = getUserRole();
+  const { hasCapability } = useCapabilities();
   const tenantId = getUser()?.tenantId;
-  const canCreate = can(role, "channels", "create");
-  const canChangeStatus = can(role, "channels", "changeStatus");
-  const canEdit = can(role, "channels", "update");
-  const canDelete = can(role, "channels", "delete");
+  const canCreate = hasCapability("channels.create");
+  const canChangeStatus = hasCapability("channels.changeStatus");
+  const canEdit = hasCapability("channels.update");
+  const canDelete = hasCapability("channels.delete");
 
   const toast = useToast();
   const { confirm } = useConfirm();

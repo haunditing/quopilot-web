@@ -8,8 +8,8 @@ import type {
 import { useConfirm } from "../hooks/useConfirm.js";
 import { usePdfDownload } from "../hooks/usePdfDownload.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { getQuoteDetail } from "../services/quote-detail-service.js";
 import {
   acceptQuote,
@@ -44,7 +44,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   const toast = useToast();
   const { confirm } = useConfirm();
   const { downloadingId, downloadQuote } = usePdfDownload();
-  const role = getUserRole();
+  const { hasCapability } = useCapabilities();
 
   // Adapta la respuesta del backend al tipo genérico esperado por el Form
   async function fetchDetailAdapter(
@@ -113,7 +113,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     }
 
     // Acción: Enviar Cotización
-    if (can(role, "quotes", "send") && quote.status === "DRAFT") {
+    if (hasCapability("quotes.send") && quote.status === "DRAFT") {
       actions.push({
         icon: "send",
         ariaLabel: "Enviar",
@@ -139,7 +139,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
 
     // Acción: Aceptar Cotización
     if (
-      can(role, "quotes", "accept") &&
+      hasCapability("quotes.accept") &&
       (quote.status === "SENT" || quote.status === "VIEWED")
     ) {
       actions.push({

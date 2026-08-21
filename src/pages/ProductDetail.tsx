@@ -18,8 +18,8 @@ import {
   WAREHOUSE_OPTIONS,
 } from "../config/product-options.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { formatCurrency, formatPercentage } from "../lib/format.js";
 import {
   createProduct,
@@ -176,7 +176,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [copilotLoading, setCopilotLoading] = useState(false);
   const [copilotNotice, setCopilotNotice] = useState("");
 
-  const canEdit = can(getUserRole(), "products", "update");
+  const { hasCapability } = useCapabilities();
+  const canEdit = hasCapability("products.update");
 
   useEffect(() => {
     if (!productId) {

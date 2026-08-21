@@ -12,8 +12,8 @@ import ProductSearch from "./ProductSearch.js";
 import { useAsyncData } from "../hooks/useAsyncData.js";
 import { useToast } from "../hooks/useToast.js";
 import { formatCurrency, formatDateTime } from "../lib/format.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { getCustomers } from "../services/customer-service.js";
 import { getCurrentTenant } from "../services/tenant-service.js";
 import type { Customer } from "../types/customer.js";
@@ -231,7 +231,7 @@ function DocumentDetailFormContent({
 
   const isEdit = mode === "edit" && Boolean(documentId);
   const readOnly = Boolean(isEdit && doc && doc.status !== "DRAFT");
-  const role = getUserRole();
+  const { hasCapability } = useCapabilities();
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loadingCustomers, setLoadingCustomers] = useState(true);
@@ -448,7 +448,7 @@ function DocumentDetailFormContent({
     actions.push(...(extra as EntityAction[]));
   }
 
-  if (!readOnly && (isEdit ? can(role, documentTypeKey, "update") : true)) {
+  if (!readOnly && (isEdit ? hasCapability(`${documentTypeKey}.update`) : true)) {
     actions.push({
       icon: "check",
       ariaLabel: saving
@@ -847,7 +847,7 @@ export default function DocumentDetailForm(props: DocumentDetailProps) {
     fetchNextNumber,
   } = props;
   const isEdit = mode === "edit" && Boolean(documentId);
-  const role = getUserRole();
+  const { hasCapability } = useCapabilities();
 
   const [nextNumber, setNextNumber] = useState("DOC-000001");
 
@@ -880,7 +880,7 @@ export default function DocumentDetailForm(props: DocumentDetailProps) {
     };
   }, [isEdit, fetchNextNumber]);
 
-  if (!isEdit && !can(role, documentTypeKey, "create")) {
+  if (!isEdit && !hasCapability(`${documentTypeKey}.create`)) {
     return (
       <PageState
         kind="error"

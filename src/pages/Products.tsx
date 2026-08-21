@@ -12,8 +12,8 @@ import { PRODUCT_CATEGORY_OPTIONS } from "../config/product-options.js";
 import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
-import { can } from "../lib/permissions.js";
-import { getUserRole } from "../services/auth-storage.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
+import {} from "../services/auth-storage.js";
 import { formatCurrency } from "../lib/format.js";
 import {
   createProduct,
@@ -60,10 +60,10 @@ export default function Products() {
     category: "",
   });
 
-  const role = getUserRole();
-  const canCreate = can(role, "products", "create");
-  const canChangeStatus = can(role, "products", "changeStatus");
-  const canDelete = can(role, "products", "delete");
+  const { hasCapability } = useCapabilities();
+  const canCreate = hasCapability("products.create");
+  const canChangeStatus = hasCapability("products.changeStatus");
+  const canDelete = hasCapability("products.delete");
 
   const toast = useToast();
   const { confirm } = useConfirm();
