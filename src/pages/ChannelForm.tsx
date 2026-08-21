@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import MaskedValue from "../components/MaskedValue.js";
 import PageHeader from "../components/PageHeader.js";
-import PageState from "../components/PageState.js";
 import SettingsTabs from "../components/SettingsTabs.js";
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
@@ -342,21 +341,11 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
     }
   }
 
-  if (loading) {
+  if (loading || loadError) {
     return (
       <main className="master-detail">
-        <LoadingOverlay title="Cargando canal..." />
+        <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando canal..." />
       </main>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <PageState
-        kind="error"
-        title="No fue posible cargar"
-        message={loadError}
-      />
     );
   }
 

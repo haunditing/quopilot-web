@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronDown, ChevronUp, Info, Search } from "lucide-react";
@@ -6,9 +7,7 @@ import { Check, ChevronDown, ChevronUp, Info, Search } from "lucide-react";
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
-import PageState from "../components/PageState.js";
 import { useToast } from "../hooks/useToast.js";
 import { useCapabilities } from "../hooks/useCapabilities.js";
 import {} from "../services/auth-storage.js";
@@ -253,21 +252,11 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
     }
   }
 
-  if (loading) {
+  if (loading || loadError) {
     return (
       <main className="master-detail">
-        <LoadingOverlay title="Cargando contacto..." />
+        <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando contacto..." />
       </main>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <PageState
-        kind="error"
-        title="No fue posible cargar"
-        message={loadError}
-      />
     );
   }
 

@@ -33,7 +33,7 @@ export interface AsyncBoundaryProps {
   emptyMessage?: string;
   /** Acción opcional "Reintentar" mostrada en el estado de error. */
   onRetry?: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export default function AsyncBoundary({

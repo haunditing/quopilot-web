@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
-import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
-import PageState from "../components/PageState.js";
 import PasswordStrength from "../components/PasswordStrength.js";
 import SettingsTabs from "../components/SettingsTabs.js";
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
@@ -168,21 +167,11 @@ export default function UserForm({ userId }: UserFormProps) {
     }
   }
 
-  if (loading) {
+  if (loading || loadError) {
     return (
       <main className="master-detail">
-        <LoadingOverlay title="Cargando usuario..." />
+        <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando usuario..." />
       </main>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <PageState
-        kind="error"
-        title="No fue posible cargar"
-        message={loadError}
-      />
     );
   }
 
