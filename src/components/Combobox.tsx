@@ -115,30 +115,30 @@ export default function Combobox({
   }
 
   return (
-    <div ref={containerRef} className="combobox" data-open={open}>
+    <div ref={containerRef} className="relative" data-open={open}>
       <button
         id={id}
         type="button"
-        className="combobox__trigger"
+        className={`flex items-center justify-between gap-2.5 w-full min-h-[44px] px-3 py-2.5 rounded-lg border bg-surface-card text-ink-strong text-left cursor-pointer transition-[border-color,box-shadow] duration-150 hover:border-accent-border focus-visible:outline-none focus-visible:border-accent focus-visible:shadow-[0_0_0_3px_var(--accent-bg)]`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : openCombobox())}
       >
-        <span className="combobox__trigger-main">
+        <span className="flex items-center gap-2 min-w-0">
           {selected?.icon && (
-            <Icon name={selected.icon} size={16} className="combobox__option-icon" />
+            <Icon name={selected.icon} size={16} className="shrink-0 text-ink-muted" />
           )}
 
           <span
-            className={
-              selected ? "combobox__value" : "combobox__placeholder"
-            }
+            className={`overflow-hidden text-ellipsis whitespace-nowrap ${
+              selected ? "" : "text-ink-muted"
+            }`}
           >
             {selected?.label ?? placeholder}
           </span>
         </span>
 
-        <Icon name="chevron-down" size={16} className="combobox__chevron" />
+        <Icon name="chevron-down" size={16} className={`shrink-0 text-ink-muted transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {required && (
@@ -153,13 +153,14 @@ export default function Combobox({
       )}
 
       {open && (
-        <div className="combobox__panel" role="listbox">
-          <div className="combobox__search">
+        <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-30 rounded-xl border border-line bg-surface-card shadow-card overflow-hidden" role="listbox">
+          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-line text-ink-muted">
             <Icon name="search" size={16} />
 
             <input
               ref={searchRef}
               type="text"
+              className="flex-1 min-w-0 border-none outline-none bg-transparent text-sm text-ink-strong placeholder:text-ink-muted"
               value={query}
               placeholder={searchPlaceholder}
               autoComplete="off"
@@ -172,9 +173,11 @@ export default function Combobox({
             />
           </div>
 
-          <ul className="combobox__list">
+          <ul className="max-h-60 overflow-y-auto list-none m-0 p-1">
             {filtered.length === 0 ? (
-              <li className="combobox__empty">Sin resultados</li>
+              <li className="p-3 text-sm text-center text-ink-muted">
+                Sin resultados
+              </li>
             ) : (
               filtered.map((option, index) => {
                 const isSelected = option.value === value;
@@ -182,19 +185,19 @@ export default function Combobox({
                 return (
                   <li
                     key={option.value}
-                    className={
+                    className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-md text-sm cursor-pointer ${
                       index === activeIndex
-                        ? "combobox__option combobox__option--active"
-                        : "combobox__option"
-                    }
+                        ? "bg-accent-soft text-accent"
+                        : "text-ink-strong"
+                    }`}
                     role="option"
                     aria-selected={isSelected}
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => selectOption(option)}
                   >
-                    <span className="combobox__option-main">
+                    <span className="flex items-center gap-2 min-w-0">
                       {option.icon && (
-                        <Icon name={option.icon} size={16} className="combobox__option-icon" />
+                        <Icon name={option.icon} size={16} className="shrink-0 text-ink-muted" />
                       )}
 
                       <span>{option.label}</span>

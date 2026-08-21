@@ -102,18 +102,22 @@ export default function ImageUploader({
   const hasValue = Boolean(value);
 
   return (
-    <div className="image-uploader">
-      <span className="image-uploader__label">{label}</span>
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-semibold text-ink-strong">{label}</span>
 
       {hasValue ? (
-        <div className="image-uploader__preview">
+        <div className="flex items-center gap-4">
           <img
-            className={round ? "image-uploader__img image-uploader__img--round" : "image-uploader__img"}
+            className={
+            round
+              ? "w-14 h-14 rounded-full object-contain p-2 border border-line rounded-lg bg-surface-card"
+              : "w-20 h-14 object-contain p-2 border border-line rounded-lg bg-surface-card"
+          }
             src={value}
             alt={label}
           />
 
-          <div className="image-uploader__preview-actions">
+          <div className="flex gap-2">
             <button
               type="button"
               className="inline-flex items-center gap-2 min-h-[32px] px-3 py-1.5 text-[13px] rounded-md font-semibold border cursor-pointer transition-colors border-line bg-surface-card text-ink-strong hover:border-accent-border hover:bg-accent-soft hover:text-accent"
@@ -134,11 +138,11 @@ export default function ImageUploader({
         </div>
       ) : (
         <div
-          className={
+          className={`flex flex-col items-center justify-center gap-2.5 min-h-[120px] p-4 rounded-lg border-[1.5px] bg-surface-card text-center cursor-pointer transition-colors duration-150 ${
             dragging
-              ? "image-uploader__drop image-uploader__drop--dragging"
-              : "image-uploader__drop"
-          }
+              ? "border-accent bg-accent-soft text-accent"
+              : "border-line hover:border-accent hover:bg-accent-soft hover:text-accent"
+          }`}
           onClick={() => inputRef.current?.click()}
           onDragOver={(event) => {
             event.preventDefault();

@@ -80,18 +80,20 @@ function ToastItem({
 
   return (
     <div
-      className={`toast toast--${toast.kind}`}
+      className="fixed top-3 left-1/2 -translate-x-1/2 z-60 flex flex-col gap-2.5 w-[calc(100%-24px)] max-w-[420px] pointer-events-none"
       role={toast.kind === "error" ? "alert" : "status"}
     >
-      <span className="toast__icon">
+      <span className="inline-flex items-center justify-center shrink-0 w-7 h-7 rounded-lg">
         <Icon name={toastIcons[toast.kind]} size={18} />
       </span>
 
-      <p className="toast__message">{toast.message}</p>
+      <p className="flex-1 text-sm leading-[1.45] text-ink-strong [overflow-wrap:anywhere]">
+        {toast.message}
+      </p>
 
       <button
         type="button"
-        className="toast__close"
+        className="inline-flex items-center justify-center shrink-0 w-7 h-7 border-0 rounded-lg bg-transparent text-slate-500 cursor-pointer transition-colors duration-150 hover:bg-accent-soft hover:text-accent"
         onClick={() => onDismiss(toast.id)}
         aria-label="Cerrar"
       >

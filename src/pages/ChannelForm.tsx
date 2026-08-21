@@ -641,8 +641,8 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                 </header>
 
                 {modalWebhookUrl && (
-                  <div className="channel-webhook channel-webhook--modal">
-                    <span className="channel-webhook__label">
+                  <div className="flex flex-wrap items-center gap-2 mt-1 p-2.5 rounded-lg border border-line bg-[rgba(120,130,150,0.06)]">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                       URL del webhook
                     </span>
 
@@ -661,8 +661,8 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                 )}
 
                 {showPublicLink && (
-                  <div className="channel-webhook channel-webhook--modal">
-                    <span className="channel-webhook__label">
+                  <div className="flex flex-wrap items-center gap-2 mt-1 p-2.5 rounded-lg border border-line bg-[rgba(120,130,150,0.06)]">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                       Enlace público
                     </span>
 
@@ -671,7 +671,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                       className="channel-webhook__url"
                     />
 
-                    <div className="channel-webhook__actions">
+                    <div className="flex items-center gap-2 ml-auto">
                       <Button
                         icon="link"
                         variant="secondary"
