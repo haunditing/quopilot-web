@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import FormField from "../components/FormField.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -349,32 +350,32 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
             </div>
 
             <div className="master-detail-card__grid">
-              <div className="form-field">
-                <label htmlFor="customer-id-type">Tipo de identificación</label>
-
-                <select
-                  id="customer-id-type"
-                  value={form.identificationType}
-                  onChange={(event) =>
-                    setField(
-                      "identificationType",
-                      event.target.value as IdentificationType,
-                    )
-                  }
-                >
+              <Field
+                id="customer-id-type"
+                label="Tipo de identificación"
+                as="select"
+                value={form.identificationType}
+                onChange={(event) =>
+                  setField(
+                    "identificationType",
+                    event.target.value as IdentificationType,
+                  )
+                }
+              >
                   {IDENTIFICATION_TYPES.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
-              </div>
+                
+              </Field>
 
-              <div className="form-field">
-                <label htmlFor="customer-id-number">
-                  Número de identificación
-                </label>
 
+
+              <FormField
+                label="Número de identificación"
+                idFor="customer-id-number"
+              >
                 <div className="customer-field-with-action">
                   <input
                     id="customer-id-number"
@@ -395,7 +396,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
                     <Search size={16} />
                   </button>
                 </div>
-              </div>
+              </FormField>
             </div>
 
             <div className="master-detail-card__grid">

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import Field from "./Field.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./Button.js";
@@ -511,48 +512,43 @@ function DocumentDetailFormContent({
           <section className="quote-erp__card">
             <h3 className="quote-erp__card-title">Datos generales</h3>
             <div className="quote-erp__grid-3">
-              <div className="form-field">
-                <label htmlFor="doc-customer">Cliente *</label>
-                <select
-                  id="doc-customer"
-                  value={customerId}
-                  onChange={(e) => setCustomerId(e.target.value)}
-                  disabled={readOnly}
-                  required
-                >
-                  <option value="" disabled>
-                    Selecciona un cliente
+              <Field
+                id="doc-customer"
+                label="Cliente"
+                as="select"
+                required
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+                disabled={readOnly}
+              >
+                <option value="" disabled>
+                  Selecciona un cliente
+                </option>
+                {customers.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
                   </option>
-                  {customers.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                ))}
+              </Field>
 
-              <div className="form-field">
-                <label htmlFor="doc-created">Fecha de creación</label>
-                <input
-                  id="doc-created"
-                  type="date"
-                  value={createdAt}
-                  onChange={(e) => setCreatedAt(e.target.value)}
-                  disabled={readOnly || isEdit}
-                  required
-                />
-              </div>
+              <Field
+                id="doc-created"
+                label="Fecha de creación"
+                type="date"
+                required
+                value={createdAt}
+                onChange={(e) => setCreatedAt(e.target.value)}
+                disabled={readOnly || isEdit}
+              />
 
-              <div className="form-field">
-                <label htmlFor="doc-valid">Válida hasta</label>
-                <input
-                  id="doc-valid"
-                  type="date"
-                  value={validUntil}
-                  onChange={(e) => setValidUntil(e.target.value)}
-                  disabled={readOnly}
-                />
-              </div>
+              <Field
+                id="doc-valid"
+                label="Válida hasta"
+                type="date"
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+                disabled={readOnly}
+              />
             </div>
           </section>
 
@@ -757,26 +753,24 @@ function DocumentDetailFormContent({
           <section className="quote-erp__card">
             <h3 className="quote-erp__card-title">Notas y términos</h3>
             <div className="quote-erp__grid-2">
-              <div className="form-field">
-                <label htmlFor="doc-notes">Notas</label>
-                <textarea
-                  id="doc-notes"
-                  rows={4}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  disabled={readOnly}
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="doc-terms">Términos y condiciones</label>
-                <textarea
-                  id="doc-terms"
-                  rows={4}
-                  value={terms}
-                  onChange={(e) => setTerms(e.target.value)}
-                  disabled={readOnly}
-                />
-              </div>
+              <Field
+                id="doc-notes"
+                label="Notas"
+                as="textarea"
+                rows={4}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                disabled={readOnly}
+              />
+              <Field
+                id="doc-terms"
+                label="Términos y condiciones"
+                as="textarea"
+                rows={4}
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
+                disabled={readOnly}
+              />
             </div>
           </section>
         </div>

@@ -723,14 +723,12 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               />
             </div>
 
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="public-chat-topic">
-                Asunto
-              </label>
-
-              <select
-                id="public-chat-topic"
-                value={topic}
+            <Field
+              id="public-chat-topic"
+              label="Asunto"
+              as="select"
+              error={topicError || undefined}
+              value={topic}
                 onChange={(event) => {
                   const nextTopic = event.target.value as ChatTopic;
 
@@ -750,47 +748,31 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                   ¿Sobre qué quieres hablar?
                 </option>
 
-                {TOPIC_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              {TOPIC_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Field>
 
-              {topicError && (
-                <span className="form-field__error">{topicError}</span>
-              )}
-            </div>
-
-            <div className="form-field">
-              <label
-                className="form-field__label"
-                htmlFor="public-chat-message"
-              >
-                Mensaje
-              </label>
-
-              <textarea
-                id="public-chat-message"
-                className="form-field__input"
-                rows={3}
-                value={initialMessage}
-                readOnly={topic !== "" && topic !== "OTHER"}
-                onChange={(event) => {
-                  setInitialMessage(event.target.value);
-                  setInitialMessageError("");
-                }}
-                placeholder={
-                  topic === "OTHER"
-                    ? "Cuéntanos brevemente en qué te podemos ayudar"
-                    : "Se generará un mensaje según el asunto seleccionado"
-                }
-              />
-
-              {initialMessageError && (
-                <span className="form-field__error">{initialMessageError}</span>
-              )}
-            </div>
+            <Field
+              id="public-chat-message"
+              label="Mensaje"
+              as="textarea"
+              rows={3}
+              error={initialMessageError || undefined}
+              value={initialMessage}
+              readOnly={topic !== "" && topic !== "OTHER"}
+              onChange={(event) => {
+                setInitialMessage(event.target.value);
+                setInitialMessageError("");
+              }}
+              placeholder={
+                topic === "OTHER"
+                  ? "Cuéntanos brevemente en qué te podemos ayudar"
+                  : "Se generará un mensaje según el asunto seleccionado"
+              }
+            />
 
             {startError && <FormMessage kind="error">{startError}</FormMessage>}
 

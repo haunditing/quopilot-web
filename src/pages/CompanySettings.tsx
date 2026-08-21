@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FormField from "../components/FormField.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -432,11 +433,10 @@ function CompanySettingsPanel() {
                     hint="PNG o SVG, máximo 2 MB."
                   />
 
-                  <div className="form-field">
-                    <label htmlFor="company-brand-color">
-                      Color primario de marca
-                    </label>
-
+                  <FormField
+                    label="Color primario de marca"
+                    hint="Personaliza el encabezado de las propuestas exportadas."
+                  >
                     <div className="color-picker">
                       <label
                         className="color-picker__swatch"
@@ -512,15 +512,11 @@ function CompanySettingsPanel() {
                       ))}
                     </div>
 
-                    <div className="form-field__helper">
-                      Personaliza el encabezado de las propuestas exportadas.
-                    </div>
-                  </div>
+                  </FormField>
                 </div>
 
                 <div className="settings-card__grid">
-                  <div className="form-field">
-                    <label>Logo para cotizaciones / documentos</label>
+                  <FormField label="Logo para cotizaciones / documentos">
 
                     <div className="settings-radio">
                       <label className="settings-radio__option">
@@ -567,28 +563,24 @@ function CompanySettingsPanel() {
                         hint="PNG o SVG, máximo 2 MB."
                       />
                     )}
-                  </div>
+                  </FormField>
 
-                  <div className="form-field">
-                    <label htmlFor="company-footer">
-                      Pie de página predeterminado
-                    </label>
-
-                    <textarea
-                      id="company-footer"
-                      rows={5}
-                      value={branding.footerText}
-                      placeholder={
-                        "Condiciones comerciales, datos bancarios o notas legales…"
-                      }
-                      onChange={(event) =>
-                        setBranding((current) => ({
-                          ...current,
-                          footerText: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+                  <Field
+                    id="company-footer"
+                    label="Pie de página predeterminado"
+                    as="textarea"
+                    rows={5}
+                    value={branding.footerText}
+                    placeholder={
+                      "Condiciones comerciales, datos bancarios o notas legales…"
+                    }
+                    onChange={(event) =>
+                      setBranding((current) => ({
+                        ...current,
+                        footerText: event.target.value,
+                      }))
+                    }
+                  />
                 </div>
 
                 {brandingError && (
@@ -819,32 +811,29 @@ function CompanySettingsPanel() {
                 id="company-regional-form"
               >
                 <div className="settings-card__grid">
-                  <div className="form-field">
-                    <label htmlFor="company-currency">
-                      Moneda predeterminada
-                    </label>
+                  <Field
+                    id="company-currency"
+                    label="Moneda predeterminada"
+                    as="select"
+                    value={regional.currency}
+                    onChange={(event) =>
+                      setRegional((current) => ({
+                        ...current,
+                        currency: event.target.value,
+                      }))
+                    }
+                  >
+                    {CURRENCY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Field>
 
-                    <select
-                      id="company-currency"
-                      value={regional.currency}
-                      onChange={(event) =>
-                        setRegional((current) => ({
-                          ...current,
-                          currency: event.target.value,
-                        }))
-                      }
-                    >
-                      {CURRENCY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label htmlFor="company-timezone">Zona horaria</label>
-
+                  <FormField
+                    label="Zona horaria"
+                    idFor="company-timezone"
+                  >
                     <Combobox
                       id="company-timezone"
                       value={regional.timezone}
@@ -858,7 +847,7 @@ function CompanySettingsPanel() {
                       placeholder="Selecciona una zona horaria"
                       searchPlaceholder="Buscar ciudad o zona horaria..."
                     />
-                  </div>
+                  </FormField>
 
                   <Field
                     id="company-decimal-precision"

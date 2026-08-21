@@ -589,27 +589,23 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     required
                   />
 
-                  <div className="form-field">
-                    <label htmlFor="product-category">
-                      Categoría / Familia
-                    </label>
+                  <Field
+                    id="product-category"
+                    label="Categoría / Familia"
+                    as="select"
+                    value={form.category}
+                    onChange={(event) =>
+                      setField("category", event.target.value)
+                    }
+                  >
+                    <option value="">Sin categoría</option>
 
-                    <select
-                      id="product-category"
-                      value={form.category}
-                      onChange={(event) =>
-                        setField("category", event.target.value)
-                      }
-                    >
-                      <option value="">Sin categoría</option>
-
-                      {PRODUCT_CATEGORY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    {PRODUCT_CATEGORY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Field>
                 </div>
 
                 <div className="master-detail-card__grid">
@@ -658,20 +654,16 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="form-field">
-                  <label htmlFor="product-description">
-                    Descripción detallada
-                  </label>
-
-                  <textarea
-                    id="product-description"
-                    rows={4}
-                    value={form.description}
-                    onChange={(event) =>
-                      setField("description", event.target.value)
-                    }
-                  />
-                </div>
+                <Field
+                  id="product-description"
+                  label="Descripción detallada"
+                  as="textarea"
+                  rows={4}
+                  value={form.description}
+                  onChange={(event) =>
+                    setField("description", event.target.value)
+                  }
+                />
               </>
             )}
           </section>
@@ -716,23 +708,21 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     required
                   />
 
-                  <div className="form-field">
-                    <label htmlFor="product-tax-rate">Impuesto / IVA</label>
-
-                    <select
-                      id="product-tax-rate"
-                      value={taxOptionValue}
-                      onChange={(event) =>
-                        setField("taxRate", event.target.value)
-                      }
-                    >
-                      {TAX_RATE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <Field
+                    id="product-tax-rate"
+                    label="Impuesto / IVA"
+                    as="select"
+                    value={taxOptionValue}
+                    onChange={(event) =>
+                      setField("taxRate", event.target.value)
+                    }
+                  >
+                    {TAX_RATE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Field>
                 </div>
 
                 <div className="master-detail-card__grid">
@@ -783,16 +773,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       key={priceList.value}
                       className="master-detail-card__grid"
                     >
-                      <div className="form-field">
-                        <label>{priceList.label}</label>
-
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={entry?.price ?? ""}
-                          placeholder="Sin precio"
-                          onChange={(event) =>
+                      <Field
+                        id={`price-${priceList.value}`}
+                        label={priceList.label}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={entry?.price ?? ""}
+                        placeholder="Sin precio"
+                        onChange={(event) =>
                             updatePriceList(
                               priceList.value,
                               event.target.value,
@@ -800,7 +789,6 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                             )
                           }
                         />
-                      </div>
                     </div>
                   );
                 })}
@@ -879,40 +867,37 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   <div className="product-warehouse-list">
                     {form.warehouses.map((warehouse, index) => (
                       <div key={index} className="product-warehouse-row">
-                        <div className="form-field">
-                          <label>Bodega</label>
+                        <Field
+                          id={`warehouse-name-${index}`}
+                          label="Bodega"
+                          as="select"
+                          value={warehouse.name}
+                          onChange={(event) =>
+                            updateWarehouse(index, {
+                              name: event.target.value,
+                            })
+                          }
+                        >
+                          {WAREHOUSE_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </Field>
 
-                          <select
-                            value={warehouse.name}
-                            onChange={(event) =>
-                              updateWarehouse(index, {
-                                name: event.target.value,
-                              })
-                            }
-                          >
-                            {WAREHOUSE_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="form-field">
-                          <label>Cantidad</label>
-
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={warehouse.quantity}
-                            onChange={(event) =>
-                              updateWarehouse(index, {
-                                quantity: Number(event.target.value) || 0,
-                              })
-                            }
-                          />
-                        </div>
+                        <Field
+                          id={`warehouse-qty-${index}`}
+                          label="Cantidad"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={warehouse.quantity}
+                          onChange={(event) =>
+                            updateWarehouse(index, {
+                              quantity: Number(event.target.value) || 0,
+                            })
+                          }
+                        />
 
                         <button
                           type="button"

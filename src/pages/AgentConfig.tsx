@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import FormField from "../components/FormField.js";
 import type { FormEvent } from "react";
 import AgentConfigCard from "../components/AgentConfigCard.js";
 import Button from "../components/Button.js";
@@ -457,8 +458,7 @@ export default function AgentConfig() {
                 description="Clave de API y modelo que usa el agente de este tenant"
               >
                 <div className="agent-config__grid-2">
-                  <div className="form-field">
-                    <label htmlFor="agent-llm-provider">Proveedor</label>
+                  <FormField label="Proveedor" idFor="agent-llm-provider">
 
                     <Combobox
                       id="agent-llm-provider"
@@ -467,10 +467,9 @@ export default function AgentConfig() {
                       onChange={(value) => setField("llmProvider", value)}
                       placeholder="Selecciona un proveedor"
                     />
-                  </div>
+                  </FormField>
 
-                  <div className="form-field">
-                    <label htmlFor="agent-llm-key">API Key</label>
+                  <FormField label="API Key" idFor="agent-llm-key">
 
                     <div className="agent-config__password">
                       <input
@@ -495,7 +494,7 @@ export default function AgentConfig() {
                         <Icon name={showApiKey ? "eye-off" : "eye"} size={16} />
                       </button>
                     </div>
-                  </div>
+                  </FormField>
                 </div>
 
                 <div className="agent-config__grid-3">
@@ -556,8 +555,7 @@ export default function AgentConfig() {
                     required
                   />
 
-                  <div className="form-field">
-                    <label htmlFor="agent-language">Idioma</label>
+                  <FormField label="Idioma" idFor="agent-language">
 
                     <Combobox
                       id="agent-language"
@@ -566,10 +564,9 @@ export default function AgentConfig() {
                       onChange={(value) => setField("language", value)}
                       placeholder="Selecciona un idioma"
                     />
-                  </div>
+                  </FormField>
 
-                  <div className="form-field">
-                    <label htmlFor="agent-tone">Tono</label>
+                  <FormField label="Tono" idFor="agent-tone">
 
                     <Combobox
                       id="agent-tone"
@@ -578,10 +575,9 @@ export default function AgentConfig() {
                       onChange={(value) => setField("tone", value as AgentTone)}
                       placeholder="Selecciona un tono"
                     />
-                  </div>
+                  </FormField>
 
-                  <div className="form-field">
-                    <label htmlFor="agent-status">Estado</label>
+                  <FormField label="Estado" idFor="agent-status">
 
                     <select
                       id="agent-status"
@@ -594,7 +590,7 @@ export default function AgentConfig() {
 
                       <option value="INACTIVE">Inactivo</option>
                     </select>
-                  </div>
+                  </FormField>
                 </div>
 
                 <Field
@@ -626,8 +622,7 @@ export default function AgentConfig() {
                   placeholder="Ej.: cercano y orientado a soluciones"
                 />
 
-                <div className="form-field">
-                  <label htmlFor="agent-welcome">Mensaje de bienvenida</label>
+                <FormField label="Mensaje de bienvenida" idFor="agent-welcome">
 
                   <textarea
                     id="agent-welcome"
@@ -643,10 +638,9 @@ export default function AgentConfig() {
                   <span className="agent-config__counter">
                     {form.welcomeMessage.length} / 500
                   </span>
-                </div>
+                </FormField>
 
-                <div className="form-field">
-                  <label htmlFor="agent-objective">Objetivo comercial</label>
+                <FormField label="Objetivo comercial" idFor="agent-objective">
 
                   <textarea
                     id="agent-objective"
@@ -657,12 +651,9 @@ export default function AgentConfig() {
                     }
                     placeholder="Ej.: guiar al cliente hacia la compra o la cotización"
                   />
-                </div>
+                </FormField>
 
-                <div className="form-field">
-                  <label htmlFor="agent-instructions">
-                    Instrucciones del sistema
-                  </label>
+                <FormField label="Instrucciones del sistema" idFor="agent-instructions">
 
                   <textarea
                     id="agent-instructions"
@@ -678,7 +669,7 @@ export default function AgentConfig() {
                   <span className="agent-config__counter">
                     {form.systemInstructions.length} / 500
                   </span>
-                </div>
+                </FormField>
 
                 <div className="agent-config__rules">
                   <div className="section-heading">
@@ -799,8 +790,7 @@ export default function AgentConfig() {
                   habilitadas.
                 </FormMessage>
 
-                <div className="form-field">
-                  <label htmlFor="agent-scope">Catálogo</label>
+                <FormField label="Catálogo" idFor="agent-scope">
 
                   <select
                     id="agent-scope"
@@ -818,7 +808,7 @@ export default function AgentConfig() {
                       Solo productos seleccionados
                     </option>
                   </select>
-                </div>
+                </FormField>
 
                 {form.productScope === "SELECTED" && (
                   <div className="agent-config__options">
@@ -880,10 +870,7 @@ export default function AgentConfig() {
                   disabled={!form.escalationEnabled}
                 />
 
-                <div className="form-field">
-                  <label htmlFor="agent-escalation-fallback">
-                    Mensaje de escalación
-                  </label>
+                <FormField label="Mensaje de escalación" idFor="agent-escalation-fallback">
 
                   <textarea
                     id="agent-escalation-fallback"
@@ -895,7 +882,7 @@ export default function AgentConfig() {
                     placeholder="Ej.: Un asesor te contactará en breve."
                     disabled={!form.escalationEnabled}
                   />
-                </div>
+                </FormField>
               </AgentConfigCard>
 
               <AgentConfigCard

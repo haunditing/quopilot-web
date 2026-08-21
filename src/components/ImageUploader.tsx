@@ -168,9 +168,9 @@ export default function ImageUploader({
         onChange={(event) => handleFile(event.target.files?.[0])}
       />
 
-      {error && <span className="form-field__error">{error}</span>}
+      {error && <span className="text-[11px] text-danger">{error}</span>}
 
-      {hint && <div className="form-field__helper">{hint}</div>}
+      {hint && <div className="text-xs text-ink-muted">{hint}</div>}
     </div>
   );
 }

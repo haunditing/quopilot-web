@@ -164,37 +164,33 @@ export default function ProductQuickModal({
         />
 
         <div className="product-modal__grid">
-          <div className="form-field">
-            <label htmlFor="product-warehouse">Bodega / Almacén inicial</label>
+          <Field
+            id="product-warehouse"
+            label="Bodega / Almacén inicial"
+            as="select"
+            value={warehouse}
+            onChange={(event) => setWarehouse(event.target.value)}
+          >
+            {WAREHOUSE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Field>
 
-            <select
-              id="product-warehouse"
-              value={warehouse}
-              onChange={(event) => setWarehouse(event.target.value)}
-            >
-              {WAREHOUSE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="product-unit-of-measure">Unidad de medida</label>
-
-            <select
-              id="product-unit-of-measure"
-              value={unitOfMeasure}
-              onChange={(event) => setUnitOfMeasure(event.target.value)}
-            >
-              {UNIT_OF_MEASURE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Field
+            id="product-unit-of-measure"
+            label="Unidad de medida"
+            as="select"
+            value={unitOfMeasure}
+            onChange={(event) => setUnitOfMeasure(event.target.value)}
+          >
+            {UNIT_OF_MEASURE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Field>
         </div>
 
         <div className="product-modal__grid">
@@ -231,21 +227,19 @@ export default function ProductQuickModal({
             required
           />
 
-          <div className="form-field">
-            <label htmlFor="product-tax-rate">Impuesto / IVA</label>
-
-            <select
-              id="product-tax-rate"
-              value={taxOptionValue}
-              onChange={(event) => setTaxRate(event.target.value)}
-            >
-              {TAX_RATE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Field
+            id="product-tax-rate"
+            label="Impuesto / IVA"
+            as="select"
+            value={taxOptionValue}
+            onChange={(event) => setTaxRate(event.target.value)}
+          >
+            {TAX_RATE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Field>
         </div>
 
         {/* Resumen de precio total */}
