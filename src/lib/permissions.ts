@@ -1,3 +1,12 @@
+/**
+ * @deprecated Matriz estática de permisos en el cliente.
+ *
+ * La fuente de verdad es el registro declarativo del backend
+ * (GET /api/me/capabilities -> hook useCapabilities). Este archivo solo
+ * se conserva como UX temporal para ocultar botones; NO debe usarse para
+ * nuevas decisiones de autorización. El backend re-valida todo.
+ */
+
 import type { UserRole } from "../types/user.js";
 
 export type CrudEntity =

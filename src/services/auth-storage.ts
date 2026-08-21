@@ -52,39 +52,17 @@ export function clearAuth(): void {
   removeUser();
 }
 
-const REMEMBERED_CREDENTIALS_KEY = "remembered-credentials";
+const REMEMBERED_EMAIL_KEY = "remembered-email";
 
-export interface RememberedCredentials {
-  email: string;
-  password: string;
+/** "Recordarme" guarda únicamente el correo, nunca credenciales. */
+export function saveRememberedEmail(email: string): void {
+  localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
 }
 
-export function saveRememberedCredentials(
-  credentials: RememberedCredentials,
-): void {
-  localStorage.setItem(REMEMBERED_CREDENTIALS_KEY, JSON.stringify(credentials));
+export function getRememberedEmail(): string | null {
+  return localStorage.getItem(REMEMBERED_EMAIL_KEY);
 }
 
-export function getRememberedCredentials(): RememberedCredentials | null {
-  const raw = localStorage.getItem(REMEMBERED_CREDENTIALS_KEY);
-
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<RememberedCredentials>;
-
-    if (typeof parsed.email === "string" && typeof parsed.password === "string") {
-      return parsed as RememberedCredentials;
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export function clearRememberedCredentials(): void {
-  localStorage.removeItem(REMEMBERED_CREDENTIALS_KEY);
+export function clearRememberedEmail(): void {
+  localStorage.removeItem(REMEMBERED_EMAIL_KEY);
 }

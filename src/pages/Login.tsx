@@ -7,20 +7,20 @@ import Icon from "../components/Icon.js";
 import SliderVerify from "../components/SliderVerify.js";
 import { login } from "../services/auth-service.js";
 import {
-  clearRememberedCredentials,
-  getRememberedCredentials,
+  clearRememberedEmail,
+  getRememberedEmail,
   saveAccessToken,
-  saveRememberedCredentials,
+  saveRememberedEmail,
   saveUser,
 } from "../services/auth-storage.js";
 import { isValidEmail } from "../lib/validation.js";
 
 export default function Login() {
-  const remembered = getRememberedCredentials();
+  const rememberedEmail = getRememberedEmail();
 
-  const [email, setEmail] = useState(remembered?.email ?? "");
-  const [password, setPassword] = useState(remembered?.password ?? "");
-  const [remember, setRemember] = useState(remembered !== null);
+  const [email, setEmail] = useState(rememberedEmail ?? "");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(rememberedEmail !== null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -64,7 +64,7 @@ export default function Login() {
       saveUser(result.user);
 
       if (result.user.mustChangePassword) {
-        clearRememberedCredentials();
+        clearRememberedEmail();
         navigate("/change-password", {
           replace: true,
         });
@@ -73,12 +73,9 @@ export default function Login() {
       }
 
       if (remember) {
-        saveRememberedCredentials({
-          email,
-          password,
-        });
+        saveRememberedEmail(email);
       } else {
-        clearRememberedCredentials();
+        clearRememberedEmail();
       }
 
       navigate("/dashboard", {

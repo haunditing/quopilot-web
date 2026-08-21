@@ -39,57 +39,208 @@ export default function AppRouter() {
       <Route path="/public/chat/:tenantId" element={<PublicChatRoute />} />
 
       <Route element={<ProtectedLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard"
+          element={
+            <CapabilityRoute requireAny={["dashboard.view", "superAdmin.dashboard"]}>
+              <Dashboard />
+            </CapabilityRoute>
+          }
+        />
 
         <Route path="/unauthorized" element={<Unauthorized />} />
 
 
 
 
-        <Route path="/quotes" element={<Quotes />} />
+        <Route
+          path="/quotes"
+          element={
+            <CapabilityRoute requireAny={["quotes.view"]}>
+              <Quotes />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/quotes/new" element={<CreateQuote />} />
+        <Route
+          path="/quotes/new"
+          element={
+            <CapabilityRoute requireAny={["quotes.create"]}>
+              <CreateQuote />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/quotes/:quoteId" element={<QuoteDetailRoute />} />
+        <Route
+          path="/quotes/:quoteId"
+          element={
+            <CapabilityRoute requireAny={["quotes.view"]}>
+              <QuoteDetailRoute />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/sales" element={<Sales />} />
+        <Route
+          path="/sales"
+          element={
+            <CapabilityRoute requireAny={["sales.view"]}>
+              <Sales />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/sales/:saleId" element={<SaleDetailRoute />} />
+        <Route
+          path="/sales/:saleId"
+          element={
+            <CapabilityRoute requireAny={["sales.view"]}>
+              <SaleDetailRoute />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/customers" element={<Customers />} />
+        <Route
+          path="/customers"
+          element={
+            <CapabilityRoute requireAny={["customers.view"]}>
+              <Customers />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/customers/new" element={<CustomerDetail />} />
+        <Route
+          path="/customers/new"
+          element={
+            <CapabilityRoute requireAny={["customers.create"]}>
+              <CustomerDetail />
+            </CapabilityRoute>
+            }
+        />
 
         <Route
           path="/customers/:customerId"
-          element={<CustomerDetailRoute />}
+          element={
+            <CapabilityRoute requireAny={["customers.view"]}>
+              <CustomerDetailRoute />
+            </CapabilityRoute>
+          }
         />
 
-        <Route path="/products" element={<Products />} />
+        <Route
+          path="/products"
+          element={
+            <CapabilityRoute requireAny={["products.view"]}>
+              <Products />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/products/new" element={<ProductDetail />} />
+        <Route
+          path="/products/new"
+          element={
+            <CapabilityRoute requireAny={["products.create"]}>
+              <ProductDetail />
+            </CapabilityRoute>
+            }
+        />
 
-        <Route path="/products/:productId" element={<ProductDetailRoute />} />
+        <Route
+          path="/products/:productId"
+          element={
+            <CapabilityRoute requireAny={["products.view"]}>
+              <ProductDetailRoute />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/channels" element={<Channels />} />
+        <Route
+          path="/channels"
+          element={
+            <CapabilityRoute requireAny={["channels.view"]}>
+              <Channels />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/channels/new" element={<ChannelForm />} />
+        <Route
+          path="/channels/new"
+          element={
+            <CapabilityRoute requireAny={["channels.create"]}>
+              <ChannelForm />
+            </CapabilityRoute>
+            }
+        />
 
-        <Route path="/channels/:channelId" element={<ChannelFormRoute />} />
+        <Route
+          path="/channels/:channelId"
+          element={
+            <CapabilityRoute requireAny={["channels.update"]}>
+              <ChannelFormRoute />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/conversations" element={<Conversations />} />
+        <Route
+          path="/conversations"
+          element={
+            <CapabilityRoute requireAny={["conversations.view"]}>
+              <Conversations />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/users" element={<Users />} />
+        <Route
+          path="/users"
+          element={
+            <CapabilityRoute requireAny={["users.view"]}>
+              <Users />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/users/new" element={<UserForm />} />
+        <Route
+          path="/users/new"
+          element={
+            <CapabilityRoute requireAny={["users.create"]}>
+              <UserForm />
+            </CapabilityRoute>
+            }
+        />
 
-        <Route path="/users/:userId" element={<UserFormRoute />} />
+        <Route
+          path="/users/:userId"
+          element={
+            <CapabilityRoute requireAny={["users.update"]}>
+              <UserFormRoute />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/chat" element={<AgentChat />} />
+        <Route
+          path="/chat"
+          element={
+            <CapabilityRoute requireAny={["agent.chat"]}>
+              <AgentChat />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/agent" element={<AgentConfig />} />
+        <Route
+          path="/agent"
+          element={
+            <CapabilityRoute requireAny={["agent.configure"]}>
+              <AgentConfig />
+            </CapabilityRoute>
+          }
+        />
 
-        <Route path="/agent/assistant" element={<AgentAssistant />} />
+        <Route
+          path="/agent/assistant"
+          element={
+            <CapabilityRoute requireAny={["agent.assistant", "agent.chat"]}>
+              <AgentAssistant />
+            </CapabilityRoute>
+          }
+        />
 
         <Route
           path="/internal/assistant"
@@ -101,7 +252,14 @@ export default function AppRouter() {
         />
 
 
-        <Route path="/settings/company" element={<CompanySettings />} />
+        <Route
+          path="/settings/company"
+          element={
+            <CapabilityRoute requireAny={["tenants.updateMe"]}>
+              <CompanySettings />
+            </CapabilityRoute>
+          }
+        />
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>

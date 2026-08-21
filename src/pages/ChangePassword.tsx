@@ -8,7 +8,7 @@ import Icon from "../components/Icon.js";
 import PasswordStrength from "../components/PasswordStrength.js";
 import { changePassword } from "../services/auth-service.js";
 import {
-  clearRememberedCredentials,
+  clearRememberedEmail,
   getUser,
   saveUser,
 } from "../services/auth-storage.js";
@@ -62,7 +62,7 @@ export default function ChangePassword() {
         });
       }
 
-      clearRememberedCredentials();
+      clearRememberedEmail();
 
       navigate("/dashboard", {
         replace: true,

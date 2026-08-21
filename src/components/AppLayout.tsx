@@ -15,7 +15,7 @@ import Button from "./Button.js";
 import FloatingPanel from "./FloatingPanel.js";
 import AssistantChat from "./AssistantChat.js";
 import { SUPPORT_ASSISTANT_ENDPOINT } from "../services/support-assistant-service.js";
-import { useTenantCapabilities } from "../hooks/useTenantCapabilities.js";
+import { useCapabilities } from "../hooks/useCapabilities.js";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -102,7 +102,7 @@ const navigationGroups: NavigationGroup[] = [
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const user = getUser();
-  const { effectiveCodes, loading: capsLoading } = useTenantCapabilities();
+  const { hasCapability } = useCapabilities();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem("sidebarCollapsed") === "true";
@@ -124,10 +124,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
           return false;
         }
 
+        // Fail-closed: durante la carga (o si falla el endpoint) se ocultan
+        // los ítems que requieren capacidad.
         if (
-          !capsLoading &&
           item.requiredCapability &&
-          !effectiveCodes.includes(item.requiredCapability)
+          !hasCapability(item.requiredCapability)
         ) {
           return false;
         }
