@@ -15,12 +15,12 @@ export default function EmptyState({
   children,
 }: EmptyStateProps) {
   return (
-    <section className="empty-state">
-      <Icon name={icon} size={40} className="empty-state__icon" />
+    <section className="flex flex-col items-center gap-1 border border-dashed border-line rounded-xl px-5 py-10 text-center">
+      <Icon name={icon} size={40} className="text-accent mb-2" />
 
       <h2>{title}</h2>
 
-      {message && <p>{message}</p>}
+      {message && <p className="mt-2">{message}</p>}
 
       {children}
     </section>

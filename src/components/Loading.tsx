@@ -2,7 +2,7 @@
 /**
  * Primitiva de carga única de la aplicación.
  *
- * - variant="overlay": página/sección completa (usa el sistema page-state).
+ * - variant="overlay": página/sección completa.
  * - variant="inline": carga en flujo, dentro de paneles o listas.
  *
  * Accesibilidad siempre activa: role="status" + aria-live + aria-busy.
@@ -87,21 +87,20 @@ export default function Loading({
 
   return (
     <main
-      className={`page-state page-state--loading ${className || ""}`}
-      style={{
-        width: "100%",
-        display: "block",
-        margin: "0 auto",
-      }}
+      className={`grid min-h-[50vh] place-items-center p-6 text-center ${className || ""}`}
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
-      <LoadingGlyph size={resolvedSize} className="page-state__spinner" />
+      <LoadingGlyph size={resolvedSize} className="animate-spin mx-auto mb-4" />
 
-      {label && <h1>{label}</h1>}
+      {label && (
+        <h1 className="m-0 text-[28px] leading-[1.15] tracking-[-0.8px] font-bold text-ink-strong">
+          {label}
+        </h1>
+      )}
 
-      {message && <p>{message}</p>}
+      {message && <p className="m-0">{message}</p>}
     </main>
   );
 }

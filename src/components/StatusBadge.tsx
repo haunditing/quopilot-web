@@ -19,10 +19,11 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
-  const variant = status.toLowerCase();
   const label = STATUS_LABELS[status] ?? status;
 
   return (
-    <span className={`status-badge status-badge--${variant}`}>{label}</span>
+    <span className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold tracking-[0.03em]">
+      {label}
+    </span>
   );
 }

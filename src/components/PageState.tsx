@@ -15,18 +15,30 @@ export default function PageState({
   kind = "info",
   children,
 }: PageStateProps) {
-  const icon = kind === "error" ? "error" : "empty";
-  const className = kind === "error" ? "page-state page-state--error" : "page-state";
+  const isError = kind === "error";
 
   return (
-    <main className={className}>
-      <Icon name={icon} size={42} className="page-state__icon" />
+    <main
+      className={`grid min-h-[50vh] place-items-center p-6 text-center ${
+        isError ? "text-danger" : ""
+      }`}
+      role={isError ? "alert" : "status"}
+    >
+      <div className="flex flex-col items-center gap-4">
+        <Icon
+          name={isError ? "error" : "empty"}
+          size={42}
+          className="text-accent"
+        />
 
-      <h1>{title}</h1>
+        <h1 className="m-0 text-[28px] leading-[1.15] tracking-[-0.8px] font-bold text-ink-strong">
+          {title}
+        </h1>
 
-      {message && <p>{message}</p>}
+        {message && <p className="m-0">{message}</p>}
 
-      {children}
+        {children}
+      </div>
     </main>
   );
 }

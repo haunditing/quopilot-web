@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import FormField from "../components/FormField.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -402,31 +403,29 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                   required
                 />
 
-                <div className="form-field">
-                  <label htmlFor="channel-type">Canal</label>
+                <Field
+                  id="channel-type"
+                  label="Canal"
+                  as="select"
+                  value={form.type}
+                  disabled={isEdit}
+                  onChange={(event) => {
+                    const nextType = event.target.value as ChannelType;
 
-                  <select
-                    id="channel-type"
-                    value={form.type}
-                    disabled={isEdit}
-                    onChange={(event) => {
-                      const nextType = event.target.value as ChannelType;
+                    setField("type", nextType);
+                    setConfigError("");
 
-                      setField("type", nextType);
-                      setConfigError("");
+                    if (nextType === "WEB_CHAT") {
+                      void loadTenantName().then(prefillWebChatDefaults);
+                    }
+                  }}
+                >
+                  <option value="WHATSAPP">WhatsApp</option>
 
-                      if (nextType === "WEB_CHAT") {
-                        void loadTenantName().then(prefillWebChatDefaults);
-                      }
-                    }}
-                  >
-                    <option value="WHATSAPP">WhatsApp</option>
+                  <option value="WEB_CHAT">Chat Web</option>
 
-                    <option value="WEB_CHAT">Chat Web</option>
-
-                    <option value="INSTAGRAM">Instagram</option>
-                  </select>
-                </div>
+                  <option value="INSTAGRAM">Instagram</option>
+                </Field>
               </div>
             </section>
 
@@ -510,33 +509,25 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                     }
                   />
 
-                  <div className="form-field">
-                    <label htmlFor="channel-widget-greeting">
-                      Mensaje de saludo
-                    </label>
-
-                    <textarea
-                      id="channel-widget-greeting"
-                      rows={2}
-                      value={form.widgetGreeting}
-                      placeholder="¡Hola {name}! Soy el asistente virtual..."
-                      onChange={(event) =>
-                        setField("widgetGreeting", event.target.value)
-                      }
-                    />
-
-                    <div className="form-field__helper">
-                      Usa {"{name}"} para incluir el nombre del cliente en el
-                      saludo.
-                    </div>
-                  </div>
+                  <Field
+                    id="channel-widget-greeting"
+                    label="Mensaje de saludo"
+                    as="textarea"
+                    rows={2}
+                    value={form.widgetGreeting}
+                    placeholder="¡Hola {name}! Soy el asistente virtual..."
+                    onChange={(event) =>
+                      setField("widgetGreeting", event.target.value)
+                    }
+                    hint='Usa {"{name}"} para incluir el nombre del cliente en el saludo.'
+                  />
 
                   <div className="channel-form__grid">
-                    <div className="form-field">
-                      <label htmlFor="channel-widget-color">
-                        Color principal
-                      </label>
-
+                    <FormField
+                      label="Color principal"
+                      error={colorError}
+                      hint="Color del widget en el chat público. Déjalo vacío para usar el color por defecto."
+                    >
                       <div className="color-picker">
                         <label
                           className="color-picker__swatch"
@@ -607,37 +598,26 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                           />
                         ))}
                       </div>
+</FormField>
 
-                      {colorError && (
-                        <span className="form-field__error">{colorError}</span>
-                      )}
-
-                      <div className="form-field__helper">
-                        Color del widget en el chat público. Déjalo vacío para
-                        usar el color por defecto.
-                      </div>
-                    </div>
-
-                    <div className="form-field">
-                      <label htmlFor="channel-widget-position">Posición</label>
-
-                      <select
-                        id="channel-widget-position"
-                        value={form.widgetPosition}
-                        onChange={(event) =>
-                          setField(
-                            "widgetPosition",
-                            event.target.value as ChatWidgetPosition,
-                          )
-                        }
-                      >
-                        {POSITION_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <Field
+                      id="channel-widget-position"
+                      label="Posición"
+                      as="select"
+                      value={form.widgetPosition}
+                      onChange={(event) =>
+                        setField(
+                          "widgetPosition",
+                          event.target.value as ChatWidgetPosition,
+                        )
+                      }
+                    >
+                      {POSITION_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Field>
                   </div>
                 </>
               )}

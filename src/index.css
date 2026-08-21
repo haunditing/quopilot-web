@@ -1,3 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   CSS LEGADO (migración Strangler Fig → docs/tailwind-migration-plan.md)
+   Las utilidades Tailwind van ARRIBA a propósito: mientras exista
+   un bloque BEM, el legado gana por orden del archivo. Al migrar
+   cada sección se borra de este archivo (Fases 1-4).
+   ============================================================ */
+
 /* =========================================
    MASTER-DETAIL LAYOUT (Generic)
    ========================================= */
@@ -792,36 +803,6 @@ p {
 }
 
 /* =========================================
-   PAGE STATE (loading / error / info)
-   ========================================= */
-
-.page-state {
-  display: grid;
-  place-items: center;
-  min-block-size: 50vh;
-  padding: 24px;
-  text-align: center;
-}
-
-.page-state__icon {
-  color: var(--accent);
-  margin-block-end: 16px;
-}
-
-.page-state__spinner {
-  inline-size: var(--spinner-size);
-  block-size: var(--spinner-size);
-  margin: 0 auto 16px;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* =========================================
    STAT CARD
    ========================================= */
 
@@ -999,17 +980,8 @@ p {
 }
 
 /* =========================================
-   STATUS BADGE
+   BADGES GENÉRICOS (.badge*)
    ========================================= */
-
-.status-badge {
-  flex-shrink: 0;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
 
 /* Badges genéricos (usados en listas de datos) */
 .badge {
@@ -1067,56 +1039,6 @@ p {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-inline-size: 320px;
-}
-
-/* =========================================
-   BACK BUTTON
-   ========================================= */
-
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 44px;
-  block-size: 44px;
-  margin-block-end: 20px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  transition:
-    border-color 150ms ease,
-    color 150ms ease;
-}
-
-.back-button:hover {
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-/* =========================================
-   EMPTY STATE
-   ========================================= */
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 40px 20px;
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  text-align: center;
-}
-
-.empty-state__icon {
-  color: var(--accent);
-  margin-block-end: 8px;
-}
-
-.empty-state p {
-  margin-block-start: 8px;
 }
 
 /* =========================================
