@@ -96,21 +96,21 @@ export default function Login() {
   }
 
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <div className="auth-card__brand">
+    <main className="grid min-h-svh place-items-center p-4 bg-[radial-gradient(1100px_480px_at_50%_-12%,rgba(170,59,255,0.14),transparent_65%),var(--bg)]">
+      <section className="w-full max-w-[420px] rounded-2xl border border-line bg-surface-card p-6 space-y-0 md:p-8 md:rounded-[20px] md:shadow-card">
+        <div className="flex items-center gap-2 mb-7 text-accent text-xl font-bold tracking-[-0.4px]">
           <Icon name="brand" size={28} />
 
           <span>QuoPilot</span>
         </div>
 
-        <header className="auth-card__header">
+        <header className="[&>h1]:mb-1.5 [&>p]:mb-6 [&>p]:text-ink-muted">
           <h1>Iniciar sesión</h1>
 
           <p>Accede al panel comercial de tu empresa</p>
         </header>
 
-        <form className="auth-form" onSubmit={handleFormSubmit}>
+        <form className="flex flex-col gap-[18px]" onSubmit={handleFormSubmit}>
           <Field
             id="login-email"
             label="Email"
@@ -139,7 +139,7 @@ export default function Login() {
             required
           />
 
-          <label className="auth-remember">
+          <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer select-none [&>input]:w-4 [&>input]:h-4 [&>input]:m-0 [&>input]:shrink-0 [&>input]:accent-accent [&>input]:cursor-pointer [&>input:focus-visible]:outline-2 [&>input:focus-visible]:outline-offset-2 [&>input:focus-visible]:outline-accent">
             <input
               type="checkbox"
               checked={remember}

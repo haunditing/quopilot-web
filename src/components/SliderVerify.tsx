@@ -145,19 +145,36 @@ export default function SliderVerify({
   return (
     <div
       className={[
-        "slider-verify",
-        completed ? "slider-verify--done" : "",
-        dragging ? "slider-verify--dragging" : "",
-        disabled ? "slider-verify--disabled" : "",
+        "select-none",
+        disabled && "opacity-75",
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="slider-verify__track" ref={trackRef}>
-        <span className="slider-verify__label">{statusLabel}</span>
+      <div
+        className={`relative h-[52px] rounded-xl border bg-accent-soft overflow-hidden [touch-action:none] ${
+          completed
+            ? "border-success bg-[rgba(5,150,105,0.1)]"
+            : "border-accent-border"
+        }`}
+        ref={trackRef}
+      >
+        <span
+          className={`absolute inset-0 flex items-center justify-center pointer-events-none text-sm text-ink-muted ${
+            completed ? "text-success font-semibold" : ""
+          }`}
+        >
+          {statusLabel}
+        </span>
 
         <div
-          className="slider-verify__knob"
+          className={`absolute top-1 left-1 flex items-center justify-center w-11 h-11 rounded-[10px] shadow-card outline-none transition-transform duration-[250ms] ease-out focus-visible:shadow-[0_0_0_2px_var(--bg),0_0_0_4px_var(--accent)] ${
+            completed
+              ? "bg-success cursor-default"
+              : dragging
+                ? "bg-accent cursor-grabbing transition-none"
+                : "bg-accent cursor-grab"
+          } ${disabled && !completed ? "cursor-not-allowed" : ""}`}
           role="slider"
           tabIndex={disabled ? -1 : 0}
           aria-label={label}

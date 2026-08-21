@@ -944,7 +944,7 @@ function CompanySettingsPanel() {
                 </div>
 
                 <div className="settings-preview__doc-body">
-                  <span>Cotización / Estímulo de venta</span>
+                  <span>Cotización</span>
                   <strong>N° 0001</strong>
                 </div>
 
