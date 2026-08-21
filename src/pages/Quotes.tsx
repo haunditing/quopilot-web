@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Badge, { type BadgeTone } from "../components/Badge.js";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../components/Button.js";
@@ -27,13 +28,13 @@ import {
 import type { Customer } from "../types/customer.js";
 import type { Quote, QuoteStatus } from "../types/quote.js";
 
-const STATUS_BADGE_CLASS: Record<QuoteStatus, string> = {
-  DRAFT: "badge badge-warning",
-  SENT: "badge",
-  VIEWED: "badge",
-  ACCEPTED: "badge badge-success",
-  REJECTED: "badge badge-danger",
-  EXPIRED: "badge badge-danger",
+const STATUS_TONE: Record<QuoteStatus, BadgeTone> = {
+  DRAFT: "warning",
+  SENT: "neutral",
+  VIEWED: "neutral",
+  ACCEPTED: "success",
+  REJECTED: "danger",
+  EXPIRED: "danger"
 };
 
 const STATUS_LABEL = Object.fromEntries(
@@ -204,9 +205,9 @@ export default function Quotes() {
         key: "status",
         label: "Estado",
         render: (quote) => (
-          <span className={STATUS_BADGE_CLASS[quote.status]}>
+          <Badge tone={STATUS_TONE[quote.status]}>
             {STATUS_LABEL[quote.status]}
-          </span>
+          </Badge>
         ),
       },
       {

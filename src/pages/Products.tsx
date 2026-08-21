@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import Badge, { type BadgeTone } from "../components/Badge.js";
 import { Power, Trash2 } from "lucide-react";
 
 import Button from "../components/Button.js";
@@ -28,9 +29,9 @@ const DEFAULT_CURRENCY = "COP";
 
 const SAVE_MESSAGE = "No fue posible guardar el producto";
 
-const STATUS_BADGE_CLASS: Record<ProductStatus, string> = {
-  ACTIVE: "badge badge-success",
-  INACTIVE: "badge badge-danger",
+const STATUS_TONE: Record<ProductStatus, BadgeTone> = {
+  ACTIVE: "success",
+  INACTIVE: "danger"
 };
 
 const STATUS_LABEL = Object.fromEntries(
@@ -254,7 +255,7 @@ export default function Products() {
         key: "itemType",
         label: "Tipo",
         render: (product) => (
-          <span className="badge badge-neutral">{ITEM_TYPE_LABEL[product.itemType]}</span>
+          <Badge>{ITEM_TYPE_LABEL[product.itemType]}</Badge>
         ),
       },
       {
@@ -273,9 +274,9 @@ export default function Products() {
         key: "status",
         label: "Estado",
         render: (product) => (
-          <span className={STATUS_BADGE_CLASS[product.status]}>
+          <Badge tone={STATUS_TONE[product.status]}>
             {STATUS_LABEL[product.status]}
-          </span>
+          </Badge>
         ),
       },
       {

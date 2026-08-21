@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Badge, { type BadgeTone } from "../components/Badge.js";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../components/Button.js";
@@ -29,9 +30,9 @@ import type { Customer } from "../types/customer.js";
 import type { Product } from "../types/product.js";
 import type { Sale, SaleStatus } from "../types/sale.js";
 
-const STATUS_BADGE_CLASS: Record<SaleStatus, string> = {
-  CONFIRMED: "badge badge-success",
-  CANCELLED: "badge badge-danger",
+const STATUS_TONE: Record<SaleStatus, BadgeTone> = {
+  CONFIRMED: "success",
+  CANCELLED: "danger"
 };
 
 const STATUS_LABEL = Object.fromEntries(
@@ -204,9 +205,9 @@ export default function Sales() {
         key: "status",
         label: "Estado",
         render: (sale) => (
-          <span className={STATUS_BADGE_CLASS[sale.status]}>
+          <Badge tone={STATUS_TONE[sale.status]}>
             {STATUS_LABEL[sale.status]}
-          </span>
+          </Badge>
         ),
       },
       {

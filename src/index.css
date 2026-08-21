@@ -979,43 +979,6 @@ p {
   }
 }
 
-/* =========================================
-   BADGES GENÉRICOS (.badge*)
-   ========================================= */
-
-/* Badges genéricos (usados en listas de datos) */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.badge-success {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.badge-danger {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.badge-warning {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-.badge-neutral {
-  background: #f1f5f9;
-  color: #475569;
-}
-
 /* Celda principal de una fila (nombre + subtítulo) */
 .cell-main {
   display: flex;

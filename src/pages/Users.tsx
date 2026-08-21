@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import Badge, { type BadgeTone } from "../components/Badge.js";
 import { useNavigate } from "react-router-dom";
 import { Ban, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
@@ -38,10 +39,10 @@ const STATUS_ACTIONS: Record<
   },
 };
 
-const STATUS_BADGE_CLASS: Record<UserStatus, string> = {
-  ACTIVE: "badge badge-success",
-  INACTIVE: "badge badge-danger",
-  SUSPENDED: "badge badge-warning",
+const STATUS_TONE: Record<UserStatus, BadgeTone> = {
+  ACTIVE: "success",
+  INACTIVE: "danger",
+  SUSPENDED: "warning"
 };
 
 const STATUS_LABEL = Object.fromEntries(
@@ -144,9 +145,9 @@ export default function Users() {
       key: "status",
       label: "Estado",
       render: (user) => (
-        <span className={STATUS_BADGE_CLASS[user.status]}>
-          {STATUS_LABEL[user.status]}
-        </span>
+        <Badge tone={STATUS_TONE[user.status]}>
+            {STATUS_LABEL[user.status]}
+          </Badge>
       ),
     },
     {

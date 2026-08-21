@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import Badge, { type BadgeTone } from "../components/Badge.js";
 import { useNavigate } from "react-router-dom";
 import { Copy, Edit2, Power, Trash2 } from "lucide-react";
 import Button from "../components/Button.js";
@@ -30,9 +31,9 @@ import type {
   ChannelStatus,
 } from "../types/channel.js";
 
-const STATUS_BADGE_CLASS: Record<ChannelStatus, string> = {
-  ACTIVE: "badge badge-success",
-  INACTIVE: "badge badge-danger",
+const STATUS_TONE: Record<ChannelStatus, BadgeTone> = {
+  ACTIVE: "success",
+  INACTIVE: "danger"
 };
 
 const STATUS_LABEL = Object.fromEntries(
@@ -171,9 +172,9 @@ export default function Channels() {
       key: "status",
       label: "Estado",
       render: (channel) => (
-        <span className={STATUS_BADGE_CLASS[channel.status]}>
-          {STATUS_LABEL[channel.status]}
-        </span>
+        <Badge tone={STATUS_TONE[channel.status]}>
+            {STATUS_LABEL[channel.status]}
+          </Badge>
       ),
     },
     {
@@ -186,13 +187,9 @@ export default function Channels() {
         const cfg = channel.credentialsConfigured;
         const allConfigured = cfg?.accessToken && cfg?.verifyToken;
         return (
-          <span
-            className={
-              allConfigured ? "badge badge-success" : "badge badge-warning"
-            }
-          >
+          <Badge tone={allConfigured ? "success" : "warning"}>
             {allConfigured ? "Configuradas" : "Incompletas"}
-          </span>
+          </Badge>
         );
       },
     },
