@@ -19,14 +19,10 @@ import ChannelForm from "../pages/ChannelForm.js";
 import Conversations from "../pages/Conversations.js";
 import Users from "../pages/Users.js";
 import UserForm from "../pages/UserForm.js";
-import Tenants from "../pages/Tenants.js";
-import Plans from "../pages/Plans.js";
-import CapabilitiesDashboard from "../pages/CapabilitiesDashboard.js";
 import AgentChat from "../pages/AgentChat.js";
 import AgentConfig from "../pages/AgentConfig.js";
 import AgentAssistant from "../pages/AgentAssistant.js";
 import InternalAssistant from "../pages/InternalAssistant.js";
-import SupportAssistant from "../pages/SupportAssistant.js";
 import CompanySettings from "../pages/CompanySettings.js";
 import PublicChat from "../pages/PublicChat.js";
 import Unauthorized from "../pages/Unauthorized.js";
@@ -47,32 +43,8 @@ export default function AppRouter() {
 
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        <Route
-          path="/tenants"
-          element={
-            <CapabilityRoute requireDomains={["SUPER_ADMIN"]}>
-              <Tenants />
-            </CapabilityRoute>
-          }
-        />
 
-        <Route
-          path="/admin/plans"
-          element={
-            <CapabilityRoute requireDomains={["SUPER_ADMIN"]}>
-              <Plans />
-            </CapabilityRoute>
-          }
-        />
 
-        <Route
-          path="/admin/capabilities"
-          element={
-            <CapabilityRoute requireDomains={["SUPER_ADMIN"]}>
-              <CapabilitiesDashboard />
-            </CapabilityRoute>
-          }
-        />
 
         <Route path="/quotes" element={<Quotes />} />
 
@@ -128,7 +100,6 @@ export default function AppRouter() {
           }
         />
 
-        <Route path="/support/assistant" element={<SupportAssistant />} />
 
         <Route path="/settings/company" element={<CompanySettings />} />
 
