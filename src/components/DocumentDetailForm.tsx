@@ -807,11 +807,11 @@ function DocumentDetailFormContent({
                   Sin eventos registrados
                 </p>
               ) : (
-                <div className="quote-timeline">
+                <div className="flex flex-col">
                   {events.map((e) => (
-                    <article key={e._id} className="timeline-item">
-                      <div className="timeline-item__marker" />
-                      <div className="timeline-item__content">
+                    <article key={e._id} className="relative flex gap-3.5 min-h-[64px] before:absolute before:left-[5px] before:top-3 before:bottom-0 before:w-px before:bg-line last:before:hidden">
+                      <div className="relative z-10 w-[11px] h-[11px] mt-1 shrink-0 border-2 border-accent rounded-full bg-surface-card" />
+                      <div className="flex flex-col gap-[3px] [&>time]:text-[13px] text-ink-muted">
                         <strong>{statusLabels[e.type] ?? e.type}</strong>
                         <time>{formatDateTime(e.createdAt)}</time>
                       </div>

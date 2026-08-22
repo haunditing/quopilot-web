@@ -3,13 +3,13 @@ import PageHeader from "../components/PageHeader.js";
 
 export default function AgentAssistant() {
   return (
-    <main className="assistant-chat">
+    <main className="w-full max-w-[860px] mx-auto px-4">
       <PageHeader
         title="Asistente de IA"
         description="Configura tu agente de IA comercial mediante conversación"
       />
 
-      <AssistantChat className="assistant-chat__card--page" />
+      <AssistantChat className="mt-6" />
     </main>
   );
 }

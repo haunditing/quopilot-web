@@ -344,7 +344,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
   if (loading || loadError) {
     return (
-      <main className="master-detail">
+      <main className="min-h-full bg-surface-light">
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando canal..." />
       </main>
     );
@@ -355,7 +355,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
   const showPublicLink = isEdit && channel?.type === "WEB_CHAT" && publicLink;
 
   return (
-    <main className="master-detail">
+    <main className="min-h-full bg-surface-light">
       <PageHeader
         title={isEdit ? "Editar canal" : "Nuevo canal"}
         description={
@@ -369,27 +369,27 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-      <div className="master-detail__body">
-        <div className="master-detail__main">
+      <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1">
+        <div className="flex flex-col gap-4 min-w-0">
           <form
-            id="master-detail"
-            className="channel-form__form"
+            id="min-h-full bg-surface-light"
+            className="flex flex-col gap-6"
             onSubmit={handleSubmit}
           >
-            <section id="channel-informacion" className="channel-form__card">
-              <header className="channel-form__card-head">
-                <span className="channel-form__card-head__icon">
+            <section id="channel-informacion" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+              <header className="flex flex-row items-start gap-3 w-full mb-5">
+                <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
                   <Icon name="settings" size={20} />
                 </span>
 
-                <span className="channel-form__card-head__text">
+                <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
                   <strong>Información general</strong>
 
                   <small>Nombre y tipo de canal</small>
                 </span>
               </header>
 
-              <div className="channel-form__grid">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field
                   id="channel-name"
                   label="Nombre"
@@ -429,13 +429,13 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
               </div>
             </section>
 
-            <section id="channel-configuracion" className="channel-form__card">
-              <header className="channel-form__card-head">
-                <span className="channel-form__card-head__icon">
+            <section id="channel-configuracion" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+              <header className="flex flex-row items-start gap-3 w-full mb-5">
+                <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
                   <Icon name="channels" size={20} />
                 </span>
 
-                <span className="channel-form__card-head__text">
+                <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
                   <strong>Configuración</strong>
 
                   <small>Datos de conexión del canal</small>
@@ -443,7 +443,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
               </header>
 
               {form.type === "WHATSAPP" && (
-                <div className="channel-form__grid">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     id="channel-phone"
                     label="Número de teléfono"
@@ -471,7 +471,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
               )}
 
               {form.type === "INSTAGRAM" && (
-                <div className="channel-form__grid">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     id="channel-ig-id"
                     label="ID de cuenta de Instagram"
@@ -522,7 +522,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
                     hint='Usa {"{name}"} para incluir el nombre del cliente en el saludo.'
                   />
 
-                  <div className="channel-form__grid">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       label="Color principal"
                       error={colorError}
@@ -564,20 +564,20 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             </section>
 
             {form.type !== "WEB_CHAT" && (
-              <section id="channel-credenciales" className="channel-form__card">
-                <header className="channel-form__card-head">
-                  <span className="channel-form__card-head__icon">
+              <section id="channel-credenciales" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+                <header className="flex flex-row items-start gap-3 w-full mb-5">
+                  <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
                     <Icon name="lock" size={20} />
                   </span>
 
-                  <span className="channel-form__card-head__text">
+                  <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
                     <strong>Credenciales</strong>
 
                     <small>Tokens de acceso y verificación</small>
                   </span>
                 </header>
 
-                <div className="channel-form__grid">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     id="channel-token"
                     label="Token de acceso"
@@ -627,13 +627,13 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             )}
 
             {(modalWebhookUrl || showPublicLink) && (
-              <section id="channel-webhook" className="channel-form__card">
-                <header className="channel-form__card-head">
-                  <span className="channel-form__card-head__icon">
+              <section id="channel-webhook" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+                <header className="flex flex-row items-start gap-3 w-full mb-5">
+                  <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
                     <Icon name="link" size={20} />
                   </span>
 
-                  <span className="channel-form__card-head__text">
+                  <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
                     <strong>Webhook / Enlace</strong>
 
                     <small>URLs para conectar el canal</small>
@@ -701,16 +701,16 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
           </form>
         </div>
 
-        <aside className="channel-form__panel">
-          <nav className="channel-form__nav" aria-label="Secciones del canal">
+        <aside className="sticky top-5 max-[860px]:static flex flex-col gap-4 p-5 rounded-xl border border-line bg-surface-card shadow-card">
+          <nav className="flex flex-col gap-1" aria-label="Secciones del canal">
             {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 className={
                   activeSection === tab.id
-                    ? "channel-form__tab channel-form__tab--active"
-                    : "channel-form__tab"
+                    ? "flex items-center w-full px-3.5 py-2.5 rounded-lg border text-[13px] font-semibold text-left cursor-pointer transition-colors duration-150 bg-accent-soft border-accent-border text-accent"
+                    : "flex items-center w-full px-3.5 py-2.5 rounded-lg border border-transparent text-[13px] font-semibold text-left cursor-pointer transition-colors duration-150 hover:bg-accent-soft hover:text-accent"
                 }
                 onClick={() => scrollToSection(tab.id)}
               >
@@ -721,10 +721,10 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
           <Button
             type="submit"
-            form="master-detail"
+            form="min-h-full bg-surface-light"
             icon="check"
             disabled={saving}
-            className="channel-form__panel-save"
+            className="w-full justify-center"
           >
             {saving
               ? "Guardando..."

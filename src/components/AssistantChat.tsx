@@ -210,22 +210,21 @@ export default function AssistantChat({
     }
   }
 
-  const cardClassName = ["assistant-chat__card"];
-
-  if (className) {
-    cardClassName.push(className);
-  }
-
-  if (embedded) {
-    cardClassName.push("assistant-chat__card--embedded");
-  }
+  const cardClassName = [
+    "flex flex-col border border-line rounded-2xl overflow-hidden bg-surface-card shadow-card",
+    "h-[min(640px,calc(100vh-220px))]",
+    className || "",
+    embedded
+      ? "h-auto flex-1 min-h-0 border-0 rounded-none shadow-none"
+      : "mt-6",
+  ];
 
   return (
-    <section className={cardClassName.join(" ")}>
-      <header className="assistant-chat__header">
-        <Icon name="bot" size={20} className="assistant-chat__header-icon" />
+    <section className={cardClassName.filter(Boolean).join(" ")}>
+      <header className="flex flex-row items-center gap-2.5 px-4 py-3 bg-accent text-white">
+        <Icon name="bot" size={20} className="shrink-0" />
 
-        <div className="assistant-chat__header-info">
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0 [&>strong]:text-sm [&>strong]:truncate [&>small]:text-white/85 [&>small]:text-xs">
           <strong>{title}</strong>
 
           <small>{subtitle}</small>
@@ -233,7 +232,7 @@ export default function AssistantChat({
 
         <button
           type="button"
-          className="assistant-chat__header-reset"
+          className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg border border-white/45 bg-transparent text-white cursor-pointer transition-colors hover:bg-white/15 disabled:opacity-50 disabled:cursor-default"
           aria-label="Limpiar conversación"
           title="Limpiar conversación"
           disabled={resetting || sending || messages.length === 0}
@@ -248,31 +247,31 @@ export default function AssistantChat({
       {resetError && <FormMessage kind="error">{resetError}</FormMessage>}
 
       {loading ? (
-        <div className="assistant-chat__state">
+        <div className="flex items-center justify-center flex-1 p-6 text-sm text-center text-ink-muted">
           <Loading variant="inline" label="Cargando conversación…" />
         </div>
       ) : loadError ? (
-        <div className="assistant-chat__state">
+        <div className="flex items-center justify-center flex-1 p-6 text-sm text-center text-ink-muted">
           <p>{loadError}</p>
         </div>
       ) : (
-        <div className="assistant-chat__messages">
+        <div className="flex flex-col gap-2.5 flex-1 p-4 overflow-y-auto bg-surface-light">
           {messages.length === 0 && !sending ? (
-            <div className="assistant-chat__welcome">
+            <div className="flex flex-col gap-3 items-center max-w-[420px] mx-auto text-sm leading-normal text-center text-ink-muted">
               <Icon
                 name="bot"
                 size={32}
-                className="assistant-chat__welcome-icon"
+                className="text-accent"
               />
 
               <p>{welcomeMessage}</p>
 
-              <div className="assistant-chat__suggestions">
+              <div className="flex flex-col gap-2 w-full">
                 {suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
-                    className="assistant-chat__suggestion"
+                    className="rounded-[10px] border border-line bg-surface-card text-ink-strong font-[inherit] text-[13px] px-3 py-2.5 text-left cursor-pointer transition-colors hover:border-accent hover:text-accent disabled:opacity-60 disabled:cursor-default"
                     disabled={sending}
                     onClick={() => {
                       void handleSuggestion(suggestion);

@@ -340,7 +340,7 @@ function CompanySettingsPanel() {
   }
 
   return (
-    <main className="master-detail">
+    <main className="min-h-full bg-surface-light">
       <PageHeader
         title="Configuración de la Empresa"
         description="Centraliza la identidad legal, el branding y las preferencias de tu empresa"
@@ -356,11 +356,11 @@ function CompanySettingsPanel() {
         emptyTitle="No hay datos de empresa"
         emptyMessage="No se encontró información del tenant para editar"
       >
-        <div className="master-detail__body">
-          <div className="master-detail__main">
+        <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1">
+          <div className="flex flex-col gap-4 min-w-0">
             {/* Sección 1: Identificación legal y fiscal (solo lectura) */}
-            <section className="settings-card">
-              <header className="settings-card__header">
+            <section className="rounded-xl border border-line bg-surface-card shadow-card">
+              <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
                 <div>
                   <h2>Identificación legal y fiscal</h2>
                   <p>
@@ -369,13 +369,13 @@ function CompanySettingsPanel() {
                   </p>
                 </div>
 
-                <span className="settings-card__badge">
+                <span className="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-[5px] border border-line rounded-full text-xs font-semibold text-ink-muted bg-accent-soft">
                   <Icon name="lock" size={14} />
                   Solo lectura
                 </span>
               </header>
 
-              <div className="settings-card__grid settings-card__grid--locked">
+              <div className="grid grid-cols-2 items-start gap-[18px] px-6 py-5">
                 {FISCAL_FIELDS.map((field) => (
                   <Field
                     key={field.key}
@@ -388,7 +388,7 @@ function CompanySettingsPanel() {
                 ))}
               </div>
 
-              <div className="settings-card__footer">
+              <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
                 <button
                   type="button"
                   className="button button--secondary"
@@ -405,8 +405,8 @@ function CompanySettingsPanel() {
             </section>
 
             {/* Sección 2: Branding */}
-            <section className="settings-card">
-              <header className="settings-card__header">
+            <section className="rounded-xl border border-line bg-surface-card shadow-card">
+              <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
                 <div>
                   <h2>Branding y personalización de documentos</h2>
                   <p>
@@ -417,11 +417,11 @@ function CompanySettingsPanel() {
               </header>
 
               <form
-                className="settings-card__form"
+                className="flex flex-col gap-[18px] px-6 py-5"
                 onSubmit={saveBranding}
                 id="company-branding-form"
               >
-                <div className="settings-card__grid">
+                <div className="grid grid-cols-2 items-start gap-[18px]">
                   <ImageUploader
                     label="Logo de la empresa"
                     value={branding.logoUrl || undefined}
@@ -458,11 +458,11 @@ function CompanySettingsPanel() {
                     /></FormField>
                 </div>
 
-                <div className="settings-card__grid">
+                <div className="grid grid-cols-2 items-start gap-[18px]">
                   <FormField label="Logo para cotizaciones / documentos">
 
-                    <div className="settings-radio">
-                      <label className="settings-radio__option">
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2.5 p-3 rounded-lg border border-line text-sm text-ink-strong cursor-pointer transition-colors duration-150 hover:border-accent-border hover:bg-accent-soft [&>input]:w-4 [&>input]:h-4 [&>input]:accent-accent">
                         <input
                           type="radio"
                           name="document-logo-mode"
@@ -477,7 +477,7 @@ function CompanySettingsPanel() {
                         <span>Usar el logo principal</span>
                       </label>
 
-                      <label className="settings-radio__option">
+                      <label className="flex items-center gap-2.5 p-3 rounded-lg border border-line text-sm text-ink-strong cursor-pointer transition-colors duration-150 hover:border-accent-border hover:bg-accent-soft [&>input]:w-4 [&>input]:h-4 [&>input]:accent-accent">
                         <input
                           type="radio"
                           name="document-logo-mode"
@@ -530,7 +530,7 @@ function CompanySettingsPanel() {
                   <FormMessage kind="error">{brandingError}</FormMessage>
                 )}
 
-                <div className="settings-card__footer">
+                <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
                   <Button
                     type="submit"
                     variant="primary"
@@ -543,8 +543,8 @@ function CompanySettingsPanel() {
             </section>
 
             {/* Sección 3: Agente de IA (solo lectura) */}
-            <section className="settings-card">
-              <header className="settings-card__header">
+            <section className="rounded-xl border border-line bg-surface-card shadow-card">
+              <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
                 <div>
                   <h2>Agente de IA</h2>
                   <p>
@@ -554,36 +554,36 @@ function CompanySettingsPanel() {
                   </p>
                 </div>
 
-                <span className="settings-card__badge">
+                <span className="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-[5px] border border-line rounded-full text-xs font-semibold text-ink-muted bg-accent-soft">
                   <Icon name="bot" size={14} />
                   Gestionado en /agent
                 </span>
               </header>
 
-              <div className="settings-card__form">
-                <div className="settings-agent-card">
-                  <div className="settings-agent-card__summary">
+              <div className="flex flex-col gap-[18px] px-6 py-5">
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex items-center gap-3.5">
                     {agentAvatar ? (
                       <img
-                        className="settings-agent-card__avatar"
+                        className="inline-flex items-center justify-center w-[52px] h-[52px] shrink-0 rounded-full bg-accent-soft text-accent object-cover text-[15px] font-bold"
                         src={agentAvatar}
                         alt="Avatar del agente"
                       />
                     ) : (
-                      <span className="settings-agent-card__avatar">
+                      <span className="inline-flex items-center justify-center w-[52px] h-[52px] shrink-0 rounded-full bg-accent-soft text-accent object-cover text-[15px] font-bold">
                         <Icon name="bot" size={22} />
                       </span>
                     )}
 
-                    <div className="settings-agent-card__info">
+                    <div className="flex flex-col min-w-0 gap-0.5 [&>strong]:text-[15px] [&>strong]:text-ink-strong [&>strong]:truncate [&>strong]:whitespace-nowrap [&>span]:text-[13px] [&>span]:text-ink-muted">
                       <strong>{agent?.name ?? "Agente QuoPilot"}</strong>
                       <span>Tono: {agentToneLabel}</span>
-                      <span className="settings-agent-card__status">
+                      <span className="inline-flex items-center gap-1.5">
                         <span
                           className={
                             agent?.status === "ACTIVE"
-                              ? "settings-agent-card__dot settings-agent-card__dot--active"
-                              : "settings-agent-card__dot"
+                              ? "w-2 h-2 rounded-full bg-success"
+                              : "w-2 h-2 rounded-full bg-slate-400"
                           }
                         />
                         {agent?.status === "ACTIVE" ? "Activo" : "Inactivo"}
@@ -592,12 +592,12 @@ function CompanySettingsPanel() {
                   </div>
 
                   {agent?.welcomeMessage && (
-                    <div className="settings-preview__bubble">
+                    <div className="p-3 rounded-[10px_10px_10px_2px] bg-accent-soft text-ink-strong text-[13px] leading-normal whitespace-pre-wrap">
                       {agent.welcomeMessage}
                     </div>
                   )}
 
-                  <div className="settings-card__footer">
+                  <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
                     <Link to="/agent" className="button button--secondary">
                       <Icon name="bot" size={16} />
                       Ir a configurar Agente
@@ -608,8 +608,8 @@ function CompanySettingsPanel() {
             </section>
 
             {/* Sección 4: Contacto y ubicación */}
-            <section className="settings-card">
-              <header className="settings-card__header">
+            <section className="rounded-xl border border-line bg-surface-card shadow-card">
+              <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
                 <div>
                   <h2>Datos de contacto y ubicación operativa</h2>
                   <p>Información de contacto que verán tus clientes.</p>
@@ -617,11 +617,11 @@ function CompanySettingsPanel() {
               </header>
 
               <form
-                className="settings-card__form"
+                className="flex flex-col gap-[18px] px-6 py-5"
                 onSubmit={saveContact}
                 id="company-contact-form"
               >
-                <div className="settings-card__grid">
+                <div className="grid grid-cols-2 items-start gap-[18px]">
                   <Field
                     id="company-city"
                     label="Municipio / Departamento"
@@ -725,7 +725,7 @@ function CompanySettingsPanel() {
                   <FormMessage kind="error">{contactError}</FormMessage>
                 )}
 
-                <div className="settings-card__footer">
+                <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
                   <Button
                     type="submit"
                     variant="primary"
@@ -738,8 +738,8 @@ function CompanySettingsPanel() {
             </section>
 
             {/* Sección 5: Preferencias regionales */}
-            <section className="settings-card">
-              <header className="settings-card__header">
+            <section className="rounded-xl border border-line bg-surface-card shadow-card">
+              <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
                 <div>
                   <h2>Preferencias regionales y formato</h2>
                   <p>
@@ -749,11 +749,11 @@ function CompanySettingsPanel() {
               </header>
 
               <form
-                className="settings-card__form"
+                className="flex flex-col gap-[18px] px-6 py-5"
                 onSubmit={saveRegional}
                 id="company-regional-form"
               >
-                <div className="settings-card__grid">
+                <div className="grid grid-cols-2 items-start gap-[18px]">
                   <Field
                     id="company-currency"
                     label="Moneda predeterminada"
@@ -843,7 +843,7 @@ function CompanySettingsPanel() {
                   <FormMessage kind="error">{regionalError}</FormMessage>
                 )}
 
-                <div className="settings-card__footer">
+                <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
                   <Button
                     type="submit"
                     variant="primary"
@@ -857,56 +857,56 @@ function CompanySettingsPanel() {
           </div>
 
           {/* Vista previa lateral */}
-          <aside className="master-detail__sidebar">
-            <div className="settings-preview">
-              <div className="settings-preview__title">Vista previa</div>
+          <aside className="sticky top-5 max-[860px]:static">
+            <div className="flex flex-col gap-3 p-4 rounded-xl border border-line bg-surface-card shadow-card">
+              <div className="text-xs font-bold uppercase tracking-[0.06em] text-ink-muted">Vista previa</div>
 
-              <div className="settings-preview__doc">
+              <div className="rounded-[10px] border border-line overflow-hidden bg-surface-card">
                 <div
-                  className="settings-preview__doc-header"
+                  className="flex items-center gap-2.5 p-3 text-white"
                   style={{ background: effectiveBrandColor }}
                 >
                   {effectiveDocumentLogo ? (
                     <img
-                      className="settings-preview__doc-logo"
+                      className="h-8 max-w-[120px] object-contain rounded-md bg-white p-1"
                       src={effectiveDocumentLogo}
                       alt="Logo de la empresa"
                     />
                   ) : (
                     <span
-                      className="settings-preview__doc-avatar"
+                      className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-white text-ink-strong text-[13px] font-bold tracking-[0.02em]"
                       aria-hidden="true"
                     >
                       {companyInitials(companyName)}
                     </span>
                   )}
 
-                  <span className="settings-preview__doc-name">
+                  <span className="text-sm font-bold truncate whitespace-nowrap">
                     {companyName}
                   </span>
                 </div>
 
-                <div className="settings-preview__doc-body">
+                <div className="flex items-center justify-between px-3 py-3.5 text-[13px] text-ink-muted [&>strong]:text-ink-strong">
                   <span>Cotización</span>
                   <strong>N° 0001</strong>
                 </div>
 
                 {branding.footerText.trim() && (
-                  <div className="settings-preview__doc-footer">
+                  <div className="px-3 py-2.5 border-t border-line text-xs text-ink-muted whitespace-pre-wrap">
                     {branding.footerText}
                   </div>
                 )}
               </div>
 
-              <div className="settings-preview__agent">
+              <div className="flex items-center gap-3 p-3 rounded-[10px] border border-line">
                 {agentAvatar ? (
                   <img
-                    className="settings-preview__agent-avatar"
+                    className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full bg-accent-soft text-accent object-cover text-sm font-bold"
                     src={agentAvatar}
                     alt="Avatar del agente"
                   />
                 ) : (
-                  <span className="settings-preview__agent-avatar">
+                  <span className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full bg-accent-soft text-accent object-cover text-sm font-bold">
                     <Icon name="bot" size={22} />
                   </span>
                 )}
@@ -918,7 +918,7 @@ function CompanySettingsPanel() {
               </div>
 
               {agent?.welcomeMessage && (
-                <div className="settings-preview__bubble">
+                <div className="p-3 rounded-[10px_10px_10px_2px] bg-accent-soft text-ink-strong text-[13px] leading-normal whitespace-pre-wrap">
                   {agent.welcomeMessage}
                 </div>
               )}

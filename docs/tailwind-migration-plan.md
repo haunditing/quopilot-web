@@ -1,7 +1,7 @@
 # Plan de Migración a Tailwind CSS — `quopilot-web` (Estrategia Strangler Fig)
 
 **Autor**: Arquitectura Frontend · **Fecha**: 2026-08-21 · **Estado**: Propuesta
-**Alcance**: migrar ~8.000 líneas de CSS propio a utilidades Tailwind sin pausar el desarrollo.
+**Progreso real**: 7.549 → ~5.500 líneas (−27%) tras Fases 1-2 y barridos de CSS propio a utilidades Tailwind sin pausar el desarrollo.
 
 ---
 
@@ -224,6 +224,18 @@ return (
 );
 ```
 Ventaja demostrada: **cero CSS**, estados visibles en el propio TSX y paridad total con el panel admin (misma librería mental entre apps).
+
+---
+
+## Excepción arquitectónica decidida: el Shell (APP LAYOUT + ROLE THEMES + Sidebar Footer)
+
+El layout raíz (`AppLayout.tsx`) **permanece en CSS legado de forma intencional**:
+
+1. **Temas por rol**: `.app-layout--super-admin|tenant-admin|agent` redefinen variables CSS (`--accent`, `--shell-*`) que cascadan a todo el árbol. Es el mecanismo correcto de theming runtime — las utilidades estáticas no lo sustituyen.
+2. **Estados compuestos**: colapsado/hover-expandido del sidebar y drawer móvil usan selectores descendientes (`.app-sidebar--collapsed .app-user__info{display:none}`, media queries) que requerirían duplicar la lógica como variantes JS frágiles.
+3. **Aislamiento**: el shell envuelve TODAS las rutas; una regresión aquí impacta todo simultáneamente.
+
+Las páginas DENTRO del shell sí migran completamente (esto es lo que llevamos hecho).
 
 ---
 

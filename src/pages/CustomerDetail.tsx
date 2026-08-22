@@ -255,70 +255,69 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
   if (loading || loadError) {
     return (
-      <main className="master-detail">
+      <main className="min-h-full bg-surface-light">
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando contacto..." />
       </main>
     );
   }
 
   return (
-    <main className="master-detail">
+    <main className="min-h-full bg-surface-light">
       <PageHeader
         title={isEdit ? "Editar contacto" : "Nuevo contacto"}
         description="Datos generales e información de contacto"
       />
 
-      <form className="master-detail__body" onSubmit={handleSubmit}>
+      <form className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1" onSubmit={handleSubmit}>
         {/* ===== Columna principal ===== */}
-        <div className="master-detail__main">
+        <div className="flex flex-col gap-4 min-w-0">
           {/* Selector de tipo de contacto */}
           <div
-            className="customer-type"
+            className="inline-flex self-start gap-2 p-1 bg-white border border-line rounded-full"
             role="group"
             aria-label="Tipo de contacto"
           >
-            <button
-              type="button"
-              className={
-                form.customerType === "CUSTOMER"
-                  ? "customer-type__pill customer-type__pill--active"
-                  : "customer-type__pill"
-              }
-              aria-pressed={form.customerType === "CUSTOMER"}
-              onClick={() => setField("customerType", "CUSTOMER")}
-            >
-              <span className="customer-type__check">
-                <Check size={12} strokeWidth={3} />
-              </span>
-              Cliente
-            </button>
+            {(["CUSTOMER", "SUPPLIER"] as const).map((type) => {
+              const active = form.customerType === type;
 
-            <button
-              type="button"
-              className={
-                form.customerType === "SUPPLIER"
-                  ? "customer-type__pill customer-type__pill--active"
-                  : "customer-type__pill"
-              }
-              aria-pressed={form.customerType === "SUPPLIER"}
-              onClick={() => setField("customerType", "SUPPLIER")}
-            >
-              <span className="customer-type__check">
-                <Check size={12} strokeWidth={3} />
-              </span>
-              Proveedor
-            </button>
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className={`inline-flex items-center gap-2 px-[18px] py-2 border-none rounded-full font-inherit text-[13px] font-semibold cursor-pointer transition-colors duration-150 ${
+                    active
+                      ? "bg-teal-100 text-teal-600"
+                      : "bg-transparent text-slate-500"
+                  }`}
+                  aria-pressed={active}
+                  onClick={() => setField("customerType", type)}
+                >
+                  <span
+                    className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] transition-colors duration-150 ${
+                      active
+                        ? "bg-teal-600 border-teal-600 text-white"
+                        : "border-slate-300 text-transparent"
+                    }`}
+                  >
+                    <Check size={12} strokeWidth={3} />
+                  </span>
+                  {type === "CUSTOMER" ? "Cliente" : "Proveedor"}
+                </button>
+              );
+            })}
           </div>
 
           {/* Callout de restricción */}
           {isEdit && (
-            <div className="customer-callout" role="note">
-              <Info size={18} className="customer-callout__icon" />
+            <div className="flex gap-3 p-3.5 rounded-[10px] border border-indigo-200 bg-indigo-50" role="note">
+              <Info size={18} className="shrink-0 mt-px text-indigo-600" />
 
-              <div className="customer-callout__text">
-                <strong>Algunos datos no se pueden editar</strong>
+              <div>
+                <strong className="block text-[13px] font-bold text-indigo-900">
+                  Algunos datos no se pueden editar
+                </strong>
 
-                <p>
+                <p className="mt-1 text-[13px] leading-normal text-indigo-600">
                   No es posible modificar el nombre ni la identificación del
                   &quot;Consumidor Final&quot;.
                 </p>
@@ -327,10 +326,10 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
           )}
 
           {/* Sección 1: Datos generales */}
-          <section className="master-detail-card">
-            <h2 className="master-detail-card__title">Datos generales</h2>
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
+            <h2 className="m-0 text-base font-bold text-ink-strong">Datos generales</h2>
 
-            <div className="master-detail-card__grid">
+            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
               <Field
                 id="customer-first-name"
                 label="Nombres"
@@ -349,7 +348,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               />
             </div>
 
-            <div className="master-detail-card__grid">
+            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
               <Field
                 id="customer-id-type"
                 label="Tipo de identificación"
@@ -376,7 +375,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
                 label="Número de identificación"
                 idFor="customer-id-number"
               >
-                <div className="customer-field-with-action">
+                <div className="relative flex items-center">
                   <input
                     id="customer-id-number"
                     type="text"
@@ -385,13 +384,15 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
                     onChange={(event) =>
                       setField("identificationNumber", event.target.value)
                     }
+                    className="w-full min-h-[44px] px-3 pr-11 rounded-lg border border-line bg-surface-card text-ink-strong outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                   />
 
                   <button
                     type="button"
-                    className="customer-field-with-action__btn"
                     title="Autocompletar con la identificación"
                     aria-label="Autocompletar con la identificación"
+                    onClick={() => void 0}
+                    className="absolute right-1.5 inline-flex items-center justify-center w-8 h-8 border-none rounded-md text-slate-500 cursor-pointer transition-colors duration-150 hover:bg-slate-100 hover:text-ink-strong"
                   >
                     <Search size={16} />
                   </button>
@@ -399,7 +400,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               </FormField>
             </div>
 
-            <div className="master-detail-card__grid">
+            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
               <Field
                 id="customer-municipality"
                 label="Municipio / Departamento"
@@ -412,7 +413,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               />
             </div>
 
-            <div className="master-detail-card__grid">
+            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
               <Field
                 id="customer-address"
                 label="Dirección"
@@ -432,14 +433,14 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
           </section>
 
           {/* Sección 2: Información de contacto */}
-          <section className="master-detail-card">
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
             <button
               type="button"
-              className="master-detail-card__heading"
+              className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left"
               onClick={() => setContactOpen((current) => !current)}
               aria-expanded={contactOpen}
             >
-              <span className="master-detail-card__heading-text">
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:font-bold [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                 <strong>Información de contacto</strong>
 
                 <small>
@@ -449,18 +450,18 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               </span>
 
               {contactOpen ? (
-                <ChevronUp size={18} className="master-detail-card__chevron" />
+                <ChevronUp size={18} className="text-slate-400 shrink-0" />
               ) : (
                 <ChevronDown
                   size={18}
-                  className="master-detail-card__chevron"
+                  className="text-slate-400 shrink-0"
                 />
               )}
             </button>
 
             {contactOpen && (
               <>
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="customer-email"
                     label="Correo electrónico"
@@ -480,7 +481,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
                   />
                 </div>
 
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="customer-phone"
                     label="Teléfono"
@@ -503,22 +504,26 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
         </div>
 
         {/* ===== Panel lateral sticky ===== */}
-        <aside className="master-detail__sidebar">
+        <aside className="sticky top-5 max-[860px]:static">
           <div className="master-detail-sidebar">
             <div className="master-detail-sidebar__title">{title}</div>
 
-            <label className="customer-switch">
+            <label className="flex items-center gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.sendStatement}
                 onChange={(event) =>
                   setField("sendStatement", event.target.checked)
                 }
+                className="peer sr-only"
               />
 
-              <span className="customer-switch__track" aria-hidden="true" />
+              <span
+                aria-hidden="true"
+                className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-[#00b4d8] peer-checked:after:translate-x-[18px] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+              />
 
-              <span className="customer-switch__label">
+              <span className="text-sm font-medium text-ink-strong">
                 Enviar estado de cuenta
               </span>
             </label>

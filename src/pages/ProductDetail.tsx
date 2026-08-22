@@ -490,14 +490,14 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   if (loading || loadError) {
     return (
-      <main className="master-detail">
+      <main className="min-h-full bg-surface-light">
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando producto..." />
       </main>
     );
   }
 
   return (
-    <main className="master-detail">
+    <main className="min-h-full bg-surface-light">
       <PageHeader
         title={
           isEdit ? "Editar producto / servicio" : "Nuevo producto / servicio"
@@ -505,27 +505,27 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         description="Formulario avanzado con inventario, contabilidad y automatización"
       />
 
-      <form className="master-detail__body" onSubmit={handleSubmit}>
-        <div className="master-detail__main">
+      <form className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1" onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-4 min-w-0">
           {/* Sección A: Información general */}
-          <section className="master-detail-card">
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
             <button
               type="button"
-              className="master-detail-card__heading"
+              className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left"
               onClick={() => toggleSection("general")}
               aria-expanded={openSections.general}
             >
-              <span className="master-detail-card__heading-text">
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:font-bold [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                 <strong>A · Información general</strong>
                 <small>Tipo de ítem, nombre, referencia e imagen</small>
               </span>
 
               {openSections.general ? (
-                <ChevronUp size={18} className="master-detail-card__chevron" />
+                <ChevronUp size={18} className="text-slate-400 shrink-0" />
               ) : (
                 <ChevronDown
                   size={18}
-                  className="master-detail-card__chevron"
+                  className="text-slate-400 shrink-0"
                 />
               )}
             </button>
@@ -578,7 +578,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   })}
                 </div>
 
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-name"
                     label="Nombre"
@@ -608,7 +608,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </Field>
                 </div>
 
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-reference"
                     label="Referencia / SKU"
@@ -630,7 +630,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-barcode"
                     label="Código de barras (EAN/UPC)"
@@ -669,31 +669,31 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección B: Precios e impuestos */}
-          <section className="master-detail-card">
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
             <button
               type="button"
-              className="master-detail-card__heading"
+              className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left"
               onClick={() => toggleSection("pricing")}
               aria-expanded={openSections.pricing}
             >
-              <span className="master-detail-card__heading-text">
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:font-bold [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                 <strong>B · Precios e impuestos</strong>
                 <small>Precio base, impuesto, listas de precios y margen</small>
               </span>
 
               {openSections.pricing ? (
-                <ChevronUp size={18} className="master-detail-card__chevron" />
+                <ChevronUp size={18} className="text-slate-400 shrink-0" />
               ) : (
                 <ChevronDown
                   size={18}
-                  className="master-detail-card__chevron"
+                  className="text-slate-400 shrink-0"
                 />
               )}
             </button>
 
             {openSections.pricing && (
               <>
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-base-price"
                     label="Precio base (sin impuestos)"
@@ -725,7 +725,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </Field>
                 </div>
 
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-cost"
                     label="Costo (sin impuestos)"
@@ -771,7 +771,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   return (
                     <div
                       key={priceList.value}
-                      className="master-detail-card__grid"
+                      className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1"
                     >
                       <Field
                         id={`price-${priceList.value}`}
@@ -797,15 +797,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección C: Inventario y almacenes */}
-          <section className="master-detail-card">
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
             <button
               type="button"
-              className="master-detail-card__heading"
+              className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left"
               onClick={() => toggleSection("inventory")}
               aria-expanded={openSections.inventory}
               disabled={isService || isCombo}
             >
-              <span className="master-detail-card__heading-text">
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:font-bold [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                 <strong>C · Inventario y almacenes</strong>
                 <small>
                   {isProduct
@@ -815,18 +815,18 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               </span>
 
               {openSections.inventory ? (
-                <ChevronUp size={18} className="master-detail-card__chevron" />
+                <ChevronUp size={18} className="text-slate-400 shrink-0" />
               ) : (
                 <ChevronDown
                   size={18}
-                  className="master-detail-card__chevron"
+                  className="text-slate-400 shrink-0"
                 />
               )}
             </button>
 
             {openSections.inventory && isProduct && (
               <>
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-min-stock"
                     label="Stock mínimo"
@@ -942,31 +942,31 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección D: Contabilidad */}
-          <section className="master-detail-card">
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
             <button
               type="button"
-              className="master-detail-card__heading"
+              className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left"
               onClick={() => toggleSection("accounting")}
               aria-expanded={openSections.accounting}
             >
-              <span className="master-detail-card__heading-text">
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:font-bold [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                 <strong>D · Contabilidad y clasificación fiscal</strong>
                 <small>Cuentas contables y códigos de homologación</small>
               </span>
 
               {openSections.accounting ? (
-                <ChevronUp size={18} className="master-detail-card__chevron" />
+                <ChevronUp size={18} className="text-slate-400 shrink-0" />
               ) : (
                 <ChevronDown
                   size={18}
-                  className="master-detail-card__chevron"
+                  className="text-slate-400 shrink-0"
                 />
               )}
             </button>
 
             {openSections.accounting && (
               <>
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-income-account"
                     label="Cuenta contable de ingresos"
@@ -990,7 +990,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="master-detail-card__grid">
+                <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-4 max-[520px]:grid-cols-1">
                   <Field
                     id="product-inventory-account"
                     label="Cuenta de inventario / costo de ventas"
@@ -1018,24 +1018,24 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </section>
 
           {/* Sección E: Copiloto y automatización */}
-          <section className="master-detail-card">
+          <section className="flex flex-col gap-4 p-6 bg-white border border-slate-200 rounded-xl shadow-card max-[520px]:p-4">
             <button
               type="button"
-              className="master-detail-card__heading"
+              className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left"
               onClick={() => toggleSection("copilot")}
               aria-expanded={openSections.copilot}
             >
-              <span className="master-detail-card__heading-text">
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:font-bold [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                 <strong>E · Copiloto &amp; automatización QuoPilot</strong>
                 <small>Descripciones IA, sugerencia de precio y triggers</small>
               </span>
 
               {openSections.copilot ? (
-                <ChevronUp size={18} className="master-detail-card__chevron" />
+                <ChevronUp size={18} className="text-slate-400 shrink-0" />
               ) : (
                 <ChevronDown
                   size={18}
-                  className="master-detail-card__chevron"
+                  className="text-slate-400 shrink-0"
                 />
               )}
             </button>
@@ -1128,7 +1128,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         </div>
 
         {/* Panel lateral */}
-        <aside className="master-detail__sidebar">
+        <aside className="sticky top-5 max-[860px]:static">
           <div className="master-detail-sidebar">
             <div className="master-detail-sidebar__title">
               {form.name.trim() || "Nuevo producto"}

@@ -147,11 +147,11 @@ export default function ProductSearch({
   }
 
   return (
-    <div ref={containerRef} className="product-search">
+    <div ref={containerRef} className="relative w-full">
       <input
         ref={inputRef}
         type="text"
-        className="product-search__input"
+        className="w-full py-2.5 pl-3 pr-9 rounded-[10px] border border-line bg-surface-card text-sm leading-snug text-ink-strong focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
         value={query}
         placeholder={placeholder}
         onChange={(event) => setQuery(event.target.value)}
@@ -168,13 +168,13 @@ export default function ProductSearch({
       />
 
       {loading && (
-        <LoadingGlyph size="sm" className="product-search__spinner" />
+        <LoadingGlyph size="sm" className="absolute right-3 top-1/2 -mt-2 w-4 h-4 rounded-full border-2 border-line border-t-accent animate-spin" />
       )}
 
       {open && (
-        <ul className="product-search__dropdown" role="listbox">
+        <ul className="absolute top-[calc(100%+6px)] left-0 right-0 z-50 max-h-[280px] overflow-y-auto m-0 p-1.5 list-none rounded-[10px] border border-line bg-surface-card shadow-[0_8px_24px_rgba(0,0,0,0.12)]" role="listbox">
           {results.length === 0 ? (
-            <li className="product-search__empty">
+            <li className="px-3 py-3.5 text-sm text-center text-ink-muted">
               {noResults
                 ? "No se encontraron productos"
                 : "Escribe al menos 2 caracteres para buscar"}
@@ -185,17 +185,17 @@ export default function ProductSearch({
                 key={product._id}
                 className={
                   index === activeIndex
-                    ? "product-search__option product-search__option--active"
-                    : "product-search__option"
+                    ? "flex flex-col gap-0.5 px-3 py-2.5 rounded-lg bg-accent-soft cursor-pointer transition-colors duration-150"
+                    : "flex flex-col gap-0.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-accent-soft"
                 }
                 role="option"
                 aria-selected={index === activeIndex}
                 onClick={() => handleSelect(product)}
               >
-                <span className="product-search__option-name">
+                <span className="text-sm font-semibold text-ink-strong truncate whitespace-nowrap">
                   {product.name}
                 </span>
-                <span className="product-search__option-meta">
+                <span className="text-[13px] text-ink-muted">
                   {product.sku ? `${product.sku} · ` : ""}
                   {formatCurrency(product.unitPrice, product.currency)}
                 </span>

@@ -421,7 +421,7 @@ export default function AgentConfig() {
   }
 
   return (
-    <main className="agent-config">
+    <main className="w-full max-w-none">
       <PageHeader
         title="Agente de IA"
         description="Configura el asistente comercial virtual de tu empresa"
@@ -444,11 +444,11 @@ export default function AgentConfig() {
           message="Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
         ></EmptyState>
       ) : (
-        <div className="agent-config__body">
-          <div className="agent-config__main">
+        <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 mt-6">
+          <div className="flex flex-col min-w-0">
             <form
               id="agent-config-form"
-              className="agent-config__form"
+              className="flex flex-col gap-[18px]"
               onSubmit={handleSubmit}
             >
               <AgentConfigCard
@@ -457,7 +457,7 @@ export default function AgentConfig() {
                 title="Modelo de IA"
                 description="Clave de API y modelo que usa el agente de este tenant"
               >
-                <div className="agent-config__grid-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField label="Proveedor" idFor="agent-llm-provider">
 
                     <Combobox
@@ -471,7 +471,7 @@ export default function AgentConfig() {
 
                   <FormField label="API Key" idFor="agent-llm-key">
 
-                    <div className="agent-config__password">
+                    <div className="relative [&>input]:pr-[92px]">
                       <input
                         id="agent-llm-key"
                         type={showApiKey ? "text" : "password"}
@@ -485,7 +485,7 @@ export default function AgentConfig() {
 
                       <button
                         type="button"
-                        className="agent-config__password-toggle"
+                        className="absolute inset-y-0 right-0 inline-flex items-center gap-1.5 px-3 border-0 bg-transparent text-[13px] font-semibold text-ink-muted cursor-pointer transition-colors duration-150 hover:text-accent"
                         aria-label={
                           showApiKey ? "Ocultar API Key" : "Mostrar API Key"
                         }
@@ -497,7 +497,7 @@ export default function AgentConfig() {
                   </FormField>
                 </div>
 
-                <div className="agent-config__grid-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Field
                     id="agent-llm-model"
                     label="Modelo"
@@ -545,7 +545,7 @@ export default function AgentConfig() {
                 title="Información general"
                 description="Nombre, idioma y tono del asistente"
               >
-                <div className="agent-config__grid-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     id="agent-name"
                     label="Nombre"
@@ -635,7 +635,7 @@ export default function AgentConfig() {
                     placeholder="Ej.: Hola, ¿en qué puedo ayudarte hoy?"
                   />
 
-                  <span className="agent-config__counter">
+                  <span className="self-end text-xs leading-snug text-ink-muted">
                     {form.welcomeMessage.length} / 500
                   </span>
                 </FormField>
@@ -666,25 +666,25 @@ export default function AgentConfig() {
                     placeholder="Reglas avanzadas que el modelo debe seguir siempre"
                   />
 
-                  <span className="agent-config__counter">
+                  <span className="self-end text-xs leading-snug text-ink-muted">
                     {form.systemInstructions.length} / 500
                   </span>
                 </FormField>
 
-                <div className="agent-config__rules">
-                  <div className="section-heading">
+                <div className="flex flex-col gap-2.5 mt-5">
+                  <div className="mb-4 [&>p]:mt-1 [&>p]:text-sm text-ink-muted">
                     <h3>Reglas de comportamiento</h3>
 
                     <p>Reglas adicionales que debe respetar el agente</p>
                   </div>
 
                   {form.behaviorRules.length === 0 ? (
-                    <div className="agent-config__rules-empty">
-                      <span className="agent-config__rules-empty__icon">
+                    <div className="flex flex-col items-start gap-4 p-5 rounded-xl border border-dashed border-line bg-accent-soft">
+                      <span className="inline-flex items-center justify-center w-11 h-11 rounded-[10px] text-accent">
                         <Icon name="settings" size={26} />
                       </span>
 
-                      <div className="agent-config__rules-empty__text">
+                      <div className="flex flex-col gap-1 [&>strong]:text-[15px] [&>strong]:font-bold [&>strong]:text-ink-strong [&>p]:m-0 [&>p]:text-[13px] text-ink-muted">
                         <strong>No hay reglas de comportamiento</strong>
 
                         <p>
@@ -704,7 +704,7 @@ export default function AgentConfig() {
                   ) : (
                     <>
                       {form.behaviorRules.map((rule, index) => (
-                        <div key={index} className="agent-config__rule-row">
+                        <div key={index} className="flex flex-row items-center gap-2 [&>input]:flex-1 [&>input]:rounded-lg [&>input]:border [&>input]:border-line [&>input]:bg-surface-light [&>input]:px-2.5 [&>input]:py-2 [&>input]:text-sm [&>input]:text-ink-strong focus-within:[&>input]:outline-accent focus-within:[&>input]:outline-offset-[-1px]">
                           <input
                             type="text"
                             value={rule}
@@ -749,7 +749,7 @@ export default function AgentConfig() {
                 title="Herramientas"
                 description="Capacidades que el agente puede usar para atender clientes"
               >
-                <div className="agent-config__tools">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {TOOL_OPTIONS.map((option) => {
                     const enabled = form.enabledTools.includes(option.value);
 
@@ -758,16 +758,16 @@ export default function AgentConfig() {
                         key={option.value}
                         className={
                           enabled
-                            ? "agent-config__tool agent-config__tool--active"
-                            : "agent-config__tool"
+                            ? "flex flex-row items-start gap-3 p-3.5 rounded-xl border border-sky-200 bg-sky-50 cursor-pointer transition-colors duration-150 hover:border-accent-border"
+                            : "flex flex-row items-start gap-3 p-3.5 rounded-xl border border-line bg-surface-card cursor-pointer transition-colors duration-150 hover:border-accent-border"
                         }
                         onClick={() => toggleTool(option.value)}
                       >
-                        <span className="agent-config__tool-icon">
+                        <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-accent-soft text-accent">
                           <Icon name={option.icon} size={20} />
                         </span>
 
-                        <span className="agent-config__tool-text">
+                        <span className="flex flex-col gap-0.5 min-w-0 flex-1 [&>strong]:text-sm [&>strong]:font-semibold [&>strong]:text-ink-strong [&>small]:text-xs [&>small]:leading-snug text-ink-muted">
                           <strong>{option.label}</strong>
 
                           <small>{option.description}</small>
@@ -811,7 +811,7 @@ export default function AgentConfig() {
                 </FormField>
 
                 {form.productScope === "SELECTED" && (
-                  <div className="agent-config__options">
+                  <div className="grid grid-cols-1 gap-2 my-3 md:grid-cols-2">
                     {products.length === 0 && (
                       <FormMessage kind="info">
                         No hay productos disponibles para seleccionar.
@@ -819,7 +819,7 @@ export default function AgentConfig() {
                     )}
 
                     {products.map((product) => (
-                      <label key={product._id} className="agent-config__option">
+                      <label key={product._id} className="flex flex-row items-start gap-2.5 p-3 rounded-[10px] border border-line bg-surface-card cursor-pointer [&>input]:mt-[3px] [&>input]:accent-accent [&>span]:flex [&>span]:flex-col [&>span]:gap-0.5 [&>strong]:text-sm [&>strong]:font-semibold [&>strong]:text-ink-strong [&>small]:text-[13px] text-ink-muted">
                         <input
                           type="checkbox"
                           checked={form.allowedProductIds.includes(product._id)}
@@ -846,7 +846,7 @@ export default function AgentConfig() {
                 title="Escalación"
                 description="Transferencia automática de la conversación a un asesor humano"
               >
-                <div className="agent-config__toggle-row">
+                <div className="flex flex-row items-center justify-between gap-3 p-3.5 rounded-[10px] border border-line bg-surface-card [&>span]:text-sm [&>span]:font-semibold [&>span]:text-ink-strong">
                   <span>Habilitar escalación</span>
 
                   <Switch
@@ -891,7 +891,7 @@ export default function AgentConfig() {
                 title="Memoria"
                 description="Contexto que el agente recuerda de la conversación"
               >
-                <div className="agent-config__toggle-row">
+                <div className="flex flex-row items-center justify-between gap-3 p-3.5 rounded-[10px] border border-line bg-surface-card [&>span]:text-sm [&>span]:font-semibold [&>span]:text-ink-strong">
                   <span>Habilitar memoria</span>
 
                   <Switch
@@ -901,7 +901,7 @@ export default function AgentConfig() {
                   />
                 </div>
 
-                <div className="agent-config__grid-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     id="agent-memory-window"
                     label="Ventana de mensajes"
@@ -927,7 +927,7 @@ export default function AgentConfig() {
                   />
                 </div>
 
-                <div className="agent-config__toggle-row">
+                <div className="flex flex-row items-center justify-between gap-3 p-3.5 rounded-[10px] border border-line bg-surface-card [&>span]:text-sm [&>span]:font-semibold [&>span]:text-ink-strong">
                   <span>Resumir conversaciones largas</span>
 
                   <Switch
@@ -943,9 +943,9 @@ export default function AgentConfig() {
             </form>
           </div>
 
-          <aside className="agent-config__panel">
+          <aside className="sticky top-5 flex flex-col gap-5 p-5 rounded-xl border border-line bg-surface-card shadow-card">
             <nav
-              className="agent-config__nav"
+              className="flex flex-col gap-1"
               aria-label="Secciones del agente"
             >
               {SECTION_TABS.map((tab) => (
@@ -954,8 +954,8 @@ export default function AgentConfig() {
                   type="button"
                   className={
                     activeSection === tab.id
-                      ? "agent-config__tab agent-config__tab--active"
-                      : "agent-config__tab"
+                      ? "flex items-center w-full px-3.5 py-2.5 rounded-lg text-[13px] font-semibold text-left cursor-pointer transition-colors duration-150 bg-accent-soft border border-accent-border !text-accent"
+                      : "flex items-center w-full px-3.5 py-2.5 rounded-lg text-[13px] font-semibold text-left cursor-pointer transition-colors duration-150 hover:bg-accent-soft hover:text-accent"
                   }
                   onClick={() => scrollToSection(tab.id)}
                 >
@@ -969,7 +969,7 @@ export default function AgentConfig() {
               form="agent-config-form"
               icon="check"
               disabled={saving}
-              className="agent-config__panel-save"
+              className="justify-center w-full"
             >
               {saving ? "Guardando..." : "Guardar cambios"}
             </Button>

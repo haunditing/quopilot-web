@@ -15,14 +15,14 @@ const SUGGESTIONS: string[] = [
 
 export default function InternalAssistant() {
   return (
-    <main className="assistant-chat">
+    <main className="w-full max-w-[860px] mx-auto px-4">
       <PageHeader
         title="Asistente de QuoPilot"
         description="Configura y consulta tu negocio con lenguaje natural"
       />
 
       <AssistantChat
-        className="assistant-chat__card--page"
+        className="mt-6"
         endpoint={INTERNAL_ASSISTANT_ENDPOINT}
         title="Asistente de QuoPilot"
         subtitle="Configura tu plataforma y consulta tu negocio"

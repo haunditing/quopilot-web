@@ -169,7 +169,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
   if (loading || loadError) {
     return (
-      <main className="master-detail">
+      <main className="min-h-full bg-surface-light">
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando usuario..." />
       </main>
     );
@@ -178,7 +178,7 @@ export default function UserForm({ userId }: UserFormProps) {
   const showConfirmPassword = !isEdit || Boolean(password);
 
   return (
-    <main className="master-detail">
+    <main className="min-h-full bg-surface-light">
       <PageHeader
         title={isEdit ? "Editar usuario" : "Nuevo usuario"}
         description={
@@ -192,10 +192,10 @@ export default function UserForm({ userId }: UserFormProps) {
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
-      <div className="master-detail__body">
-        <div className="master-detail__main">
+      <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1">
+        <div className="flex flex-col gap-4 min-w-0">
           <form
-            id="master-detail"
+            id="min-h-full bg-surface-light"
             className="user-form__form"
             onSubmit={handleSubmit}
           >
@@ -313,7 +313,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
           <Button
             type="submit"
-            form="master-detail"
+            form="min-h-full bg-surface-light"
             icon="check"
             disabled={saving}
             className="user-form__panel-save"
