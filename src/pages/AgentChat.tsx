@@ -438,17 +438,17 @@ export default function AgentChat() {
         }
       />
 
-      <div className="agent-chat">
-        <aside className="agent-chat__list">
-          <div className="agent-chat__filters">
+      <div className="grid grid-cols-[minmax(260px,340px)_1fr] gap-4 items-stretch h-[calc(100vh-220px)] min-h-[480px] max-[860px]:grid-cols-1 max-[860px]:h-auto">
+        <aside className="flex flex-col rounded-xl border border-line bg-surface-card overflow-hidden max-[860px]:max-h-[280px]">
+          <div className="flex flex-row gap-1 p-2.5 border-b border-line">
             {STATUS_FILTERS.map((filter) => (
               <button
                 key={filter.value}
                 type="button"
                 className={
                   statusFilter === filter.value
-                    ? "agent-chat__filter agent-chat__filter--active"
-                    : "agent-chat__filter"
+                    ? "flex-1 rounded-lg px-2 py-1.5 text-[13px] font-semibold cursor-pointer !bg-accent-soft !border-accent-border !text-accent"
+                    : "flex-1 border border-transparent rounded-lg text-[13px] font-semibold px-2 py-1.5 cursor-pointer text-ink-muted"
                 }
                 onClick={() => {
                   setStatusFilter(filter.value);
@@ -470,21 +470,21 @@ export default function AgentChat() {
             emptyTitle="No hay conversaciones"
             emptyMessage="Abre una conversación para empezar a probar al agente"
           >
-            <div className="agent-chat__items">
+            <div className="flex flex-col overflow-y-auto">
               {(conversations ?? []).map((conversation) => (
                 <button
                   key={conversation._id}
                   type="button"
                   className={
                     selectedId === conversation._id
-                      ? "agent-chat__item agent-chat__item--active"
-                      : "agent-chat__item"
+                      ? "flex flex-col gap-1 w-full border-none border-b border-line bg-accent-soft text-left font-[inherit] px-3.5 py-3 cursor-pointer shadow-[inset_3px_0_0_var(--accent)]"
+                      : "flex flex-col gap-1 w-full border-none border-b border-line bg-transparent text-left font-[inherit] px-3.5 py-3 cursor-pointer hover:bg-accent-soft"
                   }
                   onClick={() => {
                     void selectConversation(conversation._id);
                   }}
                 >
-                  <span className="agent-chat__item-top">
+                  <span className="flex items-baseline justify-between gap-2 [&>strong]:text-sm [&>strong]:text-ink-strong [&>strong]:truncate [&>strong]:whitespace-nowrap [&>time]:text-xs [&>time]:text-ink-muted [&>time]:whitespace-nowrap">
                     <strong>{conversationTitle(conversation)}</strong>
 
                     <time>
@@ -495,8 +495,8 @@ export default function AgentChat() {
                     </time>
                   </span>
 
-                  <span className="agent-chat__item-bottom">
-                    <span className="agent-chat__preview">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] text-ink-muted truncate whitespace-nowrap">
                       {conversation.lastMessage?.content || "Sin mensajes"}
                     </span>
 
@@ -508,17 +508,17 @@ export default function AgentChat() {
           </AsyncBoundary>
         </aside>
 
-        <section className="agent-chat__thread">
+        <section className="flex flex-col rounded-xl border border-line bg-surface-card overflow-hidden">
           {!selectedConversation ? (
-            <div className="agent-chat__placeholder">
+            <div className="flex flex-col items-center justify-center gap-3 flex-1 text-ink-muted [&>svg]:text-accent [&>svg]:opacity-50">
               <Icon name="chat" size={40} />
 
               <p>Selecciona una conversación para ver los mensajes</p>
             </div>
           ) : (
             <>
-              <header className="agent-chat__header">
-                <div className="agent-chat__header-info">
+              <header className="flex items-center justify-between gap-3 px-4 py-3 border-b border-line">
+                <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-[15px] [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:text-xs text-ink-muted">
                   <strong>{conversationTitle(selectedConversation)}</strong>
 
                   <small>
@@ -538,9 +538,9 @@ export default function AgentChat() {
                   message={threadError}
                 />
               ) : (
-                <div className="agent-chat__messages">
+                <div className="flex flex-col gap-2.5 flex-1 p-4 overflow-y-auto">
                   {messages.length === 0 && !sending ? (
-                    <p className="agent-chat__empty-thread">
+                    <p className="m-auto max-w-[320px] text-sm text-center text-ink-muted">
                       Aún no hay mensajes. Escribe el primer mensaje del cliente
                       para probar al agente.
                     </p>
@@ -550,11 +550,11 @@ export default function AgentChat() {
                         key={message._id}
                         className={
                           message.direction === "INBOUND"
-                            ? "agent-chat__bubble agent-chat__bubble--customer"
-                            : "agent-chat__bubble agent-chat__bubble--ai"
+                            ? "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal self-start bg-surface-light border border-line text-ink-strong rounded-bl-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]"
+                            : "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal self-end bg-accent text-white rounded-br-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere] [&>span]:text-white/80"
                         }
                       >
-                        <span className="agent-chat__bubble-meta">
+                        <span className="text-[11px] opacity-75">
                           {message.direction === "INBOUND" ? "Cliente" : "IA"}
                           {" · "}
                           {formatRelativeTime(message.createdAt)}
@@ -578,9 +578,9 @@ export default function AgentChat() {
                   )}
 
                   {sending && (
-                    <div className="agent-chat__bubble agent-chat__bubble--ai agent-chat__bubble--typing">
+                    <div className="flex flex-col gap-1 max-w-[78%] px-4 py-3.5 rounded-xl leading-normal self-end bg-accent text-white rounded-br-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">
                       <span
-                        className="agent-chat__typing"
+                        className="inline-flex items-center gap-1"
                         aria-label="Escribiendo..."
                       >
                         <i />
@@ -595,7 +595,7 @@ export default function AgentChat() {
               )}
 
               <form
-                className="agent-chat__composer"
+                className="flex flex-col gap-2 px-4 py-3 border-t border-line"
                 onSubmit={(event) => {
                   void handleSend(event);
                 }}
@@ -604,7 +604,7 @@ export default function AgentChat() {
                   <FormMessage kind="error">{sendError}</FormMessage>
                 )}
 
-                <div className="agent-chat__composer-row">
+                <div className="flex flex-row gap-2 [&>input]:flex-1 [&>input]:rounded-[10px] [&>input]:border [&>input]:border-line [&>input]:bg-surface-light [&>input]:px-3 [&>input]:py-2.5 [&>input]:text-sm [&>input]:text-ink-strong [&>input]:font-[inherit] focus-within:[&>input]:outline-2 focus-within:[&>input]:outline-offset-[-1px] focus-within:[&>input]:outline-accent disabled:[&>input]:opacity-60">
                   <input
                     type="text"
                     value={draft}
@@ -631,7 +631,7 @@ export default function AgentChat() {
                   </Button>
                 </div>
 
-                <p className="agent-chat__composer-hint">
+                <p className="m-0 text-xs text-ink-muted">
                   El mensaje se envía como si lo escribiera el cliente, para que
                   el agente responda.
                 </p>
@@ -660,24 +660,24 @@ export default function AgentChat() {
           />
 
           {customerLoading && (
-            <p className="agent-chat__customer-status">Buscando clientes...</p>
+            <p className="m-0 text-sm text-ink-muted">Buscando clientes...</p>
           )}
 
           {customerResults !== null &&
             !customerLoading &&
             customerResults.length === 0 && (
-              <p className="agent-chat__customer-status">
+              <p className="m-0 text-sm text-ink-muted">
                 No se encontraron clientes
               </p>
             )}
 
           {customerResults !== null && customerResults.length > 0 && (
-            <div className="agent-chat__customer-list">
+            <div className="flex flex-col gap-1.5">
               {customerResults.map((customer) => (
                 <button
                   key={customer._id}
                   type="button"
-                  className="agent-chat__customer"
+                  className="flex flex-col gap-0.5 rounded-[10px] border border-line bg-transparent text-left font-[inherit] px-3 py-2.5 cursor-pointer transition-colors duration-150 hover:border-accent-border hover:bg-accent-soft [&>strong]:text-sm [&>strong]:text-ink-strong [&>small]:text-xs text-ink-muted"
                   disabled={opening}
                   onClick={() => {
                     void handlePickCustomer(customer);

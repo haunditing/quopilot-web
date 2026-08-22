@@ -85,9 +85,9 @@ const CHANNEL_ICONS: Record<
   ConversationChannel,
   { Icon: typeof MessageCircle; className: string }
 > = {
-  WHATSAPP: { Icon: MessageCircle, className: "inbox__channel-dot--whatsapp" },
-  WEB_CHAT: { Icon: Globe, className: "inbox__channel-dot--webchat" },
-  INSTAGRAM: { Icon: Camera, className: "inbox__channel-dot--instagram" },
+  WHATSAPP: { Icon: MessageCircle, className: "bg-[#25d366]" },
+  WEB_CHAT: { Icon: Globe, className: "bg-blue-600" },
+  INSTAGRAM: { Icon: Camera, className: "bg-pink-600" },
 };
 
 const POLL_INTERVAL_MS = 5000;
@@ -729,14 +729,14 @@ export default function Conversations() {
       <div
         className={
           showDetailOnMobile && selectedConversation
-            ? "inbox inbox--show-detail"
-            : "inbox"
+            ? "grid grid-cols-[340px_1fr] gap-4 items-stretch h-[calc(100vh-220px)] min-h-[480px] max-[767px]:grid-cols-1 max-[767px]:h-[calc(100vh-190px)] inbox--show-detail"
+            : "grid grid-cols-[340px_1fr] gap-4 items-stretch h-[calc(100vh-220px)] min-h-[480px] max-[767px]:grid-cols-1 max-[767px]:h-[calc(100vh-190px)]"
         }
       >
         {/* ============ PANEL MASTER ============ */}
-        <aside className="inbox__master">
-          <div className="inbox__search">
-            <Search size={16} className="inbox__search-icon" />
+        <aside className="flex flex-col min-h-0 rounded-xl border border-line bg-surface-card overflow-hidden max-[767px]:flex">
+          <div className="relative flex items-center gap-2 px-3 pt-3 mb-2 [&>input]:flex-1 [&>input]:min-w-0 [&>input]:rounded-[10px] [&>input]:border [&>input]:border-line [&>input]:bg-surface-light [&>input]:text-[13px] [&>input]:text-ink-strong [&>input]:pl-9 [&>input]:pr-3 [&>input]:py-2 [&>input]:font-[inherit] focus-within:[&>input]:outline-2 focus-within:[&>input]:outline-offset-[-1px] focus-within:[&>input]:outline-accent">
+            <Search size={16} className="absolute left-6 text-slate-400 pointer-events-none" />
 
             <input
               type="text"
@@ -761,7 +761,7 @@ export default function Conversations() {
           </div>
 
           {showFilters && (
-            <div className="filters-bar inbox__filters" ref={filtersBarRef}>
+            <div className="filters-bar px-3 pb-3 pt-2.5 border-b border-line" ref={filtersBarRef}>
               <div className="filters-group">
                 {/* Chip Canal */}
                 <div className="chip-wrapper">
@@ -987,9 +987,9 @@ export default function Conversations() {
             </div>
           )}
 
-          <div className="inbox__items">
+          <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
             {listLoading ? (
-              <div className="inbox__list-state">
+              <div className="p-8 px-4 text-[13px] text-center text-slate-400">
                 Cargando conversaciones...
               </div>
             ) : listError ? (
@@ -999,7 +999,7 @@ export default function Conversations() {
                 message={listError}
               />
             ) : visibleConversations.length === 0 ? (
-              <div className="inbox__list-state">
+              <div className="p-8 px-4 text-[13px] text-center text-slate-400">
                 {conversations && conversations.length > 0
                   ? "Ninguna conversación coincide con los filtros."
                   : "Los mensajes de tus canales aparecerán aquí."}
@@ -1014,26 +1014,26 @@ export default function Conversations() {
                     type="button"
                     className={
                       selectedId === conversation._id
-                        ? "inbox__item inbox__item--active"
-                        : "inbox__item"
+                        ? "flex flex-row items-start gap-2.5 w-full border-l-[3px] !border-l-accent !bg-slate-100 border-b border-b-line pt-3 pb-3 pl-2.5 pr-3 cursor-pointer transition-colors duration-150 hover:bg-slate-50"
+                        : "flex flex-row items-start gap-2.5 w-full border-l-[3px] border-l-transparent border-b border-b-line pt-3 pb-3 pl-2.5 pr-3 cursor-pointer transition-colors duration-150 hover:bg-slate-50"
                     }
                     onClick={() => {
                       void selectConversation(conversation._id);
                     }}
                   >
-                    <span className="inbox__item-avatar">
+                    <span className="relative shrink-0 flex items-center justify-center w-[42px] h-[42px] rounded-full bg-accent-soft text-accent text-base font-bold">
                       {conversationInitial(conversation)}
 
                       <span
-                        className={`inbox__channel-dot ${channelIcon.className}`}
+                        className={`absolute -right-[3px] -bottom-[3px] flex items-center justify-center w-[17px] h-[17px] rounded-full border-2 border-surface-card text-white ${channelIcon.className}`}
                         title={CHANNEL_LABELS[conversation.channel]}
                       >
                         <channelIcon.Icon size={10} />
                       </span>
                     </span>
 
-                    <span className="inbox__item-body">
-                      <span className="inbox__item-top">
+                    <span className="flex flex-col gap-[3px] min-w-0 flex-1">
+                      <span className="flex items-baseline justify-between gap-2 [&>strong]:text-sm [&>strong]:text-ink-strong [&>strong]:truncate [&>strong]:whitespace-nowrap [&>time]:shrink-0 [&>time]:text-[11px] [&>time]:whitespace-nowrap text-slate-400">
                         <strong>{conversationTitle(conversation)}</strong>
 
                         <time>
@@ -1044,12 +1044,12 @@ export default function Conversations() {
                         </time>
                       </span>
 
-                      <span className="inbox__preview">
+                      <span className="text-[13px] text-ink-muted truncate whitespace-nowrap">
                         {conversation.lastMessage?.content || "Sin mensajes"}
                       </span>
 
-                      <span className="inbox__item-meta">
-                        <span className="inbox__item-assignee">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="shrink-0 px-2 py-0.5 rounded-full border border-accent-border bg-accent-soft text-accent text-[11px] font-semibold leading-[1.4] whitespace-nowrap empty:hidden">
                           {conversation.assignedTo
                             ? conversation.assignedTo === currentUserId
                               ? "Tuya"
@@ -1068,19 +1068,19 @@ export default function Conversations() {
         </aside>
 
         {/* ============ PANEL DETAIL ============ */}
-        <section className="inbox__detail">
+        <section className="flex flex-col min-h-0 rounded-xl border border-line bg-surface-card overflow-hidden max-[767px]:hidden">
           {!selectedConversation ? (
-            <div className="inbox__placeholder">
+            <div className="flex flex-col items-center justify-center gap-3 flex-1 text-ink-muted [&>svg]:text-accent [&>svg]:opacity-50">
               <Icon name="chat" size={40} />
 
               <p>Selecciona una conversación para ver los mensajes</p>
             </div>
           ) : (
             <>
-              <header className="inbox__chat-header">
+              <header className="flex items-center gap-3 px-4 py-2.5 border-b border-line">
                 <button
                   type="button"
-                  className="inbox__back"
+                  className="hidden items-center justify-center w-8 h-8 shrink-0 rounded-lg border border-line bg-transparent text-ink-muted cursor-pointer max-[767px]:flex"
                   aria-label="Volver a conversaciones"
                   title="Volver a conversaciones"
                   onClick={() => setShowDetailOnMobile(false)}
@@ -1088,7 +1088,7 @@ export default function Conversations() {
                   <ArrowLeft size={18} />
                 </button>
 
-                <div className="inbox__chat-header-info">
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1 [&>strong]:text-[15px] [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:text-xs [&>small]:truncate text-ink-muted">
                   <strong>{conversationTitle(selectedConversation)}</strong>
 
                   <small>
@@ -1102,11 +1102,11 @@ export default function Conversations() {
                   </small>
                 </div>
 
-                <div className="inbox__chat-header-actions">
+                <div className="flex items-center gap-2 shrink-0">
                   {canReply && selectedConversation.status === "CLOSED" && (
                     <button
                       type="button"
-                      className="inbox__header-action"
+                      className="flex items-center justify-center w-8 h-8 rounded-lg border border-line bg-transparent transition-colors duration-150 hover:border-accent hover:text-accent hover:bg-accent-soft disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Reabrir chat"
                       aria-label="Reabrir chat"
                       disabled={reopening}
@@ -1120,7 +1120,7 @@ export default function Conversations() {
 
                   <button
                     type="button"
-                    className="inbox__header-action"
+                    className="flex items-center justify-center w-8 h-8 rounded-lg border border-line bg-transparent transition-colors duration-150 hover:border-accent hover:text-accent hover:bg-accent-soft disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Ver ficha del cliente"
                     aria-label="Ver ficha del cliente"
                     onClick={() => navigate("/customers")}
@@ -1132,9 +1132,9 @@ export default function Conversations() {
                 </div>
               </header>
 
-              <div className="inbox__thread">
+              <div className="flex flex-col flex-1 min-h-0 bg-slate-50">
                 {threadLoading ? (
-                  <div className="inbox__thread-state">
+                  <div className="p-8 px-4 text-[13px] text-center text-slate-400 m-auto">
                     Cargando mensajes...
                   </div>
                 ) : threadError ? (
@@ -1144,9 +1144,9 @@ export default function Conversations() {
                     message={threadError}
                   />
                 ) : (
-                  <div className="inbox__messages">
+                  <div className="flex flex-col gap-2.5 flex-1 p-4 overflow-y-auto">
                     {messages.length === 0 && !sending ? (
-                      <p className="inbox__thread-empty">
+                      <p className="m-auto max-w-[320px] text-sm text-center text-ink-muted">
                         Aún no hay mensajes en esta conversación.
                       </p>
                     ) : (
@@ -1155,7 +1155,7 @@ export default function Conversations() {
                           return (
                             <div
                               key={message._id}
-                              className="inbox__system-banner"
+                              className="self-center max-w-[85%] px-3.5 py-1 rounded-full bg-slate-200 text-xs text-center text-ink-muted"
                               dangerouslySetInnerHTML={{
                                 __html: sanitizeChatContent(message.content),
                               }}
@@ -1168,8 +1168,8 @@ export default function Conversations() {
                             key={message._id}
                             className={
                               message.direction === "INBOUND"
-                                ? "inbox__bubble inbox__bubble--customer"
-                                : "inbox__bubble inbox__bubble--agent"
+                                ? "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal self-start bg-white border border-slate-200 shadow-sm text-ink-strong rounded-bl-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]"
+                                : "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal self-end bg-accent text-white rounded-br-[4px] [&>p]:m-0 [&>p]:text-sm [&_.inbox-meta]:text-white/80 whitespace-pre-wrap [overflow-wrap:anywhere]"
                             }
                           >
                             <p
@@ -1177,7 +1177,7 @@ export default function Conversations() {
                                 __html: sanitizeChatContent(message.content),
                               }}
                             />
-                            <span className="inbox__bubble-meta">
+                            <span className="self-end text-[11px] opacity-75 inbox-meta">
                               {senderLabel(message)}
                               {" · "}
                               {formatClockTime(message.createdAt)}
@@ -1188,9 +1188,9 @@ export default function Conversations() {
                     )}
 
                     {sending && (
-                      <div className="inbox__bubble inbox__bubble--agent inbox__bubble--typing">
+                      <div className="flex flex-col gap-1 max-w-[78%] px-4 py-3.5 rounded-xl leading-normal self-end bg-accent text-white rounded-br-[4px] [&>p]:m-0 [&>p]:text-sm [&_.inbox-meta]:text-white/80 whitespace-pre-wrap [overflow-wrap:anywhere]">
                         <span
-                          className="inbox__typing"
+                          className="inline-flex items-center gap-1"
                           aria-label="Enviando..."
                         >
                           <i />
@@ -1206,8 +1206,8 @@ export default function Conversations() {
               </div>
 
               {selectedConversation.status === "CLOSED" ? (
-                <div className="inbox__composer inbox__composer--locked">
-                  <p className="inbox__composer-hint">
+                <div className="flex flex-col gap-2 px-4 py-3 border-t border-line bg-surface-card max-[767px]:flex-row max-[767px]:items-center max-[767px]:justify-between max-[767px]:flex-wrap">
+                  <p className="m-0 text-xs text-ink-muted">
                     Esta conversación está cerrada. Reábrela para responder al
                     cliente.
                   </p>
@@ -1226,26 +1226,26 @@ export default function Conversations() {
                 </div>
               ) : canReply && !assignedToOther ? (
                 <form
-                  className="inbox__composer"
+                  className="flex flex-col gap-2 px-4 py-3 border-t border-line bg-surface-card"
                   onSubmit={(event) => {
                     void handleSend(event);
                   }}
                 >
                   {sendError && (
-                    <p className="inbox__composer-error">{sendError}</p>
+                    <p className="m-0 p-2 rounded-lg bg-red-500/10 text-danger text-xs">{sendError}</p>
                   )}
 
                   {notDelivered && (
-                    <p className="inbox__composer-error">
+                    <p className="m-0 p-2 rounded-lg bg-red-500/10 text-danger text-xs">
                       La respuesta se guardó, pero el canal no tiene token o
                       configuración de envío, por lo que no se entregó.
                     </p>
                   )}
 
-                  <div className="inbox__composer-row">
+                  <div className="flex flex-row items-end gap-2 [&>textarea]:flex-1 [&>textarea]:resize-none [&>textarea]:rounded-[10px] [&>textarea]:border [&>textarea]:border-line [&>textarea]:bg-surface-light [&>textarea]:px-3 [&>textarea]:py-2 [&>textarea]:text-sm [&>textarea]:leading-normal [&>textarea]:text-ink-strong [&>textarea]:font-[inherit] [&>textarea]:max-h-[120px] [&>textarea]:min-h-[38px] focus-within:[&>textarea]:outline-2 focus-within:[&>textarea]:outline-offset-[-1px] focus-within:[&>textarea]:outline-accent">
                     <button
                       type="button"
-                      className="inbox__composer-tool"
+                      className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg border border-line bg-transparent text-slate-400 transition-colors duration-150 hover:border-accent hover:text-accent"
                       title="Adjuntar archivo"
                       aria-label="Adjuntar archivo"
                     >
@@ -1254,7 +1254,7 @@ export default function Conversations() {
 
                     <button
                       type="button"
-                      className="inbox__composer-tool"
+                      className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg border border-line bg-transparent text-slate-400 transition-colors duration-150 hover:border-accent hover:text-accent"
                       title="Emojis"
                       aria-label="Emojis"
                     >
@@ -1289,7 +1289,7 @@ export default function Conversations() {
 
                     <button
                       type="submit"
-                      className="inbox__composer-send"
+                      className="flex items-center justify-center w-9 h-9 shrink-0 border-none rounded-lg bg-accent text-white cursor-pointer transition-colors duration-150 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={sending || !draft.trim()}
                       title="Enviar"
                       aria-label="Enviar"
@@ -1299,14 +1299,14 @@ export default function Conversations() {
                   </div>
 
                   {customerTyping && (
-                    <p className="inbox__composer-hint inbox__composer-hint--typing">
+                    <p className="m-0 text-xs !text-accent italic">
                       El cliente está escribiendo...
                     </p>
                   )}
                 </form>
               ) : canClaim ? (
-                <div className="inbox__composer inbox__composer--locked">
-                  <p className="inbox__composer-hint">
+                <div className="flex flex-col gap-2 px-4 py-3 border-t border-line bg-surface-card max-[767px]:flex-row max-[767px]:items-center max-[767px]:justify-between max-[767px]:flex-wrap">
+                  <p className="m-0 text-xs text-ink-muted">
                     Esta conversación no tiene agente asignado.
                   </p>
 
@@ -1323,20 +1323,20 @@ export default function Conversations() {
                   </Button>
                 </div>
               ) : canReply && assignedToOther ? (
-                <div className="inbox__composer inbox__composer--locked">
-                  <p className="inbox__composer-hint">
+                <div className="flex flex-col gap-2 px-4 py-3 border-t border-line bg-surface-card max-[767px]:flex-row max-[767px]:items-center max-[767px]:justify-between max-[767px]:flex-wrap">
+                  <p className="m-0 text-xs text-ink-muted">
                     Esta conversación fue asignada a{" "}
                     {selectedConversation?.assignedAgentName ?? "otro agente"}.
                     Solo él puede responder al cliente.
                   </p>
                 </div>
               ) : (
-                <div className="inbox__composer inbox__composer--locked">
-                  <p className="inbox__composer-hint">
+                <div className="flex flex-col gap-2 px-4 py-3 border-t border-line bg-surface-card max-[767px]:flex-row max-[767px]:items-center max-[767px]:justify-between max-[767px]:flex-wrap">
+                  <p className="m-0 text-xs text-ink-muted">
                     Estás viendo el inbox en modo lectura.
                   </p>
 
-                  <span className="inbox__composer-locked-icon">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
                     <UserRound size={14} />
                     Solo los agentes pueden responder mensajes
                   </span>
