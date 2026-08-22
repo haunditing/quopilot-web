@@ -1,143 +1,23 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
 import Icon from "./Icon.js";
-import type { IconName } from "./Icon.js";
 import {
   getHeaderTitle,
-  getRoleLabel,
-  getRoleScope,
   getRoleThemeClass,
 } from "../lib/roles.js";
-import { clearAuth, getUser } from "../services/auth-storage.js";
-import type { UserRole } from "../types/user.js";
-import Button from "./Button.js";
+import { getUser } from "../services/auth-storage.js";
+import AppSidebar from "./Layout/AppSidebar.js";
 import FloatingPanel from "./FloatingPanel.js";
 import AssistantChat from "./AssistantChat.js";
 import { SUPPORT_ASSISTANT_ENDPOINT } from "../services/support-assistant-service.js";
-import { useCapabilities } from "../hooks/useCapabilities.js";
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
-interface NavigationItem {
-  to: string;
-  label: string;
-  icon: IconName;
-  roles?: UserRole[];
-  requiredCapability?: string;
-  end?: boolean;
-}
-
-interface NavigationGroup {
-  label?: string;
-  items: NavigationItem[];
-}
-
-const navigationGroups: NavigationGroup[] = [
-  {
-    items: [
-      {
-        to: "/dashboard",
-        label: "Dashboard",
-        icon: "dashboard",
-        requiredCapability: "dashboard.view",
-      },
-    ],
-  },
-  {
-    label: "Comercial",
-    items: [
-      {
-        to: "/conversations",
-        label: "Conversaciones",
-        icon: "inbox",
-        roles: ["TENANT_ADMIN", "AGENT"],
-        requiredCapability: "conversations.view",
-      },
-      {
-        to: "/customers",
-        label: "Clientes",
-        icon: "customers",
-        roles: ["TENANT_ADMIN", "AGENT"],
-        requiredCapability: "customers.view",
-      },
-      {
-        to: "/quotes",
-        label: "Cotizaciones",
-        icon: "quotes",
-        roles: ["TENANT_ADMIN", "AGENT"],
-        requiredCapability: "quotes.view",
-      },
-      {
-        to: "/sales",
-        label: "Ventas",
-        icon: "sales",
-        roles: ["TENANT_ADMIN", "AGENT"],
-        requiredCapability: "sales.view",
-      },
-      {
-        to: "/products",
-        label: "Productos",
-        icon: "products",
-        roles: ["TENANT_ADMIN", "AGENT"],
-        requiredCapability: "products.view",
-      },
-    ],
-  },
-  {
-    label: "Configuración",
-    items: [
-      {
-        to: "/settings/company",
-        label: "Empresa",
-        icon: "settings",
-        roles: ["TENANT_ADMIN"],
-        requiredCapability: "tenants.updateMe",
-      },
-    ],
-  },
-];
-
 export default function AppLayout({ children }: AppLayoutProps) {
-  const navigate = useNavigate();
   const user = getUser();
-  const { hasCapability } = useCapabilities();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    return localStorage.getItem("sidebarCollapsed") === "true";
-  });
-
-  const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem("sidebarCollapsed", String(isCollapsed));
-  }, [isCollapsed]);
-
-  const effectivelyCollapsed = isCollapsed && !isHovered;
-
-  const visibleNavigationGroups = navigationGroups
-    .map((group) => ({
-      label: group.label,
-      items: group.items.filter((item) => {
-        if (item.roles && (!user?.role || !item.roles.includes(user.role))) {
-          return false;
-        }
-
-        // Fail-closed: durante la carga (o si falla el endpoint) se ocultan
-        // los ítems que requieren capacidad.
-        if (
-          item.requiredCapability &&
-          !hasCapability(item.requiredCapability)
-        ) {
-          return false;
-        }
-
-        return true;
-      }),
-    }))
-    .filter((group) => group.items.length > 0);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -152,152 +32,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
     };
   }, [menuOpen]);
 
-  function handleLogout() {
-    clearAuth();
-
-    navigate("/login", {
-      replace: true,
-    });
-  }
-
-  const roleLabel = user?.role ? getRoleLabel(user.role) : undefined;
   const headerTitle = user?.role
     ? getHeaderTitle(user.role)
     : "Panel comercial";
-  const brandSubtitle = user?.role ? getRoleScope(user.role) : undefined;
-  const avatarInitial = user?.name?.charAt(0) ?? "U";
   const layoutClassName = user?.role
     ? `app-layout ${getRoleThemeClass(user.role)}`
     : "app-layout";
 
   return (
     <div className={layoutClassName}>
-      <aside
-        id="app-sidebar"
-        className={`app-sidebar ${menuOpen ? "app-sidebar--open" : ""} ${effectivelyCollapsed ? "app-sidebar--collapsed" : ""}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div
-          className="app-brand"
-          style={{
-            display: "flex",
-            justifyContent: effectivelyCollapsed ? "center" : "space-between",
-            width: "100%",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              overflow: "hidden",
-            }}
-          >
-            <Icon
-              name="brand"
-              size={24}
-              className="app-brand__icon"
-              style={{ flexShrink: 0 }}
-            />
-            {!effectivelyCollapsed && (
-              <span className="app-brand__text">
-                <strong>QuoPilot</strong>
-
-                {brandSubtitle && <small>{brandSubtitle}</small>}
-              </span>
-            )}
-          </div>
-          {!effectivelyCollapsed && (
-            <button
-              type="button"
-              className="app-sidebar-toggle"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "var(--shell-text-muted)",
-                cursor: "pointer",
-                padding: "6px",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
-            >
-              <Icon
-                name={isCollapsed ? "chevron-right" : "chevron-left"}
-                size={20}
-              />
-            </button>
-          )}
-        </div>
-
-        <nav className="app-navigation" aria-label="Navegación principal">
-          {visibleNavigationGroups.map((group) => (
-            <div
-              key={group.label ?? "principal"}
-              className="app-navigation__group"
-            >
-              {group.label && (
-                <span className="app-navigation__section">{group.label}</span>
-              )}
-
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "app-navigation__item app-navigation__item--active"
-                      : "app-navigation__item"
-                  }
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Icon name={item.icon} size={18} />
-
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
-        </nav>
-
-        <div className="app-user">
-          <div className="app-user__card">
-            <span className="app-user__avatar" aria-hidden="true">
-              {avatarInitial}
-            </span>
-            {!effectivelyCollapsed && (
-              <div className="app-user__info">
-                <strong className="app-user__name">
-                  {user?.name ?? "Usuario"}
-                </strong>
-                {user?.email && (
-                  <span className="app-user__email">{user.email}</span>
-                )}
-                {roleLabel && (
-                  <span className="app-user__role">{roleLabel}</span>
-                )}
-              </div>
-            )}
-
-            {!effectivelyCollapsed && (
-              <Button
-                icon="logout"
-                iconOnly
-                onClick={handleLogout}
-                aria-label="Cerrar sesión"
-              >
-                Cerrar sesión
-              </Button>
-            )}
-          </div>
-        </div>
-      </aside>
+      <AppSidebar open={menuOpen} onNavigate={() => setMenuOpen(false)} />
 
       {menuOpen && (
         <div

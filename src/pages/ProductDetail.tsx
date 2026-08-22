@@ -533,10 +533,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             {openSections.general && (
               <>
                 {isEdit && (
-                  <div className="product-callout" role="note">
-                    <Info size={18} className="product-callout__icon" />
+                  <div className="flex gap-3 px-4 py-3.5 rounded-[10px] border border-indigo-200 bg-indigo-50" role="note">
+                    <Info size={18} className="shrink-0 mt-px text-indigo-600" />
 
-                    <div className="product-callout__text">
+                    <div className="[&>strong]:block [&>strong]:text-indigo-900 [&>strong]:text-[13px] [&>strong]:font-bold [&>p]:mt-1 [&>p]:mb-0 [&>p]:text-indigo-600 [&>p]:text-[13px] [&>p]:leading-normal">
                       <strong>El tipo de ítem no se puede modificar</strong>
 
                       <p>
@@ -551,7 +551,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                 )}
 
                 <div
-                  className="product-card__type"
+                  className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-[10px]"
                   role="group"
                   aria-label="Tipo de ítem"
                 >
@@ -566,7 +566,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                         className={
                           isActive
                             ? "product-card__type-tab product-card__type-tab--active"
-                            : "product-card__type-tab"
+                            : "px-3 py-2 border-none rounded-lg text-[13px] font-semibold cursor-pointer transition-colors duration-150 text-slate-500 hover:bg-white/60 disabled:opacity-55 disabled:cursor-not-allowed"
                         }
                         aria-pressed={isActive}
                         disabled={disabled}
@@ -737,7 +737,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="product-price-summary">
+                <div className="flex items-center justify-between gap-4 px-4 py-3.5 rounded-[10px] border border-indigo-200 bg-indigo-50 [&>div]:flex [&>div]:flex-col [&>div]:gap-0.5 [&>span]:text-indigo-900 [&>span]:text-[13px] [&>span]:font-bold [&>small]:text-indigo-600 [&>small]:text-xs [&>strong]:text-indigo-900 [&>strong]:text-xl [&>strong]:font-extrabold">
                   <div>
                     <span>Precio total</span>
                     <small>Precio base + {taxPercent}% de impuesto</small>
@@ -747,7 +747,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     {totalPrice === null ? "—" : formatCurrency(totalPrice)}
                   </strong>
 
-                  <div className="product-price-summary__margin">
+                  <div className="text-xs text-indigo-600 [&_strong]:text-indigo-900">
                     {marginPercent === null ? (
                       <small>Ingresa costo y precio para ver el margen</small>
                     ) : (
@@ -759,7 +759,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   </div>
                 </div>
 
-                <div className="product-card__list-title">
+                <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-ink-strong">
                   Listas de precios múltiples
                 </div>
 
@@ -852,21 +852,21 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   />
                 </div>
 
-                <div className="product-card__list-title">
+                <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-ink-strong">
                   Gestión multilocación
-                  <span className="product-card__total-stock">
+                  <span className="text-slate-500 text-xs font-semibold">
                     Stock total: {totalStock}
                   </span>
                 </div>
 
                 {form.warehouses.length === 0 ? (
-                  <p className="product-card__empty">
+                  <p className="m-0 text-[13px] text-slate-500">
                     Aún no hay bodegas configuradas para este producto.
                   </p>
                 ) : (
-                  <div className="product-warehouse-list">
+                  <div className="flex flex-col gap-3">
                     {form.warehouses.map((warehouse, index) => (
-                      <div key={index} className="product-warehouse-row">
+                      <div key={index} className="grid grid-cols-[1fr_1fr_auto] items-end gap-3 p-3 rounded-[10px] border border-slate-200 bg-slate-50 max-[520px]:grid-cols-1">
                         <Field
                           id={`warehouse-name-${index}`}
                           label="Bodega"
@@ -901,7 +901,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
                         <button
                           type="button"
-                          className="product-warehouse-row__remove"
+                          className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-danger cursor-pointer transition-colors duration-150 hover:bg-red-50 hover:border-red-300"
                           title="Quitar bodega"
                           aria-label="Quitar bodega"
                           onClick={() => removeWarehouse(index)}
@@ -915,13 +915,13 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
                 <button
                   type="button"
-                  className="product-card__add"
+                  className="self-start px-2.5 py-1.5 rounded-lg border border-dashed border-slate-300 font-[inherit] text-[13px] font-semibold cursor-pointer transition-colors duration-150 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-500"
                   onClick={addWarehouse}
                 >
                   + Agregar bodega
                 </button>
 
-                <label className="product-switch">
+                <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.lowStockAlert}
@@ -930,9 +930,9 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     }
                   />
 
-                  <span className="product-switch__track" aria-hidden="true" />
+                  <span className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-[#00b4d8] peer-checked:after:translate-x-[18px] peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" aria-hidden="true" />
 
-                  <span className="product-switch__label">
+                  <span className="text-sm font-medium text-ink-strong">
                     Activar alerta de reabastecimiento cuando el stock baje del
                     mínimo
                   </span>
@@ -1042,11 +1042,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
             {openSections.copilot && (
               <>
-                <div className="product-copilot">
-                  <div className="product-copilot__action">
-                    <Sparkles size={20} className="product-copilot__icon" />
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex gap-3.5 p-4 rounded-[10px] border border-slate-200 bg-slate-50 max-[520px]:flex-col max-[520px]:items-stretch">
+                    <Sparkles size={20} className="shrink-0 text-violet-500" />
 
-                    <div className="product-copilot__text">
+                    <div className="flex-1 min-w-0 [&>strong]:block [&>strong]:text-sm [&>strong]:font-bold [&>strong]:text-ink-strong [&>p]:mt-[3px] [&>p]:mb-0 [&>p]:text-slate-500 [&>p]:text-[13px] [&>p]:leading-snug">
                       <strong>Generador de descripciones con IA</strong>
 
                       <p>
@@ -1067,10 +1067,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     </Button>
                   </div>
 
-                  <div className="product-copilot__action">
-                    <Sparkles size={20} className="product-copilot__icon" />
+                  <div className="flex gap-3.5 p-4 rounded-[10px] border border-slate-200 bg-slate-50 max-[520px]:flex-col max-[520px]:items-stretch">
+                    <Sparkles size={20} className="shrink-0 text-violet-500" />
 
-                    <div className="product-copilot__text">
+                    <div className="flex-1 min-w-0 [&>strong]:block [&>strong]:text-sm [&>strong]:font-bold [&>strong]:text-ink-strong [&>p]:mt-[3px] [&>p]:mb-0 [&>p]:text-slate-500 [&>p]:text-[13px] [&>p]:leading-snug">
                       <strong>Sugerencia de precio</strong>
 
                       <p>
@@ -1093,7 +1093,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     <FormMessage kind="info">{copilotNotice}</FormMessage>
                   )}
 
-                  <div className="product-copilot__trigger">
+                  <div className="flex flex-col gap-2 p-4 rounded-[10px] border border-slate-200 bg-slate-50 [&>strong]:text-sm [&>strong]:font-bold [&>strong]:text-ink-strong [&>p]:m-0 [&>p]:text-slate-500 [&>p]:text-[13px] [&>p]:leading-snug">
                     <strong>Disparadores / Triggers</strong>
 
                     <p>
@@ -1101,7 +1101,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       baje del mínimo.
                     </p>
 
-                    <label className="product-switch">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isProduct && form.lowStockAlert}
@@ -1112,11 +1112,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       />
 
                       <span
-                        className="product-switch__track"
+                        className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-[#00b4d8] peer-checked:after:translate-x-[18px] peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
                         aria-hidden="true"
                       />
 
-                      <span className="product-switch__label">
+                      <span className="text-sm font-medium text-ink-strong">
                         Alerta automática de stock bajo
                       </span>
                     </label>

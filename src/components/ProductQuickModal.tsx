@@ -118,12 +118,12 @@ export default function ProductQuickModal({
       open={open}
       title="Nuevo producto / servicio"
       onClose={onCancel}
-      panelClassName="product-modal"
+      panelClassName="max-w-[560px]"
     >
       <form className="flex flex-col gap-[18px]" onSubmit={handleSubmit}>
         {/* Selector de tipo */}
         <div
-          className="product-modal__type"
+          className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-[10px]"
           role="group"
           aria-label="Tipo de ítem"
         >
@@ -133,8 +133,8 @@ export default function ProductQuickModal({
               type="button"
               className={
                 itemType === option.value
-                  ? "product-modal__type-tab product-modal__type-tab--active"
-                  : "product-modal__type-tab"
+                  ? "product-modal__type-tab bg-white !text-ink-strong shadow-sm"
+                  : "px-3 py-2 border-none rounded-lg text-[13px] font-semibold cursor-pointer transition-colors duration-150 text-slate-500 hover:bg-white/60 disabled:opacity-55 disabled:cursor-not-allowed"
               }
               aria-pressed={itemType === option.value}
               onClick={() => setItemType(option.value)}
@@ -144,7 +144,7 @@ export default function ProductQuickModal({
           ))}
         </div>
 
-        <p className="product-modal__type-note">
+        <p className="flex items-center gap-1.5 m-0 text-xs text-slate-500 [&>svg]:shrink-0 [&>svg]:text-slate-400">
           <Info size={14} />
           El tipo de ítem no se puede modificar después de la creación.
         </p>
@@ -163,7 +163,7 @@ export default function ProductQuickModal({
           required
         />
 
-        <div className="product-modal__grid">
+        <div className="grid grid-cols-2 gap-3.5 max-[480px]:grid-cols-1">
           <Field
             id="product-warehouse"
             label="Bodega / Almacén inicial"
@@ -193,7 +193,7 @@ export default function ProductQuickModal({
           </Field>
         </div>
 
-        <div className="product-modal__grid">
+        <div className="grid grid-cols-2 gap-3.5 max-[480px]:grid-cols-1">
           <Field
             id="product-quantity"
             label="Cantidad inicial"
@@ -215,7 +215,7 @@ export default function ProductQuickModal({
           />
         </div>
 
-        <div className="product-modal__grid">
+        <div className="grid grid-cols-2 gap-3.5 max-[480px]:grid-cols-1">
           <Field
             id="product-base-price"
             label="Precio base"
@@ -243,7 +243,7 @@ export default function ProductQuickModal({
         </div>
 
         {/* Resumen de precio total */}
-        <div className="product-modal__summary">
+        <div className="flex items-center justify-between gap-4 px-4 py-3.5 rounded-[10px] border border-indigo-200 bg-indigo-50 [&>div]:flex [&>div]:flex-col [&>div]:gap-0.5 [&>span]:text-indigo-900 [&>span]:text-[13px] [&>span]:font-bold [&>small]:text-indigo-600 [&>small]:text-xs">
           <div>
             <span>Precio total</span>
             <small>
@@ -251,24 +251,24 @@ export default function ProductQuickModal({
             </small>
           </div>
 
-          <strong className="product-modal__summary-value">
+          <strong className="text-indigo-900 text-xl font-extrabold">
             {totalPrice === null ? "—" : formatCurrency(totalPrice, currency)}
           </strong>
         </div>
 
         {error && <FormMessage kind="error">{error}</FormMessage>}
 
-        <div className="product-modal__footer">
+        <div className="flex items-center justify-between gap-3 pt-1 max-[480px]:flex-col-reverse max-[480px]:items-stretch">
           <button
             type="button"
-            className="product-modal__advanced"
+            className="inline-flex items-center gap-1.5 px-2 py-2 border-none font-[inherit] text-[13px] font-semibold no-underline cursor-pointer transition-colors duration-150 text-indigo-600 hover:text-indigo-900 max-[480px]:justify-center"
             onClick={handleGoAdvanced}
           >
             Ir al formulario avanzado
             <ArrowRight size={16} />
           </button>
 
-          <div className="product-modal__footer-actions">
+          <div className="flex gap-2.5 max-[480px]:flex-col-reverse max-[480px]:[&>button]:w-full">
             <Button type="button" variant="secondary" onClick={onCancel}>
               Cancelar
             </Button>
