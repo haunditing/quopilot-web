@@ -388,67 +388,7 @@ p
   font-weight: 500;
   line-height: 1.2;
 }
-@media (min-width: 768px)  {
 
-  .app-layout {
-    display: flex;
-  }
-
-  .app-sidebar {
-    position: sticky;
-    inset-block-start: 0;
-    block-size: 100svh;
-    inline-size: 280px;
-    flex-shrink: 0;
-    padding: 20px;
-    transform: none;
-    visibility: visible;
-    transition: inline-size 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  /*C*/                        
-  .app-sidebar--collapsed {
-    inline-size: 80px;
-    padding-inline: 12px;
-  }
-  .app-sidebar--collapsed .app-brand__text,
-  .app-sidebar--collapsed .app-navigation__section,
-  .app-sidebar--collapsed .app-navigation__item span,
-  .app-sidebar--collapsed .app-user__info {
-    display: none;
-  }
-  .app-sidebar--collapsed .app-brand {
-    justify-content: center;
-    margin-block-end: 32px;
-  }
-  .app-sidebar--collapsed .app-navigation__item {
-    justify-content: center;
-    padding-inline: 0;
-  }
-  .app-sidebar--collapsed .app-user__card {
-    justify-content: center;
-    padding: 8px;
-    background-color: transparent;
-    border-color: transparent;
-  }
-  .app-sidebar--collapsed .app-user__avatar {
-    margin: 0;
-  }
-
-  .app-main {
-    flex: 1;
-  }
-
-  .app-backdrop {
-    display: none;
-  }
-
-  .app-header {
-    min-block-size: 64px;
-    padding: 0 24px;
-  }
-
-}
 
 
 .entity-card 

@@ -150,12 +150,13 @@ export default function AppSidebar({
       id="app-sidebar"
       className={[
         "fixed md:sticky top-0 bottom-0 left-0 z-30 flex flex-col",
-        "w-[min(280px,85vw)] md:w-[280px] md:shrink-0",
-        "p-4 md:p-5",
+        effectivelyCollapsed
+          ? "md:w-20 md:px-3"
+          : "w-[min(280px,85vw)] md:w-[280px]",
+        "shrink-0 p-4 md:p-5",
         "bg-[color:var(--shell-bg)] border-r border-[color:var(--shell-border)]",
         "-translate-x-full invisible transition-[transform,visibility] duration-200 ease-out",
         "md:translate-x-0 md:visible md:transition-[width] md:ease-[cubic-bezier(0.2,0.8,0.2,1)]",
-        effectivelyCollapsed && "md:w-20 md:px-3",
         open && "!translate-x-0 !visible shadow-card",
       ]
         .filter(Boolean)
@@ -215,7 +216,7 @@ export default function AppSidebar({
       <nav className="flex flex-col gap-1.5" aria-label="Navegación principal">
         {visibleNavigationGroups.map((group, groupIndex) => (
           <div key={group.label ?? "principal"} className="flex flex-col gap-1.5">
-            {group.label && (
+            {!effectivelyCollapsed && group.label && (
               <span
                 className={`block px-3 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--shell-text-muted)] ${
                   groupIndex > 0 ? "mt-2.5 pt-2.5 border-t border-[color:var(--shell-border)]" : ""
@@ -245,7 +246,9 @@ export default function AppSidebar({
                 title={effectivelyCollapsed ? item.label : undefined}
               >
                 <Icon name={item.icon} size={18} className="shrink-0" />
-                <span>{item.label}</span>
+                <span className={effectivelyCollapsed ? "hidden" : ""}>
+                  {item.label}
+                </span>
               </NavLink>
             ))}
           </div>
