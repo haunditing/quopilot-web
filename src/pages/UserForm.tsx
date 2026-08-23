@@ -196,23 +196,23 @@ export default function UserForm({ userId }: UserFormProps) {
         <div className="flex flex-col gap-4 min-w-0">
           <form
             id="min-h-full bg-surface-light"
-            className="user-form__form"
+            className="flex flex-col gap-6"
             onSubmit={handleSubmit}
           >
-            <section id="user-informacion" className="user-form__card">
-              <header className="user-form__card-head">
-                <span className="user-form__card-head__icon">
+            <section id="user-informacion" className="mt-4 scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+              <header className="flex flex-row items-start gap-3 w-full mb-5">
+                <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
                   <Icon name="customers" size={20} />
                 </span>
 
-                <span className="user-form__card-head__text">
+                <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                   <strong>Información general</strong>
 
                   <small>Nombre y correo del agente</small>
                 </span>
               </header>
 
-              <div className="user-form__grid">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field
                   id="user-name"
                   label="Nombre"
@@ -241,13 +241,13 @@ export default function UserForm({ userId }: UserFormProps) {
               </div>
             </section>
 
-            <section id="user-seguridad" className="user-form__card">
-              <header className="user-form__card-head">
-                <span className="user-form__card-head__icon">
+            <section id="user-seguridad" className="mt-4 scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+              <header className="flex flex-row items-start gap-3 w-full mb-5">
+                <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
                   <Icon name="lock" size={20} />
                 </span>
 
-                <span className="user-form__card-head__text">
+                <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] text-slate-500">
                   <strong>Seguridad</strong>
 
                   <small>Contraseña de acceso del agente</small>
@@ -293,16 +293,16 @@ export default function UserForm({ userId }: UserFormProps) {
           </form>
         </div>
 
-        <aside className="user-form__panel">
-          <nav className="user-form__nav" aria-label="Secciones del usuario">
+        <aside className="sticky top-5 flex flex-col gap-4 p-5 rounded-xl border border-line bg-surface-card shadow-card max-[1023px]:static max-[1023px]:order-first">
+          <nav className="flex flex-col gap-1" aria-label="Secciones del usuario">
             {SECTION_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 className={
                   activeSection === tab.id
-                    ? "user-form__tab user-form__tab--active"
-                    : "user-form__tab"
+                    ? "flex items-center w-full px-3.5 py-2.5 rounded-lg text-[13px] font-semibold text-left cursor-pointer transition-colors duration-150 !bg-accent-soft !border-accent-border !text-accent"
+                    : "flex items-center w-full px-3.5 py-2.5 rounded-lg border border-transparent text-[13px] font-semibold text-left cursor-pointer transition-colors duration-150 hover:bg-accent-soft hover:text-accent"
                 }
                 onClick={() => scrollToSection(tab.id)}
               >
@@ -316,7 +316,7 @@ export default function UserForm({ userId }: UserFormProps) {
             form="min-h-full bg-surface-light"
             icon="check"
             disabled={saving}
-            className="user-form__panel-save"
+            className="justify-center w-full"
           >
             {saving
               ? "Guardando..."

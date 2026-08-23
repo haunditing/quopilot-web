@@ -68,13 +68,13 @@ const SENDER_LABELS: Record<
 function bubbleClassName(senderType: ChatMessage["senderType"]): string {
   switch (senderType) {
     case "CUSTOMER":
-      return "public-chat__bubble public-chat__bubble--user";
+      return "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-end bg-accent text-[color:var(--accent-text)] rounded-br-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]";
     case "AGENT":
-      return "public-chat__bubble public-chat__bubble--agent";
+      return "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-start bg-sky-50 border border-sky-200 text-sky-900 rounded-bl-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]";
     case "SYSTEM":
-      return "public-chat__bubble public-chat__bubble--system";
+      return "flex flex-col gap-1 animate-[public-chat-fade-up_0.25s_ease-out] self-center max-w-[90%] px-3 py-1.5 bg-accent-soft border-none text-ink-muted text-xs rounded-full [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]";
     default:
-      return "public-chat__bubble public-chat__bubble--ai";
+      return "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-start bg-surface-light border border-line text-ink-strong rounded-bl-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]";
   }
 }
 
@@ -603,12 +603,12 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
   const accentStyle = widgetAccentStyle(chatConfig?.widget?.primaryColor);
 
   return (
-    <div className="public-chat" style={accentStyle}>
+    <div className="flex items-center justify-center min-h-screen p-6 bg-[linear-gradient(160deg,var(--shell-bg),var(--shell-border))]" style={accentStyle}>
       {!chat ? (
-        <div className="public-chat__landing">
-          <aside className="public-chat__hero">
-            <div className="public-chat__hero-brand">
-              <span className="public-chat__hero-logo" aria-hidden="true">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.05fr] w-full max-w-[960px] min-h-[min(640px,calc(100vh-48px))] rounded-[20px] overflow-hidden bg-surface-card shadow-card max-[767px]:grid-cols-1 max-[767px]:min-h-0">
+          <aside className="flex flex-col gap-4 p-8 bg-accent text-white max-[767px]:p-6">
+            <div className="inline-flex items-center gap-2.5 text-base font-bold">
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-soft" aria-hidden="true">
                 <Icon name="brand" size={22} />
               </span>
 
@@ -619,13 +619,13 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               </strong>
             </div>
 
-            <h1 className="public-chat__hero-title">
+            <h1 className="m-0 text-[28px] leading-[1.25] tracking-[-0.01em] max-[767px]:text-[22px]">
               Cuéntanos quién eres y en qué te ayudamos
             </h1>
 
-            <p className="public-chat__intro">{DEFAULT_INTRO}</p>
+            <p className="m-0 text-[15px] opacity-90 leading-normal">{DEFAULT_INTRO}</p>
 
-            <ul className="public-chat__hero-points">
+            <ul className="flex flex-col gap-2.5 m-0 p-0 list-none [&>li]:inline-flex [&>li]:items-center [&>li]:gap-2.5 [&>li]:text-sm [&_svg]:shrink-0">
               <li>
                 <Icon name="check" size={16} />
                 <span>Asistente virtual disponible 24/7</span>
@@ -642,7 +642,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               </li>
             </ul>
 
-            <div className="public-chat__hero-presence">
+            <div className="inline-flex items-center gap-2 self-start mt-auto px-3.5 py-1.5 rounded-full bg-accent-soft text-[13px] font-semibold max-[767px]:mt-0 [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-green-500 [&>i]:animate-[public-chat-pulse_2s_infinite]">
               <i aria-hidden="true" />
               <span>
                 En línea · {chatConfig?.channelName ?? "Asistente virtual"}
@@ -650,22 +650,22 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             </div>
           </aside>
 
-          <form className="public-chat__form" onSubmit={handleStart}>
-            <div className="public-chat__form-head">
-              <div className="public-chat__form-avatar" aria-hidden="true">
+          <form className="flex flex-col gap-4 p-8 overflow-y-auto bg-surface-card max-[767px]:p-6" onSubmit={handleStart}>
+            <div className="flex flex-row items-start gap-3 pb-4 border-b border-line">
+              <div className="inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-accent-soft text-accent" aria-hidden="true">
                 <Icon name="brand" size={20} />
               </div>
 
               <div>
-                <h2 className="public-chat__form-title">Escríbenos ahora</h2>
+                <h2 className="m-0 text-lg font-bold leading-tight text-ink-strong">Escríbenos ahora</h2>
 
-                <p className="public-chat__form-subtitle">
+                <p className="mt-0.5 mb-0 text-sm leading-normal text-ink-muted">
                   Completa tus datos y te responderemos de inmediato.
                 </p>
               </div>
             </div>
 
-            <div className="public-chat__form-grid">
+            <div className="grid grid-cols-2 gap-3.5 max-[380px]:grid-cols-1">
               <Field
                 id="public-chat-name"
                 label="Nombre"
@@ -780,7 +780,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               type="submit"
               variant="primary"
               icon="send"
-              className="public-chat__form-submit"
+              className="w-full justify-center"
               disabled={starting}
             >
               {starting ? "Iniciando..." : "Iniciar conversación"}
@@ -788,13 +788,13 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
           </form>
         </div>
       ) : (
-        <div className="public-chat__card">
-          <header className="public-chat__header">
-            <div className="public-chat__avatar" aria-hidden="true">
+        <div className="flex flex-col w-full max-w-[420px] h-[min(640px,calc(100vh-48px))] rounded-2xl overflow-hidden bg-surface-card shadow-card">
+          <header className="flex items-center gap-2.5 p-4 bg-accent text-[color:var(--accent-text)]">
+            <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
               <Icon name="brand" size={18} />
             </div>
 
-            <div className="public-chat__header-info">
+            <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-base [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:opacity-85 [&>small]:text-xs">
               <strong>
                 {chatConfig?.widget?.title ?? chat?.tenantName ?? "QuoPilot"}
               </strong>
@@ -810,8 +810,8 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               <div
                 className={
                   closed
-                    ? "public-chat__presence public-chat__presence--off"
-                    : "public-chat__presence"
+                    ? "inline-flex items-center gap-1.5 ml-auto px-2.5 py-1 rounded-full bg-accent-soft text-xs whitespace-nowrap [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-slate-400 [&>i]:shadow-none [&>i]:animate-none"
+                    : "inline-flex items-center gap-1.5 ml-auto px-2.5 py-1 rounded-full bg-accent-soft text-xs whitespace-nowrap [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-green-500 [&>i]:animate-[public-chat-pulse_2s_infinite]"
                 }
                 role="status"
               >
@@ -823,7 +823,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             {chat && !closed && (
               <button
                 type="button"
-                className="public-chat__close"
+                className="inline-flex items-center justify-center p-1 border-none rounded-full cursor-pointer shrink-0 transition-colors duration-150 hover:bg-accent-soft disabled:opacity-50 disabled:cursor-default"
                 onClick={() => void handleClose()}
                 disabled={closing || sending}
                 aria-label="Terminar chat"
@@ -841,9 +841,9 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
               loadingMessage="Esto puede tomar unos segundos"
               errorTitle="No fue posible cargar"
             >
-              <div className="public-chat__messages">
+              <div className="flex flex-col gap-2.5 flex-1 p-4 overflow-y-auto bg-surface-light">
                 {messages.length === 0 && !sending ? (
-                  <p className="public-chat__empty">
+                  <p className="m-auto max-w-[280px] text-sm text-center text-ink-muted">
                     Envía tu primer mensaje para empezar a hablar con el
                     asistente.
                   </p>
@@ -856,11 +856,11 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                       {(message.senderType === "AI" ||
                         message.senderType === "AGENT") && (
                         <span
-                          className="public-chat__sender"
+                          className="inline-flex items-center gap-1.5 text-xs"
                           aria-label={`${SENDER_LABELS[message.senderType].role}: ${SENDER_LABELS[message.senderType].name}`}
                         >
                           <i
-                            className="public-chat__sender-avatar"
+                            className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
                             aria-hidden="true"
                           >
                             {SENDER_LABELS[message.senderType].initial}
@@ -871,7 +871,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                       )}
 
                       {message.senderType === "SYSTEM" ? (
-                        <span className="public-chat__system">
+                        <span className="inline-flex items-center gap-1.5">
                           <Icon name="brand" size={14} />
 
                           <span
@@ -892,10 +892,10 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 )}
 
                 {agentTyping && !sending && (
-                  <div className="public-chat__bubble public-chat__bubble--agent">
-                    <span className="public-chat__sender">
+                  <div className="flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-start bg-sky-50 border border-sky-200 text-sky-900 rounded-bl-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">
+                    <span className="inline-flex items-center gap-1.5 text-xs">
                       <i
-                        className="public-chat__sender-avatar"
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
                         aria-hidden="true"
                       >
                         {SENDER_LABELS.AGENT.initial}
@@ -904,9 +904,9 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                       <em>{SENDER_LABELS.AGENT.name}</em>
                     </span>
 
-                    <span className="public-chat__advisor-typing">
+                    <span className="inline-flex items-center gap-2 text-[13px]">
                       <span
-                        className="public-chat__typing"
+                        className="inline-flex items-center gap-1"
                         aria-label="Escribiendo..."
                       >
                         <i />
@@ -918,9 +918,9 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 )}
 
                 {sending && !escalated && (
-                  <div className="public-chat__bubble public-chat__bubble--ai public-chat__bubble--typing">
+                  <div className="flex flex-col gap-1 max-w-[78%] px-4 py-3.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-start bg-surface-light border border-line text-ink-strong [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">
                     <span
-                      className="public-chat__typing"
+                      className="inline-flex items-center gap-1"
                       aria-label="Escribiendo..."
                     >
                       <i />
@@ -935,7 +935,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             </AsyncBoundary>
 
             {closed && (
-              <div className="public-chat__closed" role="status">
+              <div className="flex flex-row items-center justify-center gap-2 m-0 px-4 py-2.5 bg-accent-soft text-[13px] text-center text-ink-muted [&>p]:m-0" role="status">
                 <Icon name="info" size={16} />
 
                 <p>
@@ -947,8 +947,8 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             <form
               className={
                 closed
-                  ? "public-chat__composer public-chat__composer--closed"
-                  : "public-chat__composer"
+                  ? "flex flex-col gap-2 p-3 border-t border-line bg-surface-light"
+                  : "flex flex-col gap-2 p-3 border-t border-line bg-surface-card"
               }
               onSubmit={(event) => {
                 void handleSend(event);
@@ -956,7 +956,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
             >
               {sendError && <FormMessage kind="error">{sendError}</FormMessage>}
 
-              <div className="public-chat__composer-row">
+              <div className="flex flex-row items-end gap-2 [&>textarea]:flex-1 [&>input]:flex-1 [&>textarea]:resize-none [&>input]:resize-none [&>textarea]:rounded-[10px] [&>input]:rounded-[10px] [&>textarea]:border [&>input]:border [&>textarea]:border-line [&>input]:border-line [&>textarea]:bg-surface-light [&>input]:bg-surface-light [&>textarea]:px-3 [&>input]:px-3 [&>textarea]:py-2.5 [&>input]:py-2.5 [&>textarea]:text-sm [&>input]:text-sm [&>textarea]:leading-snug [&>input]:leading-snug [&>textarea]:text-ink-strong [&>input]:text-ink-strong [&>textarea]:font-[inherit] [&>input]:font-[inherit] [&>textarea]:max-h-[120px] [&>input]:max-h-[120px] [&>textarea]:overflow-y-auto [&>input]:overflow-y-auto [&>textarea]:[scrollbar-width:none] [&>input]:[scrollbar-width:none] focus-within:[&>textarea]:outline-2 focus-within:[&>input]:outline-2 focus-within:[&>textarea]:outline-offset-[-1px] focus-within:[&>input]:outline-offset-[-1px] focus-within:[&>textarea]:outline-accent focus-within:[&>input]:outline-accent disabled:[&>textarea]:bg-shell-bg disabled:[&>input]:bg-shell-bg disabled:[&>textarea]:border-shell-border disabled:[&>input]:border-shell-border disabled:[&>textarea]:text-slate-400 disabled:[&>input]:text-slate-400 disabled:[&>textarea]:cursor-not-allowed disabled:[&>input]:cursor-not-allowed">
                 <textarea
                   ref={composerRef}
                   value={draft}
