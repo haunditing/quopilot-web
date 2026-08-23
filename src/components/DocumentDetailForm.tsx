@@ -464,24 +464,24 @@ function DocumentDetailFormContent({
   }
 
   return (
-    <form id={formId} className="quote-erp" onSubmit={handleSubmit}>
-      <div className="quote-erp__layout">
-        <div className="quote-erp__main">
+    <form id={formId} className="max-w-[1400px] mx-auto p-4 md:p-6" onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 gap-4 items-start xl:grid-cols-[1fr_360px] xl:gap-8">
+        <div className="min-w-0">
           {/* Header del Documento */}
-          <section className="quote-erp__header-doc">
-            <div className="quote-erp__issuer">
+          <section className="flex flex-col gap-4 bg-surface-card border border-line rounded-2xl p-4 mb-4 md:flex-row md:justify-between md:items-center md:gap-6 md:p-8 md:mb-6">
+            <div className="flex items-center gap-4">
               {tenant?.logoUrl ? (
                 <img
                   src={tenant.logoUrl}
                   alt={tenant.name}
-                  className="quote-erp__logo"
+                  className="w-16 h-16 object-contain rounded-[10px] border border-line bg-white p-1"
                 />
               ) : (
-                <div className="quote-erp__logo-placeholder">
+                <div className="w-16 h-16 flex items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,var(--accent),#7e22ce)] text-white font-bold text-xl">
                   {tenant?.name ? tenant.name.slice(0, 2).toUpperCase() : "EM"}
                 </div>
               )}
-              <div className="quote-erp__issuer-info">
+              <div className="flex flex-col gap-1 [&>strong]:text-ink-strong [&>strong]:text-[17px] [&>strong]:font-bold [&>span]:text-[13px] text-ink-muted">
                 <strong>
                   {tenant?.legalName ?? tenant?.name ?? "Empresa"}
                 </strong>
@@ -489,18 +489,18 @@ function DocumentDetailFormContent({
               </div>
             </div>
 
-            <div className="quote-erp__doc-meta">
-              <div className="quote-erp__doc-type">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex flex-col gap-1.5 flex-1 min-w-0 md:flex-none [&>label]:text-[11px] [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-[0.06em] [&>label]:text-ink-muted [&>select]:px-3 [&>select]:py-2.5 [&>select]:border [&>select]:border-line [&>select]:rounded-lg [&>select]:text-base [&>select]:bg-white [&>select]:w-full md:[&>select]:text-sm md:[&>select]:w-auto md:[&>select]:min-w-[150px]">
                 <label htmlFor="document-type">Documento</label>
                 <select id="document-type" defaultValue="DEFAULT" disabled>
                   <option value="DEFAULT">{documentTypeLabel}</option>
                 </select>
               </div>
-              <div className="quote-erp__doc-number">
+              <div className="flex flex-col items-start gap-0.5 md:items-end [&>span]:text-[11px] [&>span]:font-bold [&>span]:uppercase [&>span]:tracking-[0.06em] [&>span]:text-ink-muted [&>strong]:text-xl md:[&>strong]:text-[28px] [&>strong]:text-accent [&>strong]:font-extrabold [&>strong]:leading-none [&>strong]:tracking-[-0.02em]">
                 <span>No.</span>
                 <strong>{docNumber}</strong>
                 {doc && (
-                  <span className="quote-erp__doc-status">
+                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-accent-soft text-accent text-[11px] font-bold uppercase tracking-[0.06em]">
                     {statusLabels[doc.status] ?? doc.status}
                   </span>
                 )}
@@ -509,9 +509,9 @@ function DocumentDetailFormContent({
           </section>
 
           {/* Datos Generales */}
-          <section className="quote-erp__card">
-            <h3 className="quote-erp__card-title">Datos generales</h3>
-            <div className="quote-erp__grid-3">
+          <section className="bg-surface-card border border-line rounded-2xl p-4 mb-4 md:p-8 md:mb-6">
+            <h3 className="m-0 mb-4 text-base font-bold text-ink-strong tracking-[-0.01em]">Datos generales</h3>
+            <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 gap-4">
               <Field
                 id="doc-customer"
                 label="Cliente"
@@ -553,9 +553,9 @@ function DocumentDetailFormContent({
           </section>
 
           {/* Tabla de Productos */}
-          <section className="quote-erp__card">
-            <div className="quote-erp__table-header">
-              <h3 className="quote-erp__card-title">Productos y servicios</h3>
+          <section className="bg-surface-card border border-line rounded-2xl p-4 mb-4 md:p-8 md:mb-6">
+            <div className="flex justify-between items-center flex-wrap gap-2 mb-4">
+              <h3 className="m-0 mb-4 text-base font-bold text-ink-strong tracking-[-0.01em]">Productos y servicios</h3>
               {!readOnly && (
                 <Button
                   type="button"
@@ -571,7 +571,7 @@ function DocumentDetailFormContent({
             </div>
 
             {lines.length === 0 ? (
-              <div className="quote-erp__table-empty">
+              <div className="text-center py-12 px-6 text-ink-muted [&>p]:mt-3 [&>p]:text-sm">
                 <Icon name="empty" size={40} />
                 <p>
                   {readOnly
@@ -580,8 +580,8 @@ function DocumentDetailFormContent({
                 </p>
               </div>
             ) : (
-              <div className="quote-erp__table-wrapper">
-                <table className="quote-erp__table">
+              <div className="overflow-visible border border-line rounded-xl hidden lg:block">
+                <table className="w-full border-collapse [&_th]:p-3 [&_th]:px-2 [&_th]:text-left [&_th]:border-b [&_th]:border-line [&_th]:align-middle [&_td]:p-3 [&_td]:px-2 [&_td]:text-left [&_td]:border-b [&>td]:border-line [&_td]:align-middle [&>td]:border-line [&_th]:bg-[#f8f7fa] [&_th]:font-bold [&_th]:text-ink-strong [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-[0.05em] [&_th]:whitespace-nowrap [&_tbody_tr:hover]:bg-slate-50 [&_tbody_tr:last-child_td]:border-b-0 [&_thead_th:first-child]:rounded-tl-[11px] [&_thead_th:last-child]:rounded-tr-[11px]">
                   <thead>
                     <tr>
                       {!readOnly && (
@@ -616,9 +616,9 @@ function DocumentDetailFormContent({
                               />
                             </td>
                           )}
-                          <td className="quote-erp__product-cell">
+                          <td className="min-w-[200px] max-w-[340px]">
                             {line.product ? (
-                              <div className="quote-erp__product-selected">
+                              <div className="[&>strong]:block [&>strong]:text-ink-strong [&>strong]:font-semibold [&>span]:text-xs text-ink-muted">
                                 <strong>{line.product.name}</strong>
                                 {line.product.sku && (
                                   <span>Ref: {line.product.sku}</span>
@@ -636,7 +636,7 @@ function DocumentDetailFormContent({
                           <td>
                             <input
                               type="number"
-                              className="quote-erp__input-sm"
+                              className="w-full max-w-16 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               min={1}
                               step={1}
                               value={line.quantity}
@@ -652,7 +652,7 @@ function DocumentDetailFormContent({
                           <td>
                             <input
                               type="number"
-                              className="quote-erp__input-md"
+                              className="w-full max-w-24 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               min={0}
                               step={0.01}
                               value={line.unitPrice}
@@ -668,7 +668,7 @@ function DocumentDetailFormContent({
                           <td>
                             <input
                               type="number"
-                              className="quote-erp__input-sm"
+                              className="w-full max-w-16 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               min={0}
                               max={100}
                               step={0.01}
@@ -683,7 +683,7 @@ function DocumentDetailFormContent({
                           </td>
                           <td>
                             <select
-                              className="quote-erp__input-md"
+                              className="w-full max-w-24 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               value={line.taxRate}
                               onChange={(e) =>
                                 updateLine(line.id, {
@@ -699,14 +699,14 @@ function DocumentDetailFormContent({
                               ))}
                             </select>
                           </td>
-                          <td className="quote-erp__amount">
+                          <td className="font-bold text-ink-strong whitespace-nowrap">
                             {formatCurrency(values.subtotal, currency)}
                           </td>
                           {!readOnly && (
                             <td>
                               <button
                                 type="button"
-                                className="quote-erp__remove"
+                                className="flex items-center justify-center w-[34px] h-[34px] border-none rounded-lg bg-transparent text-danger cursor-pointer transition-colors duration-150 hover:bg-red-100"
                                 onClick={() => removeLine(line.id)}
                               >
                                 <Icon name="trash" size={18} />
@@ -722,9 +722,9 @@ function DocumentDetailFormContent({
             )}
 
             {!readOnly && lines.length > 0 && (
-              <div className="quote-erp__bulk">
+              <div className="flex flex-col items-start gap-2 mt-4 p-3.5 bg-[#f8f7fa] rounded-[10px] border border-dashed border-line [&>span]:text-[13px] text-ink-muted md:flex-row md:justify-between md:items-center md:gap-4">
                 <span>{selectedLineIds.size} línea(s) seleccionada(s)</span>
-                <div className="quote-erp__bulk-action">
+                <div className="flex items-center gap-2 [&>input]:w-20 [&>input]:px-2.5 [&>input]:py-2 [&>input]:border [&>input]:border-line [&>input]:rounded-lg [&>input]:text-sm">
                   <input
                     type="number"
                     min={0}
@@ -750,9 +750,9 @@ function DocumentDetailFormContent({
           </section>
 
           {/* Notas y Términos */}
-          <section className="quote-erp__card">
-            <h3 className="quote-erp__card-title">Notas y términos</h3>
-            <div className="quote-erp__grid-2">
+          <section className="bg-surface-card border border-line rounded-2xl p-4 mb-4 md:p-8 md:mb-6">
+            <h3 className="m-0 mb-4 text-base font-bold text-ink-strong tracking-[-0.01em]">Notas y términos</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field
                 id="doc-notes"
                 label="Notas"
@@ -776,22 +776,22 @@ function DocumentDetailFormContent({
         </div>
 
         {/* Sidebar */}
-        <aside className="quote-erp__sidebar">
-          <div className="quote-erp__totals">
-            <h3 className="quote-erp__card-title">Resumen</h3>
-            <div className="quote-erp__total-row">
+        <aside className="static xl:sticky xl:top-6">
+          <div className="bg-surface-card border border-line rounded-2xl p-4 shadow-card md:p-8 [&_.entity-card__actions]:justify-end">
+            <h3 className="m-0 mb-4 text-base font-bold text-ink-strong tracking-[-0.01em]">Resumen</h3>
+            <div className="flex justify-between items-center py-3.5 border-b border-line [&>span]:text-sm [&>span]:text-ink-muted [&>strong]:text-ink-strong [&>strong]:font-bold">
               <span>Subtotal</span>
               <strong>{formatCurrency(subtotal, currency)}</strong>
             </div>
-            <div className="quote-erp__total-row">
+            <div className="flex justify-between items-center py-3.5 border-b border-line [&>span]:text-sm [&>span]:text-ink-muted [&>strong]:text-ink-strong [&>strong]:font-bold">
               <span>Descuentos</span>
               <strong>{formatCurrency(totalDiscount, currency)}</strong>
             </div>
-            <div className="quote-erp__total-row">
+            <div className="flex justify-between items-center py-3.5 border-b border-line [&>span]:text-sm [&>span]:text-ink-muted [&>strong]:text-ink-strong [&>strong]:font-bold">
               <span>Impuestos</span>
               <strong>{formatCurrency(totalTax, currency)}</strong>
             </div>
-            <div className="quote-erp__total-row quote-erp__total-row--final">
+            <div className="flex justify-between items-center py-[18px] pt-[18px] mt-1 border-b-0 [&>span]:text-base [&>span]:font-extrabold [&>span]:uppercase [&>span]:tracking-[0.03em] [&>strong]:text-[26px] [&>strong]:text-accent [&>strong]:font-bold">
               <span>Total</span>
               <strong>{formatCurrency(total, currency)}</strong>
             </div>
@@ -800,10 +800,10 @@ function DocumentDetailFormContent({
           </div>
 
           {isEdit && (
-            <div className="quote-erp__events">
-              <h3 className="quote-erp__card-title">Historial</h3>
+            <div className="mt-4 bg-surface-card border border-line rounded-2xl p-4 md:p-6 [&_.timeline-item]:pb-2 [&_.timeline-item]:mb-2">
+              <h3 className="m-0 mb-4 text-base font-bold text-ink-strong tracking-[-0.01em]">Historial</h3>
               {events.length === 0 ? (
-                <p className="quote-erp__events-empty">
+                <p className="m-0 text-[13px] text-ink-muted">
                   Sin eventos registrados
                 </p>
               ) : (
