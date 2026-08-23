@@ -35,9 +35,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const headerTitle = user?.role
     ? getHeaderTitle(user.role)
     : "Panel comercial";
-  const layoutClassName = user?.role
-    ? `app-layout ${getRoleThemeClass(user.role)}`
-    : "app-layout";
+  const layoutClassName = [
+    "app-layout min-h-svh md:h-svh md:flex md:overflow-hidden",
+    user?.role ? getRoleThemeClass(user.role) : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={layoutClassName}>
@@ -51,7 +54,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         />
       )}
 
-      <div className="min-w-0 w-full h-svh flex flex-col overflow-hidden md:flex-1">
+      <div className="min-w-0 w-full md:flex-1 flex flex-col overflow-hidden">
         <header
           className="static z-10 shrink-0 min-h-14 md:min-h-16 flex items-center gap-3 px-4 md:px-6 border-b border-[color:var(--shell-border)] bg-[color:var(--shell-bg)]">
           <button
