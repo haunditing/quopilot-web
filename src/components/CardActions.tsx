@@ -21,22 +21,27 @@ function actionClassName(
   variant: EntityAction["variant"],
   hasLabel: boolean,
 ): string {
-  const base = ["entity-card__action"];
+  const classes = [
+    "inline-flex items-center justify-center gap-2 min-h-10 w-full px-3.5 py-2.5 rounded-lg font-semibold cursor-pointer transition-colors duration-150",
+    "border border-accent-border bg-accent-soft text-accent hover:bg-accent hover:border-accent hover:text-white",
+  ];
 
   if (!hasLabel) {
-    base.push("entity-card__action--icon");
+    classes.push("shrink-0 w-11 min-h-11 p-0 !border-transparent !bg-transparent");
   }
 
-  if (variant && variant !== "primary") {
-    base.push(`entity-card__action--${variant}`);
+  if (variant === "secondary") {
+    classes.push("!border-line !bg-surface-card !text-ink-strong hover:!bg-accent-soft hover:!text-accent");
+  } else if (variant === "danger") {
+    classes.push("!border-red-200 !bg-red-50 !text-danger hover:!bg-danger hover:!text-white");
   }
 
-  return base.join(" ");
+  return classes.join(" ");
 }
 
 export default function CardActions({ actions }: CardActionsProps) {
   return (
-    <div className="entity-card__actions">
+    <div className="flex items-center gap-2">
       {actions.map((action) => {
         const hasLabel = Boolean(action.label);
         const accessibleLabel = action.ariaLabel ?? action.label ?? "Acción";

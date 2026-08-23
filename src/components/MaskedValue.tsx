@@ -15,7 +15,7 @@ export default function MaskedValue({
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <span className="masked-value">
+    <span className="inline-flex items-center gap-1.5 min-w-0 flex-1">
       {revealed ? (
         asLink ? (
           <a
@@ -36,7 +36,7 @@ export default function MaskedValue({
 
       <button
         type="button"
-        className="btn-icon-action masked-value__toggle"
+        className="shrink-0 p-1 text-ink-muted transition-colors hover:text-accent"
         title={revealed ? "Ocultar" : "Revelar"}
         aria-label={revealed ? "Ocultar valor" : "Revelar valor"}
         aria-pressed={revealed}

@@ -162,7 +162,7 @@ export default function Channels() {
       key: "name",
       label: "Nombre",
       render: (channel) => (
-        <div className="cell-main">
+        <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-sm [&>strong]:font-semibold [&>strong]:text-ink-strong [&>span]:text-xs text-ink-muted">
           <strong>{channel.name}</strong>
           <span className="cell-sub">{TYPE_LABELS[channel.type]}</span>
         </div>

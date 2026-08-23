@@ -243,7 +243,7 @@ export default function Products() {
         key: "name",
         label: "Nombre",
         render: (product) => (
-          <div className="cell-main">
+          <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-sm [&>strong]:font-semibold [&>strong]:text-ink-strong [&>span]:text-xs text-ink-muted">
             <strong>{product.name}</strong>
             {product.reference && (
               <span className="cell-sub">{product.reference}</span>

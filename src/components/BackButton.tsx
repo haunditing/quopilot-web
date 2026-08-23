@@ -22,7 +22,7 @@ export default function BackButton({
     >
       <Icon name="back" size={18} />
 
-      <span className="visually-hidden">{children}</span>
+      <span className="sr-only">{children}</span>
     </button>
   );
 }

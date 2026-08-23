@@ -168,7 +168,7 @@ export default function ImageUploader({
         ref={inputRef}
         type="file"
         accept={accept}
-        className="visually-hidden"
+        className="sr-only"
         onChange={(event) => handleFile(event.target.files?.[0])}
       />
 

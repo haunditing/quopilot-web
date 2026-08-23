@@ -55,7 +55,7 @@ export default function Button({
       )}
 
       {iconOnly ? (
-        <span className="visually-hidden">{children}</span>
+        <span className="sr-only">{children}</span>
       ) : (
         children
       )}

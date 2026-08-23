@@ -505,8 +505,8 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
         {/* ===== Panel lateral sticky ===== */}
         <aside className="sticky top-5 max-[860px]:static">
-          <div className="master-detail-sidebar">
-            <div className="master-detail-sidebar__title">{title}</div>
+          <div className="flex flex-col gap-5 p-6 bg-white border border-slate-200 rounded-xl shadow-card">
+            <div className="text-base font-bold text-ink-strong">{title}</div>
 
             <label className="flex items-center gap-2.5 cursor-pointer">
               <input
@@ -528,7 +528,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
               </span>
             </label>
 
-            <div className="master-detail-sidebar__actions">
+            <div className="flex flex-col gap-3">
               <Button
                 type="button"
                 variant="secondary"

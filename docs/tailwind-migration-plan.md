@@ -1,4 +1,14 @@
-# Plan de Migración a Tailwind CSS — `quopilot-web` (Estrategia Strangler Fig)
+# Plan de Migración a Tailwind CSS — `quopilot-web` ✅ COMPLETADA
+
+> **Estado final (2026-08-21)**: migración ejecutada al 100%.
+> - `index.css`: 7.549 → **720 líneas** (−90.5%) · bundle CSS: **61.5 kB / 12.1 kB gzip**
+> - Todas las páginas y componentes usan utilidades; cero selectores BEM muertos.
+> - Excepción documentada: tokens de rol + tipografía global ≥768px (ver §Excepción).
+> - Pendiente: QA visual completo y activación de `preflight` (Fase 4).
+
+---
+
+ — `quopilot-web` (Estrategia Strangler Fig)
 
 **Autor**: Arquitectura Frontend · **Fecha**: 2026-08-21 · **Estado**: Propuesta
 **Progreso real**: 7.549 → ~5.500 líneas (−27%) tras Fases 1-2 y barridos de CSS propio a utilidades Tailwind sin pausar el desarrollo.

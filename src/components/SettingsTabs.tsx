@@ -15,7 +15,7 @@ const SETTINGS_TABS: SettingsTab[] = [
 
 export default function SettingsTabs() {
   return (
-    <nav className="settings-tabs" aria-label="Configuración">
+    <nav className="flex gap-1 pb-px border-b border-line overflow-x-auto" aria-label="Configuración">
       {SETTINGS_TABS.map((tab) => (
         <NavLink
           key={tab.to}
@@ -23,8 +23,8 @@ export default function SettingsTabs() {
           end={tab.end}
           className={({ isActive }) =>
             isActive
-              ? "settings-tabs__tab settings-tabs__tab--active"
-              : "settings-tabs__tab"
+              ? "inline-flex items-center px-3.5 py-2.5 border border-line border-b-0 rounded-t-lg bg-surface-card text-accent shadow-[inset_0_-2px_0_var(--accent)]"
+              : "inline-flex items-center px-3.5 py-2.5 border border-transparent border-b-0 rounded-t-lg text-sm font-semibold text-ink-muted transition-colors duration-150 hover:text-ink-strong hover:bg-accent-soft"
           }
         >
           {tab.label}
