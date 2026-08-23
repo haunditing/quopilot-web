@@ -45,16 +45,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {menuOpen && (
         <div
-          className="app-backdrop"
+          className="fixed inset-0 z-20 bg-[rgba(8,6,13,0.5)] md:hidden"
           onClick={() => setMenuOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      <div className="app-main">
-        <header className="app-header">
+      <div className="min-w-0 w-full h-svh flex flex-col overflow-hidden md:flex-1">
+        <header
+          className="static z-10 shrink-0 min-h-14 md:min-h-16 flex items-center gap-3 px-4 md:px-6 border-b border-[color:var(--shell-border)] bg-[color:var(--shell-bg)]">
           <button
-            className="app-header__menu"
+            className="inline-flex items-center justify-center w-10 h-10 border-0 rounded-lg bg-transparent text-[color:var(--shell-text)] transition-colors duration-150 hover:bg-accent-soft hover:text-accent md:hidden"
             type="button"
             aria-label="Abrir menú"
             aria-controls="app-sidebar"
@@ -64,11 +65,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <Icon name={menuOpen ? "close" : "menu"} size={22} />
           </button>
 
-          <strong className="app-header__title">{headerTitle}</strong>
+          <strong className="text-[color:var(--shell-text)] text-base font-semibold">{headerTitle}</strong>
         </header>
 
-        <div className="app-content">
-          <div className="app-content__inner">{children}</div>
+        <div className="flex-1 min-h-0 w-full overflow-y-auto">
+          <div className="w-full max-w-content mx-auto p-4 md:p-6">{children}</div>
         </div>
 
         {user?.role === "TENANT_ADMIN" && (
