@@ -580,7 +580,7 @@ export default function AgentChat() {
                   {sending && (
                     <div className="flex flex-col gap-1 max-w-[78%] px-4 py-3.5 rounded-xl leading-normal self-end bg-accent text-white rounded-br-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">
                       <span
-                        className="inline-flex items-center gap-1"
+                        className="typing-dots inline-flex items-center gap-1"
                         aria-label="Escribiendo..."
                       >
                         <i />

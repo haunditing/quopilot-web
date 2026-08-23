@@ -906,7 +906,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
 
                     <span className="inline-flex items-center gap-2 text-[13px]">
                       <span
-                        className="inline-flex items-center gap-1"
+                        className="typing-dots inline-flex items-center gap-1"
                         aria-label="Escribiendo..."
                       >
                         <i />
@@ -920,7 +920,7 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 {sending && !escalated && (
                   <div className="flex flex-col gap-1 max-w-[78%] px-4 py-3.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-start bg-surface-light border border-line text-ink-strong [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">
                     <span
-                      className="inline-flex items-center gap-1"
+                      className="typing-dots inline-flex items-center gap-1"
                       aria-label="Escribiendo..."
                     >
                       <i />
