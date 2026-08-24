@@ -1,3 +1,6 @@
+import Badge from "./Badge.js";
+import type { BadgeTone } from "./Badge.js";
+
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Borrador",
   SENT: "Enviada",
@@ -14,6 +17,22 @@ const STATUS_LABELS: Record<string, string> = {
   CLOSED: "Cerrada",
 };
 
+const STATUS_TONE: Record<string, BadgeTone> = {
+  DRAFT: "neutral",
+  SENT: "neutral",
+  VIEWED: "neutral",
+  ACCEPTED: "success",
+  REJECTED: "danger",
+  EXPIRED: "warning",
+  CONFIRMED: "success",
+  CANCELLED: "danger",
+  ACTIVE: "success",
+  INACTIVE: "neutral",
+  SUSPENDED: "neutral",
+  OPEN: "warning",
+  CLOSED: "neutral",
+};
+
 interface StatusBadgeProps {
   status: string;
 }
@@ -21,9 +40,5 @@ interface StatusBadgeProps {
 export default function StatusBadge({ status }: StatusBadgeProps) {
   const label = STATUS_LABELS[status] ?? status;
 
-  return (
-    <span className="shrink-0 px-2 py-1 rounded-full text-[11px] font-bold tracking-[0.03em]">
-      {label}
-    </span>
-  );
+  return <Badge tone={STATUS_TONE[status] ?? "neutral"}>{label}</Badge>;
 }

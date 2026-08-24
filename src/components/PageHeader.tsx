@@ -24,7 +24,7 @@ export default function PageHeader({
       </div>
 
       {actions && (
-        <div className="page-header__actions flex flex-row items-center shrink-0 gap-2 [&>button]:w-auto [&>button.button--icon]:w-11 [&_.button]:w-auto">
+        <div className="page-header__actions flex flex-row items-center shrink-0 gap-2 [&>button]:w-auto">
           {actions}
         </div>
       )}

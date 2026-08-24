@@ -520,7 +520,7 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
               <span
                 aria-hidden="true"
-                className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-[#00b4d8] peer-checked:after:translate-x-[18px] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+                className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-cyan peer-checked:after:translate-x-[18px] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
               />
 
               <span className="text-sm font-medium text-ink-strong">

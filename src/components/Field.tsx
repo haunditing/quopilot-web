@@ -39,7 +39,7 @@ export default function Field({
     "outline-none resize-y transition-[border-color,box-shadow] duration-150",
     error
       ? "border-danger focus:border-danger focus:ring-[3px] ring-rose-500/12"
-      : "border-line focus:border-accent focus:ring-[3px] ring-accent-soft",
+      : "border-line-strong focus:border-accent focus:ring-[3px] ring-accent-soft",
     inputProps.disabled
       ? "bg-accent-soft text-ink-muted cursor-not-allowed"
       : "",
@@ -62,7 +62,7 @@ export default function Field({
 
   return (
     <div className="flex flex-col gap-[7px]">
-      <label htmlFor={id} className="text-gray-900 text-sm font-semibold">
+      <label htmlFor={id} className="text-ink-strong text-sm font-semibold">
         {label}
         {required && <span className="text-danger"> *</span>}
       </label>

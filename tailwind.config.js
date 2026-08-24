@@ -13,9 +13,10 @@ export default {
         },
         success: "#059669",
         danger: "#dc2626",
-        surface: { light: "#f4f6f8", card: "#ffffff" },
+        surface: { light: "#f4f6f8", soft: "#f8f7fa", card: "#ffffff" },
         ink: { muted: "#6b6375", strong: "#08060d" },
-        line: "#e5e4e7",
+        line: { DEFAULT: "#e5e4e7", strong: "#cbd5e1" },
+        cyan: { DEFAULT: "#00b4d8", dark: "#0096c7" },
         shell: {
           bg: "#1a0d26",
           border: "#2d1a40",

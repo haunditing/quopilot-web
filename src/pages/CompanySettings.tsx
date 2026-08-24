@@ -7,6 +7,7 @@ import { Link, Navigate } from "react-router-dom";
 import Combobox from "../components/Combobox.js";
 import Icon from "../components/Icon.js";
 import Button from "../components/Button.js";
+import { buttonClassNames } from "../components/buttonClasses.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import ImageUploader from "../components/ImageUploader.js";
@@ -388,19 +389,18 @@ function CompanySettingsPanel() {
                 ))}
               </div>
 
-              <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
-                <button
-                  type="button"
-                  className="button button--secondary"
+              <div className="flex justify-end px-6 py-4 border-t border-line [&>*]:min-w-[180px]">
+                <Button
+                  variant="secondary"
+                  icon="link"
                   onClick={() =>
                     toast.info(
                       "Para actualizar tus datos fiscales contacta al soporte de QuoPilot.",
                     )
                   }
                 >
-                  <Icon name="link" size={16} />
                   Solicitar actualización de datos fiscales
-                </button>
+                </Button>
               </div>
             </section>
 
@@ -597,8 +597,11 @@ function CompanySettingsPanel() {
                     </div>
                   )}
 
-                  <div className="flex justify-end px-6 py-4 border-t border-line [&>button]:min-w-[180px]">
-                    <Link to="/agent" className="button button--secondary">
+                  <div className="flex justify-end px-6 py-4 border-t border-line [&>*]:min-w-[180px]">
+                    <Link
+                      to="/agent"
+                      className={buttonClassNames({ variant: "secondary" })}
+                    >
                       <Icon name="bot" size={16} />
                       Ir a configurar Agente
                     </Link>

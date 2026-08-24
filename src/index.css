@@ -15,8 +15,8 @@
   flex-direction: column;
   gap: 20px;
   padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -28,12 +28,12 @@
 }
 
 .master-detail-sidebar__meta span {
-  color: #64748b;
+  color: var(--text);
   font-size: 12px;
 }
 
 .master-detail-sidebar__meta strong {
-  color: #0f172a;
+  color: var(--text-h);
   font-size: 16px;
   font-weight: 700;
 }
@@ -43,6 +43,8 @@
   --text-h: #08060d;
   --bg: #ffffff;
   --surface: #ffffff;
+  --surface-light: #f4f6f8;
+  --surface-soft: #f8f7fa;
   --border: #e5e4e7;
 
   --accent: #aa3bff;
@@ -534,4 +536,28 @@ input[type="number"] {
 .btn-icon-action:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* Modificadores de acción (afinidad semántica en hover) */
+.btn-icon-action.btn-danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-icon-action.btn-edit:hover,
+.btn-icon-action.btn-view:hover,
+.btn-icon-action.btn-cancel:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-icon-action.btn-send:hover,
+.btn-icon-action.btn-accept:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.btn-icon-action.btn-download:hover {
+  border-color: var(--text);
+  color: var(--text);
 }

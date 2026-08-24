@@ -9,7 +9,7 @@ export function DetailLayout({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <main
-      className={`min-h-full bg-[#f4f6f8] [&>.page-header]:mb-6 ${className}`}
+      className={`min-h-full bg-surface-light [&>.page-header]:mb-6 ${className}`}
       {...props}
     >
       {children}
@@ -120,7 +120,7 @@ export function DetailSidebarActions({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`flex flex-col gap-2.5 [&>.button]:w-full [&>.button]:justify-center ${className}`}
+      className={`flex flex-col gap-2.5 [&>button]:w-full [&>button]:justify-center ${className}`}
       {...props}
     >
       {children}
@@ -144,7 +144,7 @@ export function DetailSectionCard({
 
   const cardClasses = `flex flex-col gap-4 p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${className}`;
   const contentClasses =
-    "flex flex-col gap-4 [&_label]:block [&_label]:text-[11px] [&_label]:font-bold [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-gray-500 [&_label]:mb-1 [&_span.value]:block [&_span.value]:text-gray-900 [&_span.value]:text-sm";
+    "flex flex-col gap-4 [&_label]:block [&_label]:text-[11px] [&_label]:font-bold [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-ink-muted [&_label]:mb-1 [&_span.value]:block [&_span.value]:text-ink-strong [&_span.value]:text-sm";
 
   if (!collapsible) {
     return (

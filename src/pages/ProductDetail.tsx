@@ -930,7 +930,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     }
                   />
 
-                  <span className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-[#00b4d8] peer-checked:after:translate-x-[18px] peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" aria-hidden="true" />
+                  <span className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-cyan peer-checked:after:translate-x-[18px] peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" aria-hidden="true" />
 
                   <span className="text-sm font-medium text-ink-strong">
                     Activar alerta de reabastecimiento cuando el stock baje del
@@ -1112,7 +1112,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       />
 
                       <span
-                        className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-[#00b4d8] peer-checked:after:translate-x-[18px] peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+                        className="relative shrink-0 w-10 h-[22px] rounded-full bg-slate-200 transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:w-[18px] after:h-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:duration-150 peer-checked:bg-cyan peer-checked:after:translate-x-[18px] peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
                         aria-hidden="true"
                       />
 

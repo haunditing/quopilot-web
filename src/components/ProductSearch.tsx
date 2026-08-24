@@ -151,7 +151,7 @@ export default function ProductSearch({
       <input
         ref={inputRef}
         type="text"
-        className="w-full py-2.5 pl-3 pr-9 rounded-[10px] border border-line bg-surface-card text-sm leading-snug text-ink-strong focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
+        className="w-full py-2.5 pl-3 pr-9 rounded-[10px] border border-line-strong bg-surface-card text-sm leading-snug text-ink-strong focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
         value={query}
         placeholder={placeholder}
         onChange={(event) => setQuery(event.target.value)}

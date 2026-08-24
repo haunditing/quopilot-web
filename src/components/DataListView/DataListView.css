@@ -4,28 +4,9 @@
   box-sizing: border-box;
 }
 
-.btn-primary-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  background-color: #00b4d8;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.btn-primary-action:hover {
-  background-color: #0096c7;
-}
-
 .card-table {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: visible !important;
@@ -48,20 +29,20 @@
 .search-box .search-icon {
   position: absolute;
   left: 10px;
-  color: #94a3b8;
+  color: var(--text);
 }
 
 .search-box .search-input {
   width: 100%;
   padding: 8px 12px 8px 34px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 13px;
   outline: none;
 }
 
 .search-box .search-input:focus {
-  border-color: #00b4d8;
+  border-color: var(--accent);
 }
 
 .btn-filter-trigger {
@@ -70,7 +51,7 @@
   gap: 6px;
   background: none;
   border: none;
-  color: #475569;
+  color: var(--text);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -81,8 +62,8 @@
 
 .btn-filter-trigger:hover,
 .btn-filter-trigger.active {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: var(--surface-light);
+  color: var(--text-h);
 }
 
 .filters-bar {
@@ -90,7 +71,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px 12px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--surface-light);
 }
 
 .filters-group {
@@ -110,26 +91,26 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--surface-soft);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 5px 12px;
   font-size: 13px;
-  color: #475569;
+  color: var(--text);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .filter-chip:hover {
-  background-color: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background-color: var(--surface-light);
+  border-color: var(--border);
+  color: var(--text-h);
 }
 
 .filter-chip.has-value {
-  background-color: #e0f2fe;
-  border-color: #38bdf8;
-  color: #0369a1;
+  background-color: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
 }
 
 /* Popover Flotante */
@@ -139,8 +120,8 @@
   left: 0;
   z-index: 100;
   width: 200px;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 10px;
@@ -152,27 +133,27 @@
   justify-content: space-between;
   font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text);
   margin-bottom: 8px;
 }
 
 .btn-clear-chip {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text);
   cursor: pointer;
   padding: 2px;
 }
 
 .btn-clear-chip:hover {
-  color: #e11d48;
+  color: var(--danger);
 }
 
 .chip-input,
 .chip-select {
   width: 100%;
   padding: 6px 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 13px;
   outline: none;
@@ -181,7 +162,7 @@
 
 .chip-input:focus,
 .chip-select:focus {
-  border-color: #00b4d8;
+  border-color: var(--accent);
 }
 
 .btn-remove-filters {
@@ -191,13 +172,13 @@
   background: none;
   border: none;
   font-size: 12px;
-  color: #64748b;
+  color: var(--text);
   font-weight: 500;
   cursor: pointer;
 }
 
 .btn-remove-filters:hover {
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .table-responsive {
@@ -213,24 +194,24 @@
 }
 
 .data-table thead {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table th,
 .data-table td {
   padding: 12px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--surface-light);
 }
 
 .data-table th {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text);
   font-weight: 500;
 }
 
 .data-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--surface-soft);
 }
 
 .data-table tbody tr.data-table__row--clickable {
@@ -252,32 +233,6 @@
   gap: 6px;
 }
 
-.btn-icon-action {
-  width: 32px;
-  height: 32px;
-  border: none !important;
-  border-radius: 6px;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.btn-icon-action:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
-}
-
-.btn-icon-action.btn-danger:hover {
-  background-color: #ffe4e6;
-  color: #e11d48;
-}
-
 .text-right {
   text-align: right;
 }
@@ -287,10 +242,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: #ffffff;
-  border-top: 1px solid #f1f5f9;
+  background-color: var(--surface);
+  border-top: 1px solid var(--surface-light);
   font-size: 12px;
-  color: #64748b;
+  color: var(--text);
 }
 
 .pagination-left,
@@ -301,19 +256,19 @@
 }
 
 .page-size-select {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 12px;
-  color: #334155;
+  color: var(--text-h);
   outline: none;
 }
 
 .page-input {
   width: 36px;
   height: 28px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 6px;
   text-align: center;
   font-size: 12px;
@@ -334,7 +289,7 @@
   height: 28px;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -346,7 +301,7 @@
 .state-cell {
   text-align: center;
   padding: 32px;
-  color: #94a3b8;
+  color: var(--text);
 }
 
 /* Vista móvil: lista vertical tipo inbox */
@@ -356,7 +311,7 @@
 
 .data-list-mobile__state {
   padding: 32px 16px;
-  color: #94a3b8;
+  color: var(--text);
   font-size: 13px;
   text-align: center;
 }
@@ -366,7 +321,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--surface-light);
 }
 
 .data-list-mobile__item:last-child {
@@ -378,17 +333,17 @@
 }
 
 .data-list-mobile__item--clickable:active {
-  background-color: #f8fafc;
+  background-color: var(--surface-soft);
 }
 
 .data-list-mobile__title {
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .data-list-mobile__title strong {
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .data-list-mobile__details {
@@ -406,19 +361,19 @@
 }
 
 .data-list-mobile__detail-label {
-  color: #94a3b8;
+  color: var(--text);
   flex-shrink: 0;
 }
 
 .data-list-mobile__detail-value {
-  color: #334155;
+  color: var(--text-h);
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 .data-list-mobile__detail-value a,
 .data-list-mobile__detail-value a:visited {
-  color: #0369a1;
+  color: var(--accent);
   text-decoration: none;
 }
 

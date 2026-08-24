@@ -490,7 +490,7 @@ function DocumentDetailFormContent({
             </div>
 
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex flex-col gap-1.5 flex-1 min-w-0 md:flex-none [&>label]:text-[11px] [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-[0.06em] [&>label]:text-ink-muted [&>select]:px-3 [&>select]:py-2.5 [&>select]:border [&>select]:border-line [&>select]:rounded-lg [&>select]:text-base [&>select]:bg-white [&>select]:w-full md:[&>select]:text-sm md:[&>select]:w-auto md:[&>select]:min-w-[150px]">
+              <div className="flex flex-col gap-1.5 flex-1 min-w-0 md:flex-none [&>label]:text-[11px] [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-[0.06em] [&>label]:text-ink-muted [&>select]:px-3 [&>select]:py-2.5 [&>select]:border [&>select]:border-line-strong [&>select]:rounded-lg [&>select]:text-base [&>select]:bg-white [&>select]:w-full md:[&>select]:text-sm md:[&>select]:w-auto md:[&>select]:min-w-[150px]">
                 <label htmlFor="document-type">Documento</label>
                 <select id="document-type" defaultValue="DEFAULT" disabled>
                   <option value="DEFAULT">{documentTypeLabel}</option>
@@ -581,7 +581,7 @@ function DocumentDetailFormContent({
               </div>
             ) : (
               <div className="overflow-visible border border-line rounded-xl hidden lg:block">
-                <table className="w-full border-collapse [&_th]:p-3 [&_th]:px-2 [&_th]:text-left [&_th]:border-b [&_th]:border-line [&_th]:align-middle [&_td]:p-3 [&_td]:px-2 [&_td]:text-left [&_td]:border-b [&>td]:border-line [&_td]:align-middle [&>td]:border-line [&_th]:bg-[#f8f7fa] [&_th]:font-bold [&_th]:text-ink-strong [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-[0.05em] [&_th]:whitespace-nowrap [&_tbody_tr:hover]:bg-slate-50 [&_tbody_tr:last-child_td]:border-b-0 [&_thead_th:first-child]:rounded-tl-[11px] [&_thead_th:last-child]:rounded-tr-[11px]">
+                <table className="w-full border-collapse [&_th]:p-3 [&_th]:px-2 [&_th]:text-left [&_th]:border-b [&_th]:border-line [&_th]:align-middle [&_td]:p-3 [&_td]:px-2 [&_td]:text-left [&_td]:border-b [&>td]:border-line [&_td]:align-middle [&>td]:border-line [&_th]:bg-surface-soft [&_th]:font-bold [&_th]:text-ink-strong [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-[0.05em] [&_th]:whitespace-nowrap [&_tbody_tr:hover]:bg-slate-50 [&_tbody_tr:last-child_td]:border-b-0 [&_thead_th:first-child]:rounded-tl-[11px] [&_thead_th:last-child]:rounded-tr-[11px]">
                   <thead>
                     <tr>
                       {!readOnly && (
@@ -636,7 +636,7 @@ function DocumentDetailFormContent({
                           <td>
                             <input
                               type="number"
-                              className="w-full max-w-16 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
+                              className="w-full max-w-16 px-2.5 py-2 rounded-lg border border-line-strong text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               min={1}
                               step={1}
                               value={line.quantity}
@@ -652,7 +652,7 @@ function DocumentDetailFormContent({
                           <td>
                             <input
                               type="number"
-                              className="w-full max-w-24 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
+                              className="w-full max-w-24 px-2.5 py-2 rounded-lg border border-line-strong text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               min={0}
                               step={0.01}
                               value={line.unitPrice}
@@ -668,7 +668,7 @@ function DocumentDetailFormContent({
                           <td>
                             <input
                               type="number"
-                              className="w-full max-w-16 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
+                              className="w-full max-w-16 px-2.5 py-2 rounded-lg border border-line-strong text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               min={0}
                               max={100}
                               step={0.01}
@@ -683,7 +683,7 @@ function DocumentDetailFormContent({
                           </td>
                           <td>
                             <select
-                              className="w-full max-w-24 px-2.5 py-2 rounded-lg border border-line text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
+                              className="w-full max-w-24 px-2.5 py-2 rounded-lg border border-line-strong text-sm leading-snug bg-white transition-colors duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-bg)]"
                               value={line.taxRate}
                               onChange={(e) =>
                                 updateLine(line.id, {
@@ -722,9 +722,9 @@ function DocumentDetailFormContent({
             )}
 
             {!readOnly && lines.length > 0 && (
-              <div className="flex flex-col items-start gap-2 mt-4 p-3.5 bg-[#f8f7fa] rounded-[10px] border border-dashed border-line [&>span]:text-[13px] text-ink-muted md:flex-row md:justify-between md:items-center md:gap-4">
+              <div className="flex flex-col items-start gap-2 mt-4 p-3.5 bg-surface-soft rounded-[10px] border border-dashed border-line [&>span]:text-[13px] text-ink-muted md:flex-row md:justify-between md:items-center md:gap-4">
                 <span>{selectedLineIds.size} línea(s) seleccionada(s)</span>
-                <div className="flex items-center gap-2 [&>input]:w-20 [&>input]:px-2.5 [&>input]:py-2 [&>input]:border [&>input]:border-line [&>input]:rounded-lg [&>input]:text-sm">
+                <div className="flex items-center gap-2 [&>input]:w-20 [&>input]:px-2.5 [&>input]:py-2 [&>input]:border [&>input]:border-line-strong [&>input]:rounded-lg [&>input]:text-sm">
                   <input
                     type="number"
                     min={0}
@@ -841,7 +841,7 @@ export default function DocumentDetailForm(props: DocumentDetailProps) {
     fetchNextNumber,
   } = props;
   const isEdit = mode === "edit" && Boolean(documentId);
-  const { hasCapability } = useCapabilities();
+  const { hasCapability, loading: capabilitiesLoading } = useCapabilities();
 
   const [nextNumber, setNextNumber] = useState("DOC-000001");
 
@@ -873,6 +873,10 @@ export default function DocumentDetailForm(props: DocumentDetailProps) {
       cancelled = true;
     };
   }, [isEdit, fetchNextNumber]);
+
+  if (!isEdit && capabilitiesLoading) {
+    return <LoadingOverlay title="Verificando permisos…" />;
+  }
 
   if (!isEdit && !hasCapability(`${documentTypeKey}.create`)) {
     return (
