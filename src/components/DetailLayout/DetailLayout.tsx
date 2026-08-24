@@ -1,71 +1,131 @@
-import { useState, type ReactNode, type FormEvent } from "react";
+import { useState } from "react";
+import type { HTMLAttributes, FormHTMLAttributes } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 export function DetailLayout({
   children,
   className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <main className={`master-detail ${className}`}>{children}</main>;
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <main
+      className={`min-h-full bg-[#f4f6f8] [&>.page-header]:mb-6 ${className}`}
+      {...props}
+    >
+      {children}
+    </main>
+  );
 }
 
+export type DetailLayoutBodyProps =
+  | (HTMLAttributes<HTMLDivElement> & {
+      isForm?: false;
+      sidebarPosition?: "left" | "right";
+    })
+  | (FormHTMLAttributes<HTMLFormElement> & {
+      isForm: true;
+      sidebarPosition?: "left" | "right";
+    });
+
 export function DetailLayoutBody({
+  isForm,
+  sidebarPosition = "right",
   children,
-  isForm = false,
-  onSubmit,
   className = "",
-}: {
-  children: ReactNode;
-  isForm?: boolean;
-  onSubmit?: (e: FormEvent<HTMLFormElement>) => void;
-  className?: string;
-}) {
+  ...props
+}: DetailLayoutBodyProps) {
+  const gridCols =
+    sidebarPosition === "left"
+      ? "md:grid-cols-[260px_minmax(0,1fr)]"
+      : "md:grid-cols-[minmax(0,1fr)_300px]";
+  const bodyClasses = `grid grid-cols-1 ${gridCols} gap-6 items-start ${className}`;
+
   if (isForm) {
     return (
-      <form className={`master-detail__body ${className}`} onSubmit={onSubmit}>
+      <form
+        className={bodyClasses}
+        {...(props as FormHTMLAttributes<HTMLFormElement>)}
+      >
         {children}
       </form>
     );
   }
-  return <div className={`master-detail__body ${className}`}>{children}</div>;
+  return (
+    <div className={bodyClasses} {...(props as HTMLAttributes<HTMLDivElement>)}>
+      {children}
+    </div>
+  );
 }
 
 export function DetailLayoutMain({
   children,
   className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={`master-detail__main ${className}`}>{children}</div>;
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`flex flex-col gap-4 min-w-0 ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
 
 export function DetailSidebar({
   children,
   className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+  ...props
+}: HTMLAttributes<HTMLElement>) {
   return (
-    <aside className={`master-detail__sidebar ${className}`}>
-      <div className="master-detail-sidebar">{children}</div>
+    <aside className={`md:sticky md:top-5 ${className}`} {...props}>
+      <div className="flex flex-col gap-5 p-6 bg-white border border-slate-200 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        {children}
+      </div>
     </aside>
   );
 }
 
-export function DetailSidebarTitle({ children }: { children: ReactNode }) {
-  return <div className="master-detail-sidebar__title">{children}</div>;
+export function DetailSidebarTitle({
+  children,
+  className = "",
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={`text-slate-900 text-lg font-bold leading-snug ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 }
 
-export function DetailSidebarMeta({ children }: { children: ReactNode }) {
-  return <div className="master-detail-sidebar__meta">{children}</div>;
+export function DetailSidebarMeta({
+  children,
+  className = "",
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={`flex flex-col gap-3 [&>div]:flex [&>div]:flex-col [&>div]:gap-0.5 [&_span]:text-slate-500 [&_span]:text-xs [&_strong]:text-slate-900 [&_strong]:text-base [&_strong]:font-bold ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 }
 
-export function DetailSidebarActions({ children }: { children: ReactNode }) {
-  return <div className="master-detail-sidebar__actions">{children}</div>;
+export function DetailSidebarActions({
+  children,
+  className = "",
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={`flex flex-col gap-2.5 [&>.button]:w-full [&>.button]:justify-center ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function DetailSectionCard({
@@ -74,40 +134,47 @@ export function DetailSectionCard({
   collapsible = false,
   defaultOpen = true,
   className = "",
-}: {
+  ...props
+}: HTMLAttributes<HTMLDivElement> & {
   title: string;
-  children: ReactNode;
   collapsible?: boolean;
   defaultOpen?: boolean;
-  className?: string;
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
+  const cardClasses = `flex flex-col gap-4 p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${className}`;
+  const contentClasses =
+    "flex flex-col gap-4 [&_label]:block [&_label]:text-[11px] [&_label]:font-bold [&_label]:uppercase [&_label]:tracking-wider [&_label]:text-gray-500 [&_label]:mb-1 [&_span.value]:block [&_span.value]:text-gray-900 [&_span.value]:text-sm";
+
   if (!collapsible) {
     return (
-      <section className={`master-detail-card ${className}`}>
-        <h2 className="master-detail-card__title">{title}</h2>
-        <div className="master-detail-card__grid">{children}</div>
+      <section className={cardClasses} {...props}>
+        <h2 className="m-0 text-slate-900 text-base font-bold">{title}</h2>
+        <div className={contentClasses}>{children}</div>
       </section>
     );
   }
 
   return (
-    <section className={`master-detail-card ${className}`}>
+    <section className={cardClasses} {...props}>
       <button
         type="button"
-        className="master-detail-card__heading"
+        className="flex items-center justify-between w-full p-0 bg-transparent border-none text-inherit font-inherit cursor-pointer text-left"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
-        <span className="master-detail-card__heading-text">{title}</span>
+        <span className="flex flex-col gap-0.5">
+          <strong className="text-slate-900 text-base font-bold">
+            {title}
+          </strong>
+        </span>
         {isOpen ? (
-          <ChevronUp size={18} className="master-detail-card__chevron" />
+          <ChevronUp size={18} className="text-slate-400 flex-shrink-0" />
         ) : (
-          <ChevronDown size={18} className="master-detail-card__chevron" />
+          <ChevronDown size={18} className="text-slate-400 flex-shrink-0" />
         )}
       </button>
-      {isOpen && <div className="master-detail-card__grid">{children}</div>}
+      {isOpen && <div className={contentClasses}>{children}</div>}
     </section>
   );
 }

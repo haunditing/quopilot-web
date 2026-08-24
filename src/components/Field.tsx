@@ -55,18 +55,14 @@ export default function Field({
         {children}
       </select>
     ) : as === "textarea" ? (
-      <textarea
-        id={id}
-        className={controlClass}
-        {...(inputProps as object)}
-      />
+      <textarea id={id} className={controlClass} {...(inputProps as object)} />
     ) : (
       <input id={id} className={controlClass} {...inputProps} />
     );
 
   return (
     <div className="flex flex-col gap-[7px]">
-      <label htmlFor={id} className="text-sm font-semibold text-ink-strong">
+      <label htmlFor={id} className="text-gray-900 text-sm font-semibold">
         {label}
         {required && <span className="text-danger"> *</span>}
       </label>
