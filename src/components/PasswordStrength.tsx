@@ -14,9 +14,9 @@ export default function PasswordStrength({ value }: PasswordStrengthProps) {
   }
 
   return (
-    <div className="password-strength">
+    <div className="flex flex-col gap-1">
       <div
-        className={`password-strength__bar password-strength__bar--score-${strength.score}`}
+        className="flex gap-1"
         role="meter"
         aria-valuemin={0}
         aria-valuemax={TOTAL_SEGMENTS}
@@ -28,14 +28,14 @@ export default function PasswordStrength({ value }: PasswordStrengthProps) {
             key={index}
             className={
               index < strength.score
-                ? "password-strength__segment password-strength__segment--filled"
-                : "password-strength__segment"
+                ? "flex-1 h-1.5 rounded-full bg-accent transition-colors duration-150"
+                : "flex-1 h-1.5 rounded-full bg-line transition-colors duration-150"
             }
           />
         ))}
       </div>
 
-      <span className="password-strength__label">{strength.label}</span>
+      <span className="text-xs text-ink-muted">{strength.label}</span>
     </div>
   );
 }

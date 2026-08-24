@@ -419,7 +419,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
       <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1">
         <div className="flex flex-col gap-4 min-w-0">
           <form
-            id="min-h-full bg-surface-light"
+            id="channel-form"
             className="flex flex-col gap-6"
             onSubmit={handleSubmit}
           >

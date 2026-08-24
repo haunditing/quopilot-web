@@ -1,11 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  corePlugins: {
-    // CRÍTICO durante la coexistencia (Strangler Fig): el CSS legado
-    // asume estilos UA por defecto. Se activa en Fase 4.
-    preflight: false,
-  },
+  // Fase 4: preflight activado tras migración completa.
+  // corePlugins: { preflight: false },
   theme: {
     extend: {
       colors: {

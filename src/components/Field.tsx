@@ -35,7 +35,7 @@ export default function Field({
   const required = Boolean(inputProps.required);
 
   const controlClass = [
-    "w-full min-h-[44px] px-3 py-2.5 rounded-lg border bg-surface-card text-ink-strong",
+    "w-full h-[44px] px-3 py-2 rounded-lg border bg-surface-card text-sm text-ink-strong appearance-none",
     "outline-none resize-y transition-[border-color,box-shadow] duration-150",
     error
       ? "border-danger focus:border-danger focus:ring-[3px] ring-rose-500/12"
@@ -43,7 +43,7 @@ export default function Field({
     inputProps.disabled
       ? "bg-accent-soft text-ink-muted cursor-not-allowed"
       : "",
-    as === "textarea" ? "min-h-[88px]" : "",
+    as === "textarea" ? "h-auto min-h-[88px]" : "",
     className || "",
   ]
     .filter(Boolean)
