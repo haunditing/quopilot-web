@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Color picker: resets webkit no expresables como utilidades */
 .color-picker-native::-webkit-color-swatch-wrapper {
   padding: 0;
 }
@@ -11,7 +10,6 @@
   border: none;
 }
 
-/* Sidebar de detalle (CustomerDetail / ProductDetail) */
 .master-detail-sidebar {
   display: flex;
   flex-direction: column;
@@ -216,10 +214,6 @@ p {
   margin: 0;
 }
 
-/* =========================================
-   DASHBOARD SYSTEM
-   ========================================= */
-
 .dashboard-page {
   width: 100%;
 }
@@ -257,19 +251,11 @@ p {
   line-height: 1.5;
 }
 
-/* =========================================
-   DASHBOARD GRID
-   ========================================= */
-
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
-
-/* =========================================
-   DASHBOARD CARD
-   ========================================= */
 
 .dashboard-card {
   min-width: 0;
@@ -335,10 +321,6 @@ p {
   line-height: 1.4;
 }
 
-/* =========================================
-   HIGHLIGHT CARD
-   ========================================= */
-
 .dashboard-card--highlight {
   border-color: #cbd5e1;
 
@@ -348,10 +330,6 @@ p {
 .dashboard-card--highlight .dashboard-card__value {
   font-size: 30px;
 }
-
-/* =========================================
-   DASHBOARD RESPONSIVE (mobile-first)
-   ========================================= */
 
 @media (min-width: 700px) {
   .dashboard-grid {
@@ -371,10 +349,6 @@ p {
     font-size: 34px;
   }
 }
-
-/* =========================================
-   ROLE THEMES (tokens por rol — se conservan como variables)
-   ========================================= */
 
 .app-layout--super-admin {
   --accent: #aa3bff;
@@ -425,15 +399,6 @@ p {
   gap: 8px;
 }
 
-.quote-erp__totals .entity-card__actions {
-  justify-content: flex-end;
-}
-
-.quote-erp__totals .entity-card__action {
-  inline-size: auto;
-  flex: 1;
-}
-
 .sales-summary {
   display: grid;
   grid-template-columns: 1fr;
@@ -476,7 +441,6 @@ p {
   }
 }
 
-/* Typing dots — compartido: agent chat / inbox / public chat */
 .typing-dots i,
 .agent-chat__typing i,
 .inbox__typing i,
@@ -515,13 +479,6 @@ p {
   }
 }
 
-@media (max-width: 860px) {
-  .agent-chat {
-    grid-template-columns: 1fr;
-    block-size: auto;
-  }
-}
-
 .inbox__search .btn-filter-trigger {
   flex-shrink: 0;
   min-block-size: 36px;
@@ -540,11 +497,6 @@ p {
   color: var(--accent);
 }
 
-.inbox__filters {
-  padding: 10px 12px 12px;
-  border-block-end: 1px solid var(--border);
-}
-
 .inbox__filters .filters-bar {
   padding: 0;
   border-block-end: none;
@@ -559,9 +511,6 @@ p {
     block-size: calc(100vh - 190px);
   }
 
-  .inbox__bubble {
-    max-inline-size: 88%;
-  }
 }
 
 @keyframes public-chat-fade-up {

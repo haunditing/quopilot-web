@@ -34,8 +34,17 @@ interface StoredChat {
   channelName?: string;
 }
 
+export type PublicChatVariant = "page" | "embed";
+
 interface PublicChatProps {
   tenantId: string;
+  /**
+   * "page": vista completa con landing y tarjeta centrada.
+   * "embed": iframe del widget — sin marcos, 100% de la ventana.
+   */
+  variant?: PublicChatVariant;
+  /** Cierra el widget desde fuera (postMessage al sitio padre). */
+  onEmbedClose?: () => void;
 }
 
 let publicOptimisticId = 0;
@@ -119,6 +128,30 @@ const TOPIC_MESSAGE_TEMPLATES: Partial<Record<ChatTopic, string>> = {
   DEMO: "Me gustaría agendar una demostración.",
 };
 
+export interface InjectedPublicChannel {
+  channel: string;
+  tenantId: string;
+  tenantName: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  welcomeMessage?: string;
+}
+
+/** Estado del tenant inyectado por el SSR de /c/:token (defensivo). */
+export function readInjectedPublicChannel(): InjectedPublicChannel | null {
+  try {
+    const value = (
+      window as unknown as {
+        __QUOPILOT_PUBLIC_CHANNEL__?: InjectedPublicChannel;
+      }
+    ).__QUOPILOT_PUBLIC_CHANNEL__;
+
+    return value && value.tenantId ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 function storageKey(tenantId: string): string {
   return `public-chat:${tenantId}`;
 }
@@ -133,7 +166,12 @@ function readStoredChat(tenantId: string): StoredChat | null {
   }
 }
 
-export default function PublicChat({ tenantId }: PublicChatProps) {
+export default function PublicChat({
+  tenantId,
+  variant = "page",
+  onEmbedClose,
+}: PublicChatProps) {
+  const isEmbed = variant === "embed";
   const [chat, setChat] = useState<StoredChat | null>(() =>
     readStoredChat(tenantId),
   );
@@ -560,6 +598,12 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
     }
   }
 
+  /** Notifica al padre si la página corre dentro del widget embebido. */
+  function notifyEmbedClose(): void {
+    if (window.parent === window) return;
+    window.parent.postMessage({ type: "quopilot:close" }, "*");
+  }
+
   async function handleClose() {
     if (!chat || closed || sending) {
       return;
@@ -573,6 +617,8 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
     if (!confirmed) {
       return;
     }
+
+    notifyEmbedClose();
 
     setClosing(true);
     setSendError("");
@@ -603,10 +649,23 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
   const accentStyle = widgetAccentStyle(chatConfig?.widget?.primaryColor);
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-6 bg-[linear-gradient(160deg,var(--shell-bg),var(--shell-border))]" style={accentStyle}>
+    <div
+      className={
+        isEmbed
+          ? "flex h-dvh w-full flex-col overflow-hidden"
+          : "flex items-center justify-center min-h-screen p-6 bg-[linear-gradient(160deg,var(--shell-bg),var(--shell-border))]"
+      }
+      style={accentStyle}
+    >
       {!chat ? (
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.05fr] w-full max-w-[960px] min-h-[min(640px,calc(100vh-48px))] rounded-[20px] overflow-hidden bg-surface-card shadow-card max-[767px]:grid-cols-1 max-[767px]:min-h-0">
-          <aside className="flex flex-col gap-4 p-8 bg-accent text-white max-[767px]:p-6">
+        <div
+          className={
+            isEmbed
+              ? "flex h-full w-full flex-col overflow-hidden bg-surface-card"
+              : "grid grid-cols-1 md:grid-cols-[1fr_1.05fr] w-full max-w-[960px] min-h-[min(640px,calc(100vh-48px))] rounded-[20px] overflow-hidden bg-surface-card shadow-card max-[767px]:grid-cols-1 max-[767px]:min-h-0"
+          }
+        >
+          <aside className={`flex flex-col gap-4 bg-accent text-white ${isEmbed ? "p-5" : "p-8 max-[767px]:p-6"}`}>
             <div className="inline-flex items-center gap-2.5 text-base font-bold">
               <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-soft" aria-hidden="true">
                 <Icon name="brand" size={22} />
@@ -788,7 +847,13 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
           </form>
         </div>
       ) : (
-        <div className="flex flex-col w-full max-w-[420px] h-[min(640px,calc(100vh-48px))] rounded-2xl overflow-hidden bg-surface-card shadow-card">
+        <div
+          className={
+            isEmbed
+              ? "flex h-full w-full flex-col overflow-hidden bg-surface-card"
+              : "flex flex-col w-full max-w-[420px] h-[min(640px,calc(100vh-48px))] rounded-2xl overflow-hidden bg-surface-card shadow-card"
+          }
+        >
           <header className="flex items-center gap-2.5 p-4 bg-accent text-[color:var(--accent-text)]">
             <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
               <Icon name="brand" size={18} />
@@ -818,6 +883,18 @@ export default function PublicChat({ tenantId }: PublicChatProps) {
                 <i aria-hidden="true" />
                 <span>{closed ? "Cerrado" : "En línea"}</span>
               </div>
+            )}
+
+            {isEmbed && onEmbedClose && (
+              <button
+                type="button"
+                aria-label="Minimizar chat"
+                title="Minimizar"
+                onClick={onEmbedClose}
+                className="inline-flex items-center justify-center p-1 border-none rounded-full cursor-pointer shrink-0 transition-colors duration-150 hover:bg-white/15"
+              >
+                <Icon name="chevron-down" size={16} />
+              </button>
             )}
 
             {chat && !closed && (

@@ -8,7 +8,7 @@ import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
-import MaskedValue from "../components/MaskedValue.js";
+import WebChatAccessPanel from "../components/channels/WebChatAccessPanel.js";
 import PageHeader from "../components/PageHeader.js";
 import SettingsTabs from "../components/SettingsTabs.js";
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
@@ -26,8 +26,6 @@ import {
   COLOR_PRESETS,
   isValidHexColor,
   POSITION_OPTIONS,
-  publicChatUrl,
-  webhookUrlFor,
 } from "../lib/channels.js";
 import type {
   Channel,
@@ -68,6 +66,16 @@ const SECTION_TABS: SectionTab[] = [
   { id: "channel-credenciales", label: "Credenciales" },
   { id: "channel-webhook", label: "Webhook / Enlace" },
 ];
+
+/** Tab de instalación disponible solo para canales WebChat. */
+function sectionTabsFor(type: ChannelType): SectionTab[] {
+  const tabs =
+    type === "WEB_CHAT"
+      ? [...SECTION_TABS, { id: "channel-instalacion", label: "Instalación web" }]
+      : [...SECTION_TABS];
+
+  return tabs;
+}
 
 const EMPTY_FORM: ChannelFormState = {
   name: "",
@@ -122,6 +130,8 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
   const [loadError, setLoadError] = useState("");
   const [form, setForm] = useState<ChannelFormState>(EMPTY_FORM);
   const [channel, setChannel] = useState<Channel | null>(null);
+  /** Canal WEB_CHAT recién creado: muestra el panel de instalación. */
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
 
   const [nameError, setNameError] = useState("");
   const [configError, setConfigError] = useState("");
@@ -180,9 +190,16 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
   const visibleTabs = useMemo(
     () =>
-      SECTION_TABS.filter((tab) => {
-        if (tab.id === "channel-credenciales" && form.type === "WEB_CHAT") {
+      sectionTabsFor(form.type).filter((tab) => {
+        if (
+          tab.id === "channel-instalacion" &&
+          (!isEdit || !channel?.publicToken)
+        ) {
           return false;
+        }
+
+        if (tab.id === "channel-credenciales" && form.type === "WEB_CHAT") {
+          return true;
         }
 
         if (tab.id === "channel-webhook" && !isEdit) {
@@ -191,7 +208,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
         return true;
       }),
-    [form.type, isEdit],
+    [form.type, isEdit, channel?.publicToken],
   );
 
   const { activeSection, scrollToSection } = useSectionScrollSpy({
@@ -301,6 +318,23 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
         });
 
         toast.success("Cambios guardados");
+      } else if (form.type === "WEB_CHAT") {
+        const created = await createChannel({
+          type: form.type,
+          name: form.name.trim(),
+          config: buildChannelConfig(form),
+          ...(buildChannelCredentials(form)
+            ? { credentials: buildChannelCredentials(form) }
+            : {}),
+        });
+
+        toast.success("Canal creado");
+
+        // Éxito: mostrar snippet y URL inmediatamente sin salir del formulario.
+        setCreatedToken(created.publicToken ?? null);
+        setSaving(false);
+
+        return;
       } else {
         await createChannel({
           type: form.type,
@@ -312,9 +346,8 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
         });
 
         toast.success("Canal creado");
+        navigate("/channels");
       }
-
-      navigate("/channels");
     } catch (requestError) {
       setSaveError(
         requestError instanceof Error ? requestError.message : SAVE_MESSAGE,
@@ -324,23 +357,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
     }
   }
 
-  async function handleCopyWebhook(url: string) {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("URL del webhook copiada");
-    } catch {
-      toast.error("No fue posible copiar la URL");
-    }
-  }
 
-  async function handleCopyPublicLink(url: string) {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Enlace público copiado");
-    } catch {
-      toast.error("No fue posible copiar el enlace");
-    }
-  }
 
   if (loading || loadError) {
     return (
@@ -350,9 +367,39 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
     );
   }
 
-  const modalWebhookUrl = channel ? webhookUrlFor(channel) : undefined;
-  const publicLink = publicChatUrl(tenantId);
-  const showPublicLink = isEdit && channel?.type === "WEB_CHAT" && publicLink;
+
+  if (createdToken) {
+    return (
+      <main className="min-h-full bg-surface-light p-6">
+        <div className="mx-auto flex max-w-2xl flex-col gap-6">
+          <div className="flex items-center gap-3">
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-success"
+              aria-hidden="true"
+            >
+              <Icon name="check" size={22} />
+            </span>
+            <div>
+              <h1 className="text-xl font-bold text-ink-strong">
+                ¡Canal WebChat creado!
+              </h1>
+              <p className="text-sm text-ink-muted">
+                Instala el widget en tu sitio o comparte el enlace directo.
+              </p>
+            </div>
+          </div>
+
+          <WebChatAccessPanel token={createdToken} />
+
+          <div className="flex justify-end">
+            <Button variant="secondary" onClick={() => navigate("/channels")}>
+              Ir a mis canales
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-full bg-surface-light">
@@ -626,78 +673,54 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
               </section>
             )}
 
-            {(modalWebhookUrl || showPublicLink) && (
-              <section id="channel-webhook" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
+            {isEdit && form.type === "WEB_CHAT" && channel?.publicToken && (
+              <section id="channel-instalacion" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
                 <header className="flex flex-row items-start gap-3 w-full mb-5">
                   <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
-                    <Icon name="link" size={20} />
+                    <Icon name="globe" size={20} />
                   </span>
 
                   <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
-                    <strong>Webhook / Enlace</strong>
-
-                    <small>URLs para conectar el canal</small>
+                    <strong>Instalación del widget</strong>
+                    <small>
+                      Conecta el chat con tu sitio web o compártelo en redes
+                      sociales usando el token público del canal.
+                    </small>
                   </span>
                 </header>
 
-                {modalWebhookUrl && (
-                  <div className="flex flex-wrap items-center gap-2 mt-1 p-2.5 rounded-lg border border-line bg-[rgba(120,130,150,0.06)]">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
-                      URL del webhook
-                    </span>
-
-                    <code className="channel-webhook__url">
-                      {modalWebhookUrl}
-                    </code>
-
-                    <Button
-                      icon="link"
-                      variant="secondary"
-                      onClick={() => void handleCopyWebhook(modalWebhookUrl)}
-                    >
-                      Copiar
-                    </Button>
-                  </div>
-                )}
-
-                {showPublicLink && (
-                  <div className="flex flex-wrap items-center gap-2 mt-1 p-2.5 rounded-lg border border-line bg-[rgba(120,130,150,0.06)]">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
-                      Enlace público
-                    </span>
-
-                    <MaskedValue
-                      value={publicLink}
-                      className="channel-webhook__url"
-                    />
-
-                    <div className="flex items-center gap-2 ml-auto">
-                      <Button
-                        icon="link"
-                        variant="secondary"
-                        onClick={() => {
-                          window.open(
-                            publicLink,
-                            "_blank",
-                            "noopener,noreferrer",
-                          );
-                        }}
-                      >
-                        Abrir
-                      </Button>
-
-                      <Button
-                        icon="link"
-                        variant="secondary"
-                        onClick={() => void handleCopyPublicLink(publicLink)}
-                      >
-                        Copiar
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <WebChatAccessPanel token={channel.publicToken} />
               </section>
+        )}
+
+        {isEdit && form.type === "WEB_CHAT" && channel?.publicToken && (
+          <section
+            id="channel-instalacion"
+            className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6"
+          >
+            <header className="flex flex-row items-start gap-3 w-full mb-5">
+              <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
+                <Icon name="globe" size={20} />
+              </span>
+
+              <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
+                <strong>Instalación del widget</strong>
+                <small>
+                  Conecta el chat con tu sitio web o compártelo en redes
+                  sociales usando el token público del canal.
+                </small>
+              </span>
+            </header>
+
+            {channel?.publicToken ? (
+              <WebChatAccessPanel token={channel.publicToken} />
+            ) : (
+              <p className="text-sm text-ink-muted">
+                El token público se generará al guardar el canal.
+              </p>
             )}
+          </section>
+        )}
           </form>
         </div>
 

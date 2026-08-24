@@ -29,6 +29,7 @@ export interface ChannelCredentialsConfigured {
 
 export interface Channel {
   id: string;
+  publicToken?: string;
   type: ChannelType;
   name: string;
   status: ChannelStatus;

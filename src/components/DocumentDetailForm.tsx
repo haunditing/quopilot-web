@@ -777,7 +777,7 @@ function DocumentDetailFormContent({
 
         {/* Sidebar */}
         <aside className="static xl:sticky xl:top-6">
-          <div className="bg-surface-card border border-line rounded-2xl p-4 shadow-card md:p-8 [&_.entity-card__actions]:justify-end">
+          <div className="bg-surface-card border border-line rounded-2xl p-4 shadow-card md:p-8 [&_.entity-card__actions]:justify-end [&_.entity-card__action]:w-auto [&_.entity-card__action]:flex-1">
             <h3 className="m-0 mb-4 text-base font-bold text-ink-strong tracking-[-0.01em]">Resumen</h3>
             <div className="flex justify-between items-center py-3.5 border-b border-line [&>span]:text-sm [&>span]:text-ink-muted [&>strong]:text-ink-strong [&>strong]:font-bold">
               <span>Subtotal</span>

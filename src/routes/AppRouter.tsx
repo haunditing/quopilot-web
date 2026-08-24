@@ -25,6 +25,7 @@ import AgentAssistant from "../pages/AgentAssistant.js";
 import InternalAssistant from "../pages/InternalAssistant.js";
 import CompanySettings from "../pages/CompanySettings.js";
 import PublicChat from "../pages/PublicChat.js";
+import PublicChannelChat from "../pages/PublicChannelChat.js";
 import Unauthorized from "../pages/Unauthorized.js";
 import CapabilityRoute from "./CapabilityRoute.js";
 import { getAccessToken, getUser } from "../services/auth-storage.js";
@@ -37,6 +38,9 @@ export default function AppRouter() {
       <Route path="/change-password" element={<ChangePasswordRoute />} />
 
       <Route path="/public/chat/:tenantId" element={<PublicChatRoute />} />
+
+      {/* Widget público resuelto por token de canal */}
+      <Route path="/c/:token" element={<PublicChannelChat />} />
 
       <Route element={<ProtectedLayout />}>
         <Route

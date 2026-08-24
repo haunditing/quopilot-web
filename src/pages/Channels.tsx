@@ -19,8 +19,9 @@ import { useFilteredList } from "../hooks/useFilteredList.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { useToast } from "../hooks/useToast.js";
 import { useCapabilities } from "../hooks/useCapabilities.js";
-import { TYPE_LABELS, publicChatUrl, webhookUrlFor } from "../lib/channels.js";
-import { getUser,} from "../services/auth-storage.js";
+
+import { TYPE_LABELS, webhookUrlFor } from "../lib/channels.js";
+
 import {
   deleteChannel,
   getChannels,
@@ -58,7 +59,6 @@ export default function Channels() {
   });
 
   const { hasCapability } = useCapabilities();
-  const tenantId = getUser()?.tenantId;
   const canCreate = hasCapability("channels.create");
   const canChangeStatus = hasCapability("channels.changeStatus");
   const canEdit = hasCapability("channels.update");
@@ -197,13 +197,17 @@ export default function Channels() {
       key: "webhook",
       label: "Webhook / Enlace",
       render: (channel) => {
-        const url = webhookUrlFor(channel) ?? publicChatUrl(tenantId);
+        // Enlace permanente por token (WebChat) o webhook (otros canales).
+        const url =
+          channel.type === "WEB_CHAT" && channel.publicToken
+            ? `${window.location.origin}/c/${channel.publicToken}`
+            : (webhookUrlFor(channel) ?? "");
 
         if (!url) {
           return "—";
         }
 
-        const isPublicLink = !webhookUrlFor(channel);
+        const isPublicLink = channel.type === "WEB_CHAT";
 
         return (
           <div className="cell-webhook">
