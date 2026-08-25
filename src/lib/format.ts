@@ -11,7 +11,16 @@ export function formatCurrency(
     return String(value);
   }
 
-  return `${amount.toLocaleString(CURRENCY_LOCALE)} ${currency}`;
+  const ccy = currency || DEFAULT_CURRENCY;
+
+  try {
+    return new Intl.NumberFormat(CURRENCY_LOCALE, {
+      style: "currency",
+      currency: ccy,
+    }).format(amount);
+  } catch {
+    return amount.toLocaleString(CURRENCY_LOCALE);
+  }
 }
 
 export function formatNumber(value: number | string): string {

@@ -221,13 +221,21 @@ export default function AssistantChat({
 
   return (
     <section className={cardClassName.filter(Boolean).join(" ")}>
-      <header className="flex flex-row items-center gap-2.5 px-4 py-3 bg-accent text-white">
-        <Icon name="bot" size={20} className="shrink-0" />
+      <header className="flex items-center gap-3 px-4 py-3 bg-accent text-white">
+        <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-white/15">
+          <Icon name="bot" size={18} />
+        </span>
 
-        <div className="flex flex-col gap-0.5 flex-1 min-w-0 [&>strong]:text-sm [&>strong]:truncate [&>small]:text-white/85 [&>small]:text-xs">
-          <strong>{title}</strong>
+        <div className="flex flex-col min-w-0 flex-1">
+          <strong className="text-sm font-semibold leading-snug truncate">
+            {title}
+          </strong>
 
-          <small>{subtitle}</small>
+          {subtitle && (
+            <small className="text-xs text-white/85 leading-snug line-clamp-2">
+              {subtitle}
+            </small>
+          )}
         </div>
 
         <button
@@ -255,7 +263,7 @@ export default function AssistantChat({
           <p>{loadError}</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5 flex-1 p-4 overflow-y-auto bg-surface-light">
+        <div className="flex flex-col gap-2.5 flex-1 min-h-0 p-4 overflow-y-auto bg-surface-light">
           {messages.length === 0 && !sending ? (
             <div className="flex flex-col gap-3 items-center max-w-[420px] mx-auto text-sm leading-normal text-center text-ink-muted">
               <Icon
