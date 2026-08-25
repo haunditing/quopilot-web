@@ -7,6 +7,7 @@ import type {
 import type { ChatConversation, ChatMessage } from "../types/agent-conversation";
 import type { Quote } from "../types/quote";
 import type { Channel } from "../types/channel";
+import type { Banner } from "../types/banner";
 
 /**
  * Capa de datos MOCK para la revisión de componentes.
@@ -248,6 +249,37 @@ function agentConfig(): Record<string, unknown> {
   };
 }
 
+const REVIEW_BANNERS: Banner[] = [
+  {
+    id: "b-promo",
+    slot: "header_global",
+    type: "InlineNotice",
+    priority: 50,
+    conditions: [],
+    props: { message: "🎉 Promoción: 20% en el primer mes con el código QUOP20" },
+    active: true,
+    createdAt: "2026-08-01",
+    updatedAt: "2026-08-01",
+  },
+  {
+    id: "b-free",
+    slot: "dashboard_top",
+    type: "AlertBanner",
+    priority: 100,
+    conditions: [{ field: "plan", op: "eq", value: "FREE" }],
+    props: {
+      variant: "info",
+      title: "Modo Free",
+      message: "Estás en el plan gratuito. Mejora a PRO para desbloquear agentes autónomos.",
+      ctaText: "Conocer planes",
+      ctaUrl: "/settings/plans",
+    },
+    active: true,
+    createdAt: "2026-08-01",
+    updatedAt: "2026-08-01",
+  },
+];
+
 const LIST_RE = /\/api\/(customers|products|sales|users)$/;
 
 export async function reviewResponse<T>(path: string): Promise<T> {
@@ -255,6 +287,7 @@ export async function reviewResponse<T>(path: string): Promise<T> {
 
   if (p === "/api/branding") return {} as T;
   if (p === "/api/me/capabilities") return capabilities() as T;
+  if (p === "/api/banners") return { banners: REVIEW_BANNERS } as T;
   if (p === "/api/super-admin/dashboard/summary") return superAdminSummary() as T;
   if (p === "/api/tenant/dashboard/summary") return tenantSummary() as T;
   if (p === "/api/agent/dashboard/summary") return agentSummary() as T;

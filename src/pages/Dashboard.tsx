@@ -1,6 +1,7 @@
 import DashboardRenderer from "../components/dashboard/DashboardRenderer.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import PageState from "../components/PageState.js";
+import { SlotRenderer } from "../banners/SlotRenderer.js";
 import { createAgentDashboard } from "../config/agent-dashboard.js";
 import { createSuperAdminDashboard } from "../config/super-admin-dashboard.js";
 import { createTenantDashboard } from "../config/tenant-dashboard.js";
@@ -23,6 +24,9 @@ function DashboardView<T>({ fetcher, buildConfig }: DashboardViewProps<T>) {
 
   return (
     <main>
+      <div className="mb-5">
+        <SlotRenderer slotId="dashboard_top" />
+      </div>
       <AsyncBoundary
         loading={loading}
         error={error}
