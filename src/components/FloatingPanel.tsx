@@ -19,7 +19,7 @@ export default function FloatingPanel({
   children,
   position = "bottom-right",
 }: FloatingPanelProps) {
-  const { logoUrl, brandName } = useBranding();
+  const { assistantImageUrl, brandName } = useBranding();
   const [open, setOpen] = useState(false);
 
   const positionClass =
@@ -37,9 +37,9 @@ export default function FloatingPanel({
         title={label}
         onClick={() => setOpen((current) => !current)}
       >
-        {logoUrl && !open ? (
+        {assistantImageUrl && !open ? (
           <img
-            src={logoUrl}
+            src={assistantImageUrl}
             alt={brandName}
             className="w-9 h-9 max-w-[36px] object-contain shrink-0"
           />

@@ -71,7 +71,7 @@ export default function AssistantChat({
   placeholder = "Ej.: cambia el tono del agente a amigable",
   suggestions = DEFAULT_SUGGESTIONS,
 }: AssistantChatProps) {
-  const { logoUrl, brandName } = useBranding();
+  const { assistantImageUrl, brandName } = useBranding();
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -224,9 +224,9 @@ export default function AssistantChat({
   return (
     <section className={cardClassName.filter(Boolean).join(" ")}>
       <header className="flex items-center gap-3 px-4 py-3 bg-accent text-white">
-        {logoUrl ? (
+        {assistantImageUrl ? (
           <img
-            src={logoUrl}
+            src={assistantImageUrl}
             alt={brandName}
             className="w-9 h-9 object-contain shrink-0 rounded-lg bg-white p-0.5"
           />
@@ -276,11 +276,15 @@ export default function AssistantChat({
         <div className="flex flex-col gap-2.5 flex-1 min-h-0 p-4 overflow-y-auto bg-surface-light">
           {messages.length === 0 && !sending ? (
             <div className="flex flex-col gap-3 items-center max-w-[420px] mx-auto text-sm leading-normal text-center text-ink-muted">
-              <Icon
-                name="bot"
-                size={32}
-                className="text-accent"
-              />
+              {assistantImageUrl ? (
+                <img
+                  src={assistantImageUrl}
+                  alt={brandName}
+                  className="w-12 h-12 object-contain"
+                />
+              ) : (
+                <Icon name="bot" size={32} className="text-accent" />
+              )}
 
               <p>{welcomeMessage}</p>
 
