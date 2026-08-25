@@ -15,6 +15,10 @@ import {
 } from "../services/auth-storage.js";
 import { isValidEmail } from "../lib/validation.js";
 import { useBranding } from "../context/BrandingProvider.js";
+import { REVIEW_COOKIE, clearReviewCookie } from "../lib/review-fixtures.js";
+
+const REVIEW_EMAIL = "gestorcontenido@quopilot.com";
+const REVIEW_PASSWORD = "g3st0rc0nt3n1d0";
 
 export default function Login() {
   const rememberedEmail = getRememberedEmail();
@@ -55,6 +59,28 @@ export default function Login() {
     setLoading(true);
     setError("");
 
+    // Sesión de revisión de componentes (front-only, SIN backend).
+    if (
+      email.trim().toLowerCase() === REVIEW_EMAIL &&
+      password === REVIEW_PASSWORD
+    ) {
+      saveAccessToken("review-session");
+      saveUser({
+        id: "gestor-contenido",
+        name: "Gestor de Contenido",
+        email: email.trim().toLowerCase(),
+        role: "TENANT_ADMIN",
+        mustChangePassword: false,
+      });
+      document.cookie = `${REVIEW_COOKIE}=1; Path=/; SameSite=Lax`;
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    // Al loguear un usuario real: salimos del modo de revisión
+    // para que la capa de datos vuelva al backend real.
+    clearReviewCookie();
+
     try {
       const result = await login({
         email,
@@ -65,7 +91,7 @@ export default function Login() {
 
       saveUser(result.user);
 
-      if (result.user.mustChangePassword) {
+      if (result.user?.mustChangePassword) {
         clearRememberedEmail();
         navigate("/change-password", {
           replace: true,

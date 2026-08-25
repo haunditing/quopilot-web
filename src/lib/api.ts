@@ -1,5 +1,6 @@
 import { getAccessToken } from "../services/auth-storage.js";
 import { clearAuth } from "../services/auth-storage.js";
+import { isReviewMode, reviewResponse } from "./review-fixtures.js";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -11,11 +12,19 @@ export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
  *   sustituyen por datos simulados.
  * - Un 401 fuera del login invalida la sesión local y redirige a /login
  *   (evita sesiones zombis tras expirar el JWT).
+ *
+ * Modo "revisión de componentes": si la cookie `quopilot_review=1` está
+ * presente (login front-only del gestor de contenido), NO se llama al backend
+ * y se devuelven fixtures locales para revisar estilos sin dependencias.
  */
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  if (isReviewMode()) {
+    return reviewResponse<T>(path);
+  }
+
   const token = getAccessToken();
 
   let response: Response;
