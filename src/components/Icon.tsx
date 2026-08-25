@@ -462,7 +462,9 @@ export default function Icon({ name, size = 20, ...props }: IconProps) {
       aria-hidden="true"
       {...props}
     >
-      {iconPaths[name]}
+      {iconPaths[name] ?? (
+        <circle cx="12" cy="12" r="8" fill="none" />
+      )}
     </svg>
   );
 }
