@@ -14,9 +14,11 @@ import {
   saveUser,
 } from "../services/auth-storage.js";
 import { isValidEmail } from "../lib/validation.js";
+import { useBranding } from "../context/BrandingProvider.js";
 
 export default function Login() {
   const rememberedEmail = getRememberedEmail();
+  const { logoUrl, brandName } = useBranding();
 
   const [email, setEmail] = useState(rememberedEmail ?? "");
   const [password, setPassword] = useState("");
@@ -99,9 +101,17 @@ export default function Login() {
     <main className="grid min-h-svh place-items-center p-4 bg-[radial-gradient(1100px_480px_at_50%_-12%,rgba(170,59,255,0.14),transparent_65%),var(--bg)]">
       <section className="w-full max-w-[420px] rounded-2xl border border-line bg-surface-card p-6 space-y-0 md:p-8 md:rounded-[20px] md:shadow-card">
         <div className="flex items-center gap-2 mb-7 text-accent text-xl font-bold tracking-[-0.4px]">
-          <Icon name="brand" size={28} />
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={brandName}
+              className="h-9 max-w-[160px] w-auto object-contain"
+            />
+          ) : (
+            <Icon name="brand" size={28} />
+          )}
 
-          <span>QuoPilot</span>
+          <span>{brandName}</span>
         </div>
 
         <header className="[&>h1]:mb-1.5 [&>p]:mb-6 [&>p]:text-ink-muted">

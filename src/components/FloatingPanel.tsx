@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import Icon from "./Icon.js";
 import type { IconName } from "./Icon.js";
+import { useBranding } from "../context/BrandingProvider.js";
 
 export type FloatingPanelPosition = "bottom-right" | "bottom-left";
 
@@ -18,6 +19,7 @@ export default function FloatingPanel({
   children,
   position = "bottom-right",
 }: FloatingPanelProps) {
+  const { logoUrl, brandName } = useBranding();
   const [open, setOpen] = useState(false);
 
   const positionClass =
@@ -35,7 +37,15 @@ export default function FloatingPanel({
         title={label}
         onClick={() => setOpen((current) => !current)}
       >
-        <Icon name={open ? "close" : icon} size={22} />
+        {logoUrl && !open ? (
+          <img
+            src={logoUrl}
+            alt={brandName}
+            className="w-9 h-9 max-w-[36px] object-contain shrink-0"
+          />
+        ) : (
+          <Icon name={open ? "close" : icon} size={22} />
+        )}
       </button>
 
       {open && (

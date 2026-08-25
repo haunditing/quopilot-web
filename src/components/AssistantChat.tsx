@@ -4,6 +4,7 @@ import Button from "./Button.js";
 import FormMessage from "./FormMessage.js";
 import Icon from "./Icon.js";
 import Loading from "./Loading.js";
+import { useBranding } from "../context/BrandingProvider.js";
 import {
   AGENT_ASSISTANT_ENDPOINT,
   getAssistantMessages,
@@ -70,6 +71,7 @@ export default function AssistantChat({
   placeholder = "Ej.: cambia el tono del agente a amigable",
   suggestions = DEFAULT_SUGGESTIONS,
 }: AssistantChatProps) {
+  const { logoUrl, brandName } = useBranding();
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -222,9 +224,17 @@ export default function AssistantChat({
   return (
     <section className={cardClassName.filter(Boolean).join(" ")}>
       <header className="flex items-center gap-3 px-4 py-3 bg-accent text-white">
-        <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-white/15">
-          <Icon name="bot" size={18} />
-        </span>
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={brandName}
+            className="w-9 h-9 object-contain shrink-0 rounded-lg bg-white p-0.5"
+          />
+        ) : (
+          <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-white/15">
+            <Icon name="bot" size={18} />
+          </span>
+        )}
 
         <div className="flex flex-col min-w-0 flex-1">
           <strong className="text-sm font-semibold leading-snug truncate">

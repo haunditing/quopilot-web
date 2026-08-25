@@ -1,9 +1,16 @@
-import { useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { brandingService, type Branding } from "../services/branding-service.js";
 import { API_URL } from "../lib/api.js";
 
-function resolveAssetUrl(url?: string | null): string {
+export function resolveBrandAssetUrl(url?: string | null): string {
   if (!url) return "";
+  if (/^data:/i.test(url)) return url;
   if (/^https?:\/\//i.test(url)) return url;
   return `${API_URL.replace(/\/api$/, "")}${url}`;
 }
@@ -25,28 +32,56 @@ function isLight(hex: string): boolean {
   return luminance > 0.6;
 }
 
+interface BrandingContextValue {
+  branding: Branding | null;
+  /** Logo principal resuelto a URL absoluta (o "" si no hay). */
+  logoUrl: string;
+  /** Favicon resuelto a URL absoluta (o "" si no hay). */
+  faviconUrl: string;
+  brandName: string;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+}
+
+const BrandingContext = createContext<BrandingContextValue>({
+  branding: null,
+  logoUrl: "",
+  faviconUrl: "",
+  brandName: "QuoPilot",
+  primaryColor: null,
+  secondaryColor: null,
+});
+
+export function useBranding(): BrandingContextValue {
+  return useContext(BrandingContext);
+}
+
 /**
  * Aplica la identidad de marca global de la plataforma de forma centralizada:
- * colores (variables CSS), nombre (título), favicon y tipografía.
+ * colores (variables CSS), nombre (título), favicon y tipografía; y expone
+ * los datos vía contexto para que la UI (sidebar, login) muestre logo y marca.
  */
 export function BrandingProvider({ children }: { children: ReactNode }) {
+  const [branding, setBranding] = useState<Branding | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
     async function apply() {
-      let branding: Branding | null = null;
+      let loaded: Branding | null = null;
       try {
-        branding = await brandingService.get();
+        loaded = await brandingService.get();
       } catch {
         // Si no se puede cargar (sin backend), se mantiene el tema por defecto.
-        branding = null;
+        loaded = null;
       }
 
-      if (cancelled || !branding) return;
+      if (cancelled || !loaded) return;
+
+      setBranding(loaded);
 
       const root = document.documentElement;
-      const primary = branding.primaryColor;
-      const secondary = branding.secondaryColor;
+      const primary = loaded.primaryColor;
 
       if (primary) {
         const text = isLight(primary) ? "#0f172a" : "#ffffff";
@@ -57,12 +92,12 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       }
 
       root.style.setProperty("--brand-primary", primary ?? "");
-      root.style.setProperty("--brand-secondary", secondary ?? "");
+      root.style.setProperty("--brand-secondary", loaded.secondaryColor ?? "");
 
-      if (branding.fontFamily) {
-        root.style.setProperty("--sans", branding.fontFamily);
-        root.style.setProperty("--heading", branding.fontFamily);
-        root.style.setProperty("--brand-font", branding.fontFamily);
+      if (loaded.fontFamily) {
+        root.style.setProperty("--sans", loaded.fontFamily);
+        root.style.setProperty("--heading", loaded.fontFamily);
+        root.style.setProperty("--brand-font", loaded.fontFamily);
       }
 
       // Fuerza la marca dentro del layout con sobreescritura (los temas por
@@ -83,19 +118,19 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       }
 
       // Nombre del sitio.
-      if (branding.brandName) {
-        document.title = branding.brandName;
+      if (loaded.brandName) {
+        document.title = loaded.brandName;
       }
 
       // Favicon / isotipo.
-      if (branding.faviconUrl) {
+      if (loaded.faviconUrl) {
         let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
         if (!link) {
           link = document.createElement("link");
           link.rel = "icon";
           document.head.appendChild(link);
         }
-        link.href = resolveAssetUrl(branding.faviconUrl);
+        link.href = resolveBrandAssetUrl(loaded.faviconUrl);
       }
     }
 
@@ -106,5 +141,20 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return <>{children}</>;
+  const value: BrandingContextValue = {
+    branding,
+    logoUrl: branding?.logoUrl ? resolveBrandAssetUrl(branding.logoUrl) : "",
+    faviconUrl: branding?.faviconUrl
+      ? resolveBrandAssetUrl(branding.faviconUrl)
+      : "",
+    brandName: branding?.brandName || "QuoPilot",
+    primaryColor: branding?.primaryColor ?? null,
+    secondaryColor: branding?.secondaryColor ?? null,
+  };
+
+  return (
+    <BrandingContext.Provider value={value}>
+      {children}
+    </BrandingContext.Provider>
+  );
 }

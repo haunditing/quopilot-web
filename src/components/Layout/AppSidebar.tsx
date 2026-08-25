@@ -6,6 +6,7 @@ import Button from "../Button.js";
 import { clearAuth, getUser } from "../../services/auth-storage.js";
 import { getRoleLabel, getRoleScope } from "../../lib/roles.js";
 import { useCapabilities } from "../../hooks/useCapabilities.js";
+import { useBranding } from "../../context/BrandingProvider.js";
 
 export interface SidebarItem {
   to: string;
@@ -122,6 +123,7 @@ export default function AppSidebar({
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const { hasCapability } = useCapabilities();
+  const { logoUrl, brandName } = useBranding();
   const user = getUser();
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -192,14 +194,22 @@ export default function AppSidebar({
         }`}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <Icon
-            name="brand"
-            size={24}
-            className="shrink-0 text-[color:var(--accent-binset-inline-end,var(--accent))]"
-          />
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={brandName}
+              className="h-8 max-w-[120px] w-auto object-contain shrink-0"
+            />
+          ) : (
+            <Icon
+              name="brand"
+              size={24}
+              className="shrink-0 text-[color:var(--accent-binset-inline-end,var(--accent))]"
+            />
+          )}
           {!effectivelyCollapsed && (
             <span className="flex flex-col">
-              <strong className="text-lg tracking-[-0.3px]">QuoPilot</strong>
+              <strong className="text-lg tracking-[-0.3px]">{brandName}</strong>
               {brandSubtitle && (
                 <small className="text-xs text-[color:var(--shell-text-muted)]">
                   {brandSubtitle}
