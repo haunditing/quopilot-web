@@ -312,7 +312,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
           <Button
             type="submit"
-            form="min-h-full bg-surface-light"
+            form="user-form"
             icon="check"
             disabled={saving}
             className="justify-center w-full"

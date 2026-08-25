@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -76,7 +77,6 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
         loaded = await brandingService.get();
       } catch {
         // Si no se puede cargar (sin backend), se mantiene el tema por defecto.
-        loaded = null;
       }
 
       if (cancelled || !loaded) return;

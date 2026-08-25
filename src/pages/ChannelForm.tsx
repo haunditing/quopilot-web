@@ -743,7 +743,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
           <Button
             type="submit"
-            form="min-h-full bg-surface-light"
+            form="channel-form"
             icon="check"
             disabled={saving}
             className="w-full justify-center"

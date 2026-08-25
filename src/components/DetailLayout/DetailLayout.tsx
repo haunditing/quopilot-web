@@ -9,7 +9,7 @@ export function DetailLayout({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <main
-      className={`min-h-full bg-surface-light [&>.page-header]:mb-6 ${className}`}
+      className={`min-h-full [&>.page-header]:mb-6 ${className}`}
       {...props}
     >
       {children}

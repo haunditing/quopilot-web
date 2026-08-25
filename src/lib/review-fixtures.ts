@@ -26,7 +26,9 @@ import type { Channel } from "../types/channel";
 export const REVIEW_COOKIE = "quopilot_review";
 
 export function isReviewMode(): boolean {
-  return document.cookie.includes(`${REVIEW_COOKIE}=1`);
+  // Forzamos el modo mock automáticamente solo si estamos en AI Studio (.run.app)
+  const isAIStudio = typeof window !== "undefined" && window.location.hostname.includes(".run.app");
+  return isAIStudio || document.cookie.includes(`${REVIEW_COOKIE}=1`);
 }
 
 /** Desactiva el modo de revisión (elimina la cookie). */
@@ -251,6 +253,7 @@ const LIST_RE = /\/api\/(customers|products|sales|users)$/;
 export async function reviewResponse<T>(path: string): Promise<T> {
   const p = path.split("?")[0];
 
+  if (p === "/api/branding") return {} as T;
   if (p === "/api/me/capabilities") return capabilities() as T;
   if (p === "/api/super-admin/dashboard/summary") return superAdminSummary() as T;
   if (p === "/api/tenant/dashboard/summary") return tenantSummary() as T;

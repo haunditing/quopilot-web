@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { CSSProperties, FormEvent } from "react";
