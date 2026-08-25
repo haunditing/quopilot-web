@@ -350,7 +350,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   }
 
   function handleGenerateDescription() {
-    if (!form.name.trim()) {
+    if (!(form.name || "").trim()) {
       setNameError("El nombre es obligatorio");
       toast.error("Escribe un nombre para generar la descripción");
       return;
@@ -366,7 +366,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
       setForm((current) => ({
         ...current,
-        description: current.description.trim()
+        description: !(current.description || "").trim()
           ? template
           : current.description,
       }));
@@ -416,21 +416,21 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     return {
       itemType: form.itemType,
       name: form.name,
-      description: form.description.trim() || undefined,
-      reference: form.reference.trim() || undefined,
-      sku: form.sku.trim() || undefined,
-      barcode: form.barcode.trim() || undefined,
+      description: (form.description || "").trim() || undefined,
+      reference: (form.reference || "").trim() || undefined,
+      sku: (form.sku || "").trim() || undefined,
+      barcode: (form.barcode || "").trim() || undefined,
       category: form.category || undefined,
       unitOfMeasure: toUnitOfMeasure(form.unitOfMeasure),
       basePrice: Number.isFinite(basePrice) && basePrice > 0 ? basePrice : 0,
       cost: Number.isFinite(cost) && cost > 0 ? cost : 0,
       taxRate: taxPercent,
       priceLists: form.priceLists.length ? form.priceLists : undefined,
-      accountingAccount: form.accountingAccount.trim() || undefined,
-      incomeAccount: form.incomeAccount.trim() || undefined,
-      inventoryAccount: form.inventoryAccount.trim() || undefined,
-      fiscalCode: form.fiscalCode.trim() || undefined,
-      image: form.imageUrl.trim() ? { url: form.imageUrl.trim() } : undefined,
+      accountingAccount: (form.accountingAccount || "").trim() || undefined,
+      incomeAccount: (form.incomeAccount || "").trim() || undefined,
+      inventoryAccount: (form.inventoryAccount || "").trim() || undefined,
+      fiscalCode: (form.fiscalCode || "").trim() || undefined,
+      image: (form.imageUrl || "").trim() ? { url: (form.imageUrl || "").trim() } : undefined,
       warehouses: isProduct
         ? form.warehouses.filter((warehouse) => warehouse.quantity > 0)
         : [],
@@ -445,7 +445,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
     let hasErrors = false;
 
-    if (!form.name.trim()) {
+    if (!(form.name || "").trim()) {
       setNameError("El nombre es obligatorio");
       hasErrors = true;
     }

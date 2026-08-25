@@ -42,8 +42,8 @@ const COLOR_PRESETS = [
   "#0f172a",
 ];
 
-function companyInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+function companyInitials(name?: string): string {
+  const words = (name || "").trim().split(/\s+/).filter(Boolean);
 
   if (words.length === 0) {
     return "Q";
@@ -67,12 +67,12 @@ const FISCAL_FIELDS: Array<{
   { key: "taxRegime", label: "Régimen" },
 ];
 
-function isValidHexColor(value: string): boolean {
-  return HEX_COLOR_PATTERN.test(value.trim());
+function isValidHexColor(value?: string): boolean {
+  return HEX_COLOR_PATTERN.test((value || "").trim());
 }
 
-function swatchColor(value: string): string {
-  const trimmed = value.trim();
+function swatchColor(value?: string): string {
+  const trimmed = (value || "").trim();
 
   return isValidHexColor(trimmed) ? trimmed.toLowerCase() : "#2563eb";
 }

@@ -29,7 +29,8 @@ export default function ColorPicker({
   swatchTitle = "Elegir color",
   children,
 }: ColorPickerProps) {
-  const showClear = Boolean(onClear) && value.trim() !== "";
+  const safeValue = value || "";
+  const showClear = Boolean(onClear) && safeValue.trim() !== "";
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -73,7 +74,7 @@ export default function ColorPicker({
       {presets && presets.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {presets.map((preset) => {
-            const active = value.trim().toLowerCase() === preset;
+            const active = safeValue.trim().toLowerCase() === preset;
             return (
               <button
                 key={preset}

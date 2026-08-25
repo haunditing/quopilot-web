@@ -22,8 +22,8 @@ interface DocumentPdfProps {
   showExpiryDate?: boolean;
 }
 
-function companyInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+function companyInitials(name?: string): string {
+  const words = (name || "").trim().split(/\s+/).filter(Boolean);
 
   if (words.length === 0) {
     return "Q";

@@ -180,8 +180,8 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
   );
 
   const title = useMemo(() => {
-    const firstName = form.firstName.trim();
-    const lastName = form.lastName.trim();
+    const firstName = (form.firstName || "").trim();
+    const lastName = (form.lastName || "").trim();
 
     if (firstName || lastName) {
       return [firstName, lastName].filter(Boolean).join(" ");
@@ -195,17 +195,17 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
     let hasErrors = false;
 
-    if (!form.firstName.trim() && !form.lastName.trim()) {
+    if (!(form.firstName || "").trim() && !(form.lastName || "").trim()) {
       setNameError("El nombre es obligatorio");
       hasErrors = true;
     }
 
-    if (form.email.trim() && !isValidEmail(form.email)) {
+    if ((form.email || "").trim() && !isValidEmail(form.email)) {
       setEmailError("Correo inválido");
       hasErrors = true;
     }
 
-    if (form.email2.trim() && !isValidEmail(form.email2)) {
+    if ((form.email2 || "").trim() && !isValidEmail(form.email2)) {
       setEmail2Error("Correo inválido");
       hasErrors = true;
     }

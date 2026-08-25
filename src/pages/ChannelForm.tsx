@@ -250,15 +250,15 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
     webChatDefaultsApplied.current = true;
 
-    if (!current.name.trim()) {
+    if (!(current.name || "").trim()) {
       setField("name", `${companyName} Web`);
     }
 
-    if (!current.widgetTitle.trim()) {
+    if (!(current.widgetTitle || "").trim()) {
       setField("widgetTitle", companyName);
     }
 
-    if (!current.widgetGreeting.trim()) {
+    if (!(current.widgetGreeting || "").trim()) {
       setField(
         "widgetGreeting",
         `¡Hola {name}! Soy el asistente virtual de ${companyName}. Cuéntanos en qué podemos ayudarte.`,
@@ -271,12 +271,12 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
     let hasErrors = false;
 
-    if (!form.name.trim()) {
+    if (!(form.name || "").trim()) {
       setNameError("El nombre es obligatorio");
       hasErrors = true;
     }
 
-    if (form.type === "WHATSAPP" && !isEdit && !form.phoneNumber.trim()) {
+    if (form.type === "WHATSAPP" && !isEdit && !(form.phoneNumber || "").trim()) {
       setConfigError("El número de teléfono es obligatorio");
       hasErrors = true;
     }
@@ -284,7 +284,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
     if (
       form.type === "INSTAGRAM" &&
       !isEdit &&
-      !form.instagramAccountId.trim()
+      !(form.instagramAccountId || "").trim()
     ) {
       setConfigError("El ID de cuenta de Instagram es obligatorio");
       hasErrors = true;
@@ -292,7 +292,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
     if (
       form.type === "WEB_CHAT" &&
-      form.widgetColor.trim() &&
+      (form.widgetColor || "").trim() &&
       !isValidHexColor(form.widgetColor)
     ) {
       setColorError("Usa un color hexadecimal válido, por ejemplo #2563eb");
@@ -309,7 +309,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
     try {
       if (isEdit && channelId) {
         await updateChannel(channelId, {
-          name: form.name.trim(),
+          name: (form.name || "").trim(),
           ...(Object.keys(buildChannelConfig(form)).length > 0
             ? { config: buildChannelConfig(form) }
             : {}),
@@ -322,7 +322,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
       } else if (form.type === "WEB_CHAT") {
         const created = await createChannel({
           type: form.type,
-          name: form.name.trim(),
+          name: (form.name || "").trim(),
           config: buildChannelConfig(form),
           ...(buildChannelCredentials(form)
             ? { credentials: buildChannelCredentials(form) }
@@ -339,7 +339,7 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
       } else {
         await createChannel({
           type: form.type,
-          name: form.name.trim(),
+          name: (form.name || "").trim(),
           config: buildChannelConfig(form),
           ...(buildChannelCredentials(form)
             ? { credentials: buildChannelCredentials(form) }

@@ -2,12 +2,12 @@ export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const PHONE_E164_PATTERN = /^\+[1-9]\d{7,14}$/;
 
-export function isValidEmail(value: string): boolean {
-  return EMAIL_PATTERN.test(value.trim());
+export function isValidEmail(value?: string): boolean {
+  return EMAIL_PATTERN.test((value || "").trim());
 }
 
-export function isValidPhone(value: string): boolean {
-  return PHONE_E164_PATTERN.test(value.trim());
+export function isValidPhone(value?: string): boolean {
+  return PHONE_E164_PATTERN.test((value || "").trim());
 }
 
 export function normalizePhoneInput(value: string): string {

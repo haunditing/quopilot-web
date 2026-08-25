@@ -35,12 +35,12 @@ export const COLOR_PRESETS = [
   "#0f172a",
 ];
 
-export function isValidHexColor(value: string): boolean {
-  return HEX_COLOR_PATTERN.test(value.trim());
+export function isValidHexColor(value?: string): boolean {
+  return HEX_COLOR_PATTERN.test((value || "").trim());
 }
 
-export function swatchColor(value: string): string {
-  const trimmed = value.trim();
+export function swatchColor(value?: string): string {
+  const trimmed = (value || "").trim();
 
   return isValidHexColor(trimmed) ? trimmed.toLowerCase() : "#2563eb";
 }

@@ -611,46 +611,31 @@ input[type="number"] {
 }
 
 .btn-icon-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  transition:
-    border-color 150ms ease,
-    color 150ms ease;
+  @apply inline-flex items-center justify-center w-8 h-8 rounded-lg border border-transparent bg-transparent text-ink-muted cursor-pointer transition-colors duration-150;
 }
-
+.btn-icon-action svg {
+  @apply w-4 h-4 shrink-0 stroke-current;
+}
 .btn-icon-action:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  @apply bg-surface-soft text-ink-strong;
 }
 
 /* Modificadores de acción (afinidad semántica en hover) */
 .btn-icon-action.btn-danger:hover {
-  border-color: var(--danger);
-  color: var(--danger);
+  @apply bg-red-50 text-red-600;
 }
 
 .btn-icon-action.btn-edit:hover,
 .btn-icon-action.btn-view:hover,
 .btn-icon-action.btn-cancel:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  @apply bg-accent-soft text-accent;
 }
 
 .btn-icon-action.btn-send:hover,
 .btn-icon-action.btn-accept:hover {
-  border-color: var(--success);
-  color: var(--success);
+  @apply bg-green-50 text-green-600;
 }
 
 .btn-icon-action.btn-download:hover {
-  border-color: var(--text);
-  color: var(--text);
+  @apply bg-surface-soft text-ink-strong;
 }
