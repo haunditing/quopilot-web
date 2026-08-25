@@ -198,7 +198,7 @@ export default function AppSidebar({
             <img
               src={logoUrl}
               alt={brandName}
-              className="h-8 max-w-[120px] w-auto object-contain shrink-0"
+              className="h-10 max-w-[150px] w-auto object-contain shrink-0"
             />
           ) : (
             <Icon
