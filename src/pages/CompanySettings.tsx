@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import ColorPicker from "../components/ColorPicker.js";
 import FormField from "../components/FormField.js";
+import { PageContainer } from "../components/PageContainer.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import Combobox from "../components/Combobox.js";
 import Icon from "../components/Icon.js";
 import Button from "../components/Button.js";
@@ -12,7 +13,7 @@ import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import ImageUploader from "../components/ImageUploader.js";
 import PageHeader from "../components/PageHeader.js";
-import SettingsTabs from "../components/SettingsTabs.js";
+import CompanyTabs from "../components/CompanyTabs.js";
 import {
   AGENT_TONE_OPTIONS,
   CURRENCY_OPTIONS,
@@ -115,6 +116,11 @@ export default function CompanySettings() {
 function CompanySettingsPanel() {
   const toast = useToast();
   const { agent } = useAgentConfig();
+  const location = useLocation();
+
+  const isContact = location.pathname.endsWith("/contact");
+  const isRegional = location.pathname.endsWith("/regional");
+  const tab = isContact ? "contact" : isRegional ? "regional" : "company";
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -341,12 +347,24 @@ function CompanySettingsPanel() {
   }
 
   return (
-    <main className="min-h-full bg-surface-light">
+    <PageContainer>
       <PageHeader
-        title="Configuración de la Empresa"
-        description="Centraliza la identidad legal, el branding y las preferencias de tu empresa"
+        title={
+          tab === "contact"
+            ? "Contacto de la empresa"
+            : tab === "regional"
+              ? "Preferencias regionales"
+              : "Configuración de la Empresa"
+        }
+        description={
+          tab === "contact"
+            ? "Información de contacto que verán tus clientes."
+            : tab === "regional"
+              ? "Moneda, separadores numéricos y zona horaria del tenant."
+              : "Centraliza la identidad legal, el branding y las preferencias de tu empresa"
+        }
       />
-      <SettingsTabs />
+      <CompanyTabs />
       <AsyncBoundary
         loading={loading}
         error={loadError}
@@ -357,8 +375,16 @@ function CompanySettingsPanel() {
         emptyTitle="No hay datos de empresa"
         emptyMessage="No se encontró información del tenant para editar"
       >
-        <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1">
+        <div
+          className={
+            tab === "company"
+              ? "grid grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[860px]:grid-cols-1"
+              : "grid grid-cols-1 items-start gap-6"
+          }
+        >
           <div className="flex flex-col gap-4 min-w-0">
+            {tab === "company" && (
+              <>
             {/* Sección 1: Identificación legal y fiscal (solo lectura) */}
             <section className="rounded-xl border border-line bg-surface-card shadow-card">
               <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
@@ -610,6 +636,10 @@ function CompanySettingsPanel() {
               </div>
             </section>
 
+              </>
+            )}
+            {tab === "contact" && (
+              <>
             {/* Sección 4: Contacto y ubicación */}
             <section className="rounded-xl border border-line bg-surface-card shadow-card">
               <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
@@ -740,6 +770,10 @@ function CompanySettingsPanel() {
               </form>
             </section>
 
+              </>
+            )}
+            {tab === "regional" && (
+              <>
             {/* Sección 5: Preferencias regionales */}
             <section className="rounded-xl border border-line bg-surface-card shadow-card">
               <header className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line [&>h2]:m-0 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-ink-strong [&>p]:mt-1 [&>p]:text-sm [&>p]:text-ink-muted">
@@ -857,10 +891,13 @@ function CompanySettingsPanel() {
                 </div>
               </form>
             </section>
+              </>
+            )}
           </div>
 
           {/* Vista previa lateral */}
-          <aside className="sticky top-5 max-[860px]:static">
+          {tab === "company" && (
+            <aside className="sticky top-5 max-[860px]:static">
             <div className="flex flex-col gap-3 p-4 rounded-xl border border-line bg-surface-card shadow-card">
               <div className="text-xs font-bold uppercase tracking-[0.06em] text-ink-muted">Vista previa</div>
 
@@ -926,9 +963,10 @@ function CompanySettingsPanel() {
                 </div>
               )}
             </div>
-          </aside>
+            </aside>
+          )}
         </div>
       </AsyncBoundary>
-    </main>
+    </PageContainer>
   );
 }

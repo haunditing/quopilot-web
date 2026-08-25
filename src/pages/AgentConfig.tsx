@@ -6,14 +6,17 @@ import Button from "../components/Button.js";
 import Combobox from "../components/Combobox.js";
 import type { ComboboxOption } from "../components/Combobox.js";
 import EmptyState from "../components/EmptyState.js";
-import Field from "../components/Field.js";
+import Field, {
+  FIELD_CONTROL_CLASS,
+  FIELD_TEXTAREA_CLASS,
+} from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import type { IconName } from "../components/Icon.js";
 import LoadingOverlay from "../components/LoadingOverlay.js";
 import PageHeader from "../components/PageHeader.js";
 import PageState from "../components/PageState.js";
-import SettingsTabs from "../components/SettingsTabs.js";
+
 import Switch from "../components/Switch.js";
 import { useAgentConfig } from "../hooks/useAgentConfig.js";
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
@@ -427,8 +430,6 @@ export default function AgentConfig() {
         description="Configura el asistente comercial virtual de tu empresa"
       />
 
-      <SettingsTabs />
-
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
       {loading || productsLoading ? (
@@ -471,7 +472,7 @@ export default function AgentConfig() {
 
                   <FormField label="API Key" idFor="agent-llm-key">
 
-                    <div className="relative [&>input]:pr-[92px]">
+                    <div className="relative">
                       <input
                         id="agent-llm-key"
                         type={showApiKey ? "text" : "password"}
@@ -481,6 +482,7 @@ export default function AgentConfig() {
                         }
                         placeholder="sk-..."
                         autoComplete="off"
+                        className={`${FIELD_CONTROL_CLASS} pr-[92px]`}
                       />
 
                       <button
@@ -585,6 +587,7 @@ export default function AgentConfig() {
                       onChange={(event) =>
                         setField("status", event.target.value as AgentStatus)
                       }
+                      className={FIELD_CONTROL_CLASS}
                     >
                       <option value="ACTIVE">Activo</option>
 
@@ -627,6 +630,7 @@ export default function AgentConfig() {
                   <textarea
                     id="agent-welcome"
                     rows={2}
+                    className={`${FIELD_CONTROL_CLASS} ${FIELD_TEXTAREA_CLASS}`}
                     maxLength={500}
                     value={form.welcomeMessage}
                     onChange={(event) =>
@@ -645,6 +649,7 @@ export default function AgentConfig() {
                   <textarea
                     id="agent-objective"
                     rows={2}
+                    className={`${FIELD_CONTROL_CLASS} ${FIELD_TEXTAREA_CLASS}`}
                     value={form.commercialObjective}
                     onChange={(event) =>
                       setField("commercialObjective", event.target.value)
@@ -658,6 +663,7 @@ export default function AgentConfig() {
                   <textarea
                     id="agent-instructions"
                     rows={4}
+                    className={`${FIELD_CONTROL_CLASS} ${FIELD_TEXTAREA_CLASS}`}
                     maxLength={500}
                     value={form.systemInstructions}
                     onChange={(event) =>
@@ -704,7 +710,7 @@ export default function AgentConfig() {
                   ) : (
                     <>
                       {form.behaviorRules.map((rule, index) => (
-                        <div key={index} className="flex flex-row items-center gap-2 [&>input]:flex-1 [&>input]:rounded-lg [&>input]:border [&>input]:border-line [&>input]:bg-surface-light [&>input]:px-2.5 [&>input]:py-2 [&>input]:text-sm [&>input]:text-ink-strong focus-within:[&>input]:outline-accent focus-within:[&>input]:outline-offset-[-1px]">
+                        <div key={index} className="flex flex-row items-center gap-2 [&>input]:flex-1 [&>input]:rounded-lg [&>input]:border [&>input]:border-line-strong [&>input]:bg-surface-light [&>input]:px-2.5 [&>input]:py-2 [&>input]:text-sm [&>input]:text-ink-strong focus-within:[&>input]:outline-accent focus-within:[&>input]:outline-offset-[-1px]">
                           <input
                             type="text"
                             value={rule}
@@ -792,16 +798,17 @@ export default function AgentConfig() {
 
                 <FormField label="Catálogo" idFor="agent-scope">
 
-                  <select
-                    id="agent-scope"
-                    value={form.productScope}
-                    onChange={(event) =>
-                      setField(
-                        "productScope",
-                        event.target.value as AgentProductScope,
-                      )
-                    }
-                  >
+                    <select
+                      id="agent-scope"
+                      value={form.productScope}
+                      onChange={(event) =>
+                        setField(
+                          "productScope",
+                          event.target.value as AgentProductScope,
+                        )
+                      }
+                      className={FIELD_CONTROL_CLASS}
+                    >
                     <option value="ALL">Todos los productos</option>
 
                     <option value="SELECTED">
@@ -875,6 +882,7 @@ export default function AgentConfig() {
                   <textarea
                     id="agent-escalation-fallback"
                     rows={2}
+                    className={`${FIELD_CONTROL_CLASS} ${FIELD_TEXTAREA_CLASS}`}
                     value={form.escalationFallback}
                     onChange={(event) =>
                       setField("escalationFallback", event.target.value)

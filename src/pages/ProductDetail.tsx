@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronUp, Info, Sparkles } from "lucide-react";
 
 import Button from "../components/Button.js";
+import { PageContainer } from "../components/PageContainer.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import PageHeader from "../components/PageHeader.js";
@@ -490,14 +491,14 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
   if (loading || loadError) {
     return (
-      <main className="min-h-full bg-surface-light">
+      <PageContainer>
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando producto..." />
-      </main>
+      </PageContainer>
     );
   }
 
   return (
-    <main className="min-h-full bg-surface-light">
+    <PageContainer>
       <PageHeader
         title={
           isEdit ? "Editar producto / servicio" : "Nuevo producto / servicio"
@@ -1183,6 +1184,6 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
         {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
       </form>
-    </main>
+    </PageContainer>
   );
 }

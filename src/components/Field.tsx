@@ -2,6 +2,13 @@ import type { InputHTMLAttributes, ReactNode } from "react";
 
 type FieldType = "input" | "textarea" | "select";
 
+/** Clase base de los controles de formulario del panel (select/input/textarea). */
+export const FIELD_CONTROL_CLASS =
+  "w-full h-[44px] px-3 py-2 rounded-lg border bg-surface-card text-sm text-ink-strong appearance-none outline-none resize-y transition-[border-color,box-shadow] duration-150 border-line-strong focus:border-accent focus:ring-[3px] ring-accent-soft disabled:bg-accent-soft disabled:text-ink-muted disabled:cursor-not-allowed";
+
+/** Clase extra para textareas (altura auto). */
+export const FIELD_TEXTAREA_CLASS = "h-auto min-h-[88px]";
+
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   id: string;
   label: string;
@@ -35,15 +42,11 @@ export default function Field({
   const required = Boolean(inputProps.required);
 
   const controlClass = [
-    "w-full h-[44px] px-3 py-2 rounded-lg border bg-surface-card text-sm text-ink-strong appearance-none",
-    "outline-none resize-y transition-[border-color,box-shadow] duration-150",
+    FIELD_CONTROL_CLASS,
     error
       ? "border-danger focus:border-danger focus:ring-[3px] ring-rose-500/12"
-      : "border-line-strong focus:border-accent focus:ring-[3px] ring-accent-soft",
-    inputProps.disabled
-      ? "bg-accent-soft text-ink-muted cursor-not-allowed"
       : "",
-    as === "textarea" ? "h-auto min-h-[88px]" : "",
+    as === "textarea" ? FIELD_TEXTAREA_CLASS : "",
     className || "",
   ]
     .filter(Boolean)

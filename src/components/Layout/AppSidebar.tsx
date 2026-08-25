@@ -84,6 +84,27 @@ const navigationGroups: SidebarGroup[] = [
         roles: ["TENANT_ADMIN"],
         requiredCapability: "tenants.updateMe",
       },
+      {
+        to: "/agent",
+        label: "Agentes",
+        icon: "bot",
+        roles: ["TENANT_ADMIN"],
+        requiredCapability: "agent.configure",
+      },
+      {
+        to: "/channels",
+        label: "Canales",
+        icon: "channels",
+        roles: ["TENANT_ADMIN"],
+        requiredCapability: "channels.view",
+      },
+      {
+        to: "/users",
+        label: "Usuarios",
+        icon: "users",
+        roles: ["TENANT_ADMIN"],
+        requiredCapability: "users.view",
+      },
     ],
   },
 ];

@@ -23,23 +23,21 @@ export default function AgentConfigCard({
   return (
     <section
       id={id}
-      className={
-        collapsed
-          ? "agent-config__card agent-config__card--collapsed"
-          : "agent-config__card"
-      }
+      className="rounded-xl border border-line bg-surface-card shadow-card"
     >
       <button
         type="button"
-        className="agent-config__card-head"
         aria-expanded={!collapsed}
         onClick={() => setCollapsed((current) => !current)}
+        className={`flex w-full items-center gap-3 p-4 text-left bg-transparent border-0 cursor-pointer transition-colors duration-150 hover:bg-accent-soft md:p-5 ${
+          collapsed ? "" : "border-b border-line"
+        }`}
       >
-        <span className="agent-config__card-head__icon">
+        <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-accent-soft text-accent">
           <Icon name={icon} size={18} />
         </span>
 
-        <span className="agent-config__card-head__text">
+        <span className="flex flex-col min-w-0 flex-1 gap-0.5 [&>strong]:text-[15px] [&>strong]:font-semibold [&>strong]:text-ink-strong [&>small]:text-[13px] [&>small]:leading-snug [&>small]:text-ink-muted">
           <strong>{title}</strong>
 
           {description && <small>{description}</small>}
@@ -48,11 +46,15 @@ export default function AgentConfigCard({
         <Icon
           name="chevron-down"
           size={18}
-          className="agent-config__card-head__chevron"
+          className={`shrink-0 text-ink-muted transition-transform duration-150 ${
+            collapsed ? "" : "rotate-180"
+          }`}
         />
       </button>
 
-      <div className="agent-config__card-body">{children}</div>
+      {!collapsed && (
+        <div className="flex flex-col gap-4 p-4 md:p-5">{children}</div>
+      )}
     </section>
   );
 }

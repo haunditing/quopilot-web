@@ -3,12 +3,13 @@ import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button.js";
+import { PageContainer } from "../components/PageContainer.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import PageHeader from "../components/PageHeader.js";
 import PasswordStrength from "../components/PasswordStrength.js";
-import SettingsTabs from "../components/SettingsTabs.js";
+
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { isValidEmail } from "../lib/validation.js";
@@ -169,16 +170,16 @@ export default function UserForm({ userId }: UserFormProps) {
 
   if (loading || loadError) {
     return (
-      <main className="min-h-full bg-surface-light">
+      <PageContainer>
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando usuario..." />
-      </main>
+      </PageContainer>
     );
   }
 
   const showConfirmPassword = !isEdit || Boolean(password);
 
   return (
-    <main className="min-h-full bg-surface-light">
+    <PageContainer>
       <PageHeader
         title={isEdit ? "Editar usuario" : "Nuevo usuario"}
         description={
@@ -187,8 +188,6 @@ export default function UserForm({ userId }: UserFormProps) {
             : "Crea un agente para que opere en tu empresa"
         }
       />
-
-      <SettingsTabs />
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
@@ -334,6 +333,6 @@ export default function UserForm({ userId }: UserFormProps) {
           </Button>
         </aside>
       </div>
-    </main>
+    </PageContainer>
   );
 }

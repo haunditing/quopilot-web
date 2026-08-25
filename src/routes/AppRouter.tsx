@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useParams } from "react-router-dom";
 
 import ProtectedLayout from "./ProtectedLayout.js";
 
@@ -260,10 +260,14 @@ export default function AppRouter() {
           path="/settings/company"
           element={
             <CapabilityRoute requireAny={["tenants.updateMe"]}>
-              <CompanySettings />
+              <Outlet />
             </CapabilityRoute>
           }
-        />
+        >
+          <Route index element={<CompanySettings />} />
+          <Route path="contact" element={<CompanySettings />} />
+          <Route path="regional" element={<CompanySettings />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>

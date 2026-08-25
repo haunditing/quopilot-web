@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FormField from "../components/FormField.js";
+import { PageContainer } from "../components/PageContainer.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -255,14 +256,14 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
   if (loading || loadError) {
     return (
-      <main className="min-h-full bg-surface-light">
+      <PageContainer>
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando contacto..." />
-      </main>
+      </PageContainer>
     );
   }
 
   return (
-    <main className="min-h-full bg-surface-light">
+    <PageContainer>
       <PageHeader
         title={isEdit ? "Editar contacto" : "Nuevo contacto"}
         description="Datos generales e información de contacto"
@@ -550,6 +551,6 @@ export default function CustomerDetail({ customerId }: CustomerDetailProps) {
 
         {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
       </form>
-    </main>
+    </PageContainer>
   );
 }

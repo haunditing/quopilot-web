@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ColorPicker from "../components/ColorPicker.js";
 import FormField from "../components/FormField.js";
+import { PageContainer } from "../components/PageContainer.js";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,7 @@ import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import WebChatAccessPanel from "../components/channels/WebChatAccessPanel.js";
 import PageHeader from "../components/PageHeader.js";
-import SettingsTabs from "../components/SettingsTabs.js";
+
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { getUser } from "../services/auth-storage.js";
@@ -361,16 +362,16 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
 
   if (loading || loadError) {
     return (
-      <main className="min-h-full bg-surface-light">
+      <PageContainer>
         <AsyncBoundary loading={loading} error={loadError} loadingLabel="Cargando canal..." />
-      </main>
+      </PageContainer>
     );
   }
 
 
   if (createdToken) {
     return (
-      <main className="min-h-full bg-surface-light p-6">
+      <PageContainer className="p-6">
         <div className="mx-auto flex max-w-2xl flex-col gap-6">
           <div className="flex items-center gap-3">
             <span
@@ -397,12 +398,12 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             </Button>
           </div>
         </div>
-      </main>
+      </PageContainer>
     );
   }
 
   return (
-    <main className="min-h-full bg-surface-light">
+    <PageContainer>
       <PageHeader
         title={isEdit ? "Editar canal" : "Nuevo canal"}
         description={
@@ -411,8 +412,6 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             : "Conecta WhatsApp, Instagram o un chat web para atender a tus clientes"
         }
       />
-
-      <SettingsTabs />
 
       {saveError && <FormMessage kind="error">{saveError}</FormMessage>}
 
@@ -765,6 +764,6 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
           </Button>
         </aside>
       </div>
-    </main>
+    </PageContainer>
   );
 }
