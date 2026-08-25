@@ -301,7 +301,7 @@ export default function Sales() {
     <main>
       <PageHeader title="Ventas" description={`${sales.length} ventas`} />
 
-      <section className="grid grid-cols-1 gap-4 mb-6">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard label="Ventas" value={String(sales.length)} />
 
         <StatCard label="Canceladas" value={String(cancelledCount)} />

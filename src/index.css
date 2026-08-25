@@ -40,6 +40,7 @@
 
 :root {
   --text: #6b6375;
+  --text-muted: #857d94;
   --text-h: #08060d;
   --bg: #ffffff;
   --surface: #ffffff;
@@ -382,9 +383,34 @@ p {
   margin-block-end: 24px;
 }
 
+@media (min-width: 640px) {
+  .sales-summary {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
 .button__spinner,
-.entity-card__action-spinner {
+.entity-card__action-spinner,
+.loading-inline__spinner {
   animation: quopilot-spin 0.9s linear infinite;
+}
+
+/* Carga en flujo (inline): spinner + etiqueta agrupados y alineados */
+.loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.loading-inline__spinner {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.loading-inline__label {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 @keyframes quopilot-spin {

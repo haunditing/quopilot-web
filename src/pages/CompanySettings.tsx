@@ -951,9 +951,13 @@ function CompanySettingsPanel() {
                   </span>
                 )}
 
-                <div>
-                  <strong>{agent?.name ?? "Agente QuoPilot"}</strong>
-                  <span>Tono {agentToneLabel.toLowerCase()}</span>
+                <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+                  <strong className="text-[13px] font-bold text-ink-strong truncate">
+                    {agent?.name ?? "Agente QuoPilot"}
+                  </strong>
+                  <span className="text-xs text-ink-muted truncate">
+                    Tono · {agentToneLabel.toLowerCase()}
+                  </span>
                 </div>
               </div>
 

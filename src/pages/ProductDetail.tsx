@@ -1133,7 +1133,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           <div className="flex flex-col gap-5 p-6 bg-white border border-slate-200 rounded-xl shadow-card">
             <div className="text-base font-bold text-ink-strong">{form.name.trim() || "Nuevo producto"}</div>
 
-            <div className="flex flex-col gap-3 [&>div>span]:text-xs [&>div>span]:text-ink-muted [&>div>strong]:text-sm [&>div>strong]:text-ink-strong">
+            <div className="flex flex-col gap-3 [&>div]:flex [&>div]:items-center [&>div]:justify-between [&>div>span]:text-xs [&>div>span]:text-ink-muted [&>div>strong]:text-sm [&>div>strong]:font-semibold [&>div>strong]:text-ink-strong">
               <div>
                 <span>Precio total</span>
                 <strong>
@@ -1162,6 +1162,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               <Button
                 type="button"
                 variant="secondary"
+                className="w-full"
                 onClick={() => navigate("/products")}
               >
                 Cancelar
@@ -1170,6 +1171,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               <Button
                 type="submit"
                 variant="primary"
+                className="w-full"
                 disabled={saving || (isEdit && !canEdit)}
               >
                 {saving
