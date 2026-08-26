@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncBoundary from "../components/AsyncBoundary.js";
-import type { CSSProperties, FormEvent } from "react";
+import type { CSSProperties, FormEvent, ReactElement } from "react";
 import Button from "../components/Button.js";
 import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
@@ -103,7 +103,7 @@ function renderMessageBubble(
   message: ChatMessage,
   agentName: string,
   agentInitials: string,
-): JSX.Element {
+): ReactElement {
   const isAI = message.senderType === "AI";
   const isAgent = message.senderType === "AGENT";
 
@@ -306,6 +306,24 @@ export default function PublicChat({
       cancelled = true;
     };
   }, [tenantId]);
+
+  // Precarga del plan cuando viene desde la landing (?plan=PRO)
+  useEffect(() => {
+    if (!presetPlan || topic) return;
+    const normalized = presetPlan.trim().toUpperCase();
+    const validTopics: ChatTopic[] = ["PRICING", "PRODUCT_INFO", "SUPPORT", "DEMO", "OTHER"];
+    if ((validTopics as string[]).includes(normalized)) {
+      const asTopic = normalized as ChatTopic;
+      setTopic(asTopic);
+      if (asTopic !== "OTHER") {
+        setInitialMessage(TOPIC_MESSAGE_TEMPLATES[asTopic] ?? "");
+      }
+    } else {
+      // Fallback: si es un plan comercial (PRO/STARTER) lo mapeamos a PRICING
+      setTopic("PRICING");
+      setInitialMessage(`Me interesa el plan ${presetPlan}. ${TOPIC_MESSAGE_TEMPLATES.PRICING ?? ""}`.trim());
+    }
+  }, [presetPlan, topic]);
 
   useEffect(() => {
     return () => {
@@ -992,13 +1010,15 @@ export default function PublicChat({
                     asistente.
                   </p>
                 ) : (
-                  messages.map((message) => (
+                  messages.map((message) =>
                     renderMessageBubble(
                       message,
                       chatConfig?.widget?.agentName ?? "Asistente",
-                      getAgentInitials(chatConfig?.widget?.agentName ?? "Asistente"),
-                    )
-                  ))}
+                      getAgentInitials(
+                        chatConfig?.widget?.agentName ?? "Asistente",
+                      ),
+                    ),
+                  )
                 )}
 
                 {agentTyping && !sending && (
