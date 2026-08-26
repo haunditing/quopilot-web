@@ -6,6 +6,8 @@ export type ChatWidgetPosition = "bottom-right" | "bottom-left";
 
 export interface ChatWidgetConfig {
   title?: string;
+  agentName?: string;
+  companyName?: string;
   greetingMessage?: string;
   primaryColor?: string;
   position?: ChatWidgetPosition;

@@ -67,14 +67,23 @@ function isOptimisticMessageId(id: string): boolean {
   return id.startsWith("optimistic-") || id.startsWith("seeded-");
 }
 
-const SENDER_LABELS: Record<
+function getAgentInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+const SENDER_LABELS_BASE: Record<
   ChatMessage["senderType"],
-  { name: string; initial: string; role: string }
+  { role: string }
 > = {
-  AI: { name: "Demito", initial: "D", role: "Asistente virtual" },
-  AGENT: { name: "Agente humano", initial: "M", role: "Atención humana" },
-  CUSTOMER: { name: "Tú", initial: "", role: "Tú" },
-  SYSTEM: { name: "Sistema", initial: "", role: "Notificación" },
+  AI: { role: "Asistente virtual" },
+  AGENT: { role: "Atención humana" },
+  CUSTOMER: { role: "Tú" },
+  SYSTEM: { role: "Notificación" },
 };
 
 function bubbleClassName(senderType: ChatMessage["senderType"]): string {
@@ -88,6 +97,56 @@ function bubbleClassName(senderType: ChatMessage["senderType"]): string {
     default:
       return "flex flex-col gap-1 max-w-[78%] px-3 py-2.5 rounded-xl leading-normal animate-[public-chat-fade-up_0.25s_ease-out] self-start bg-surface-light border border-line text-ink-strong rounded-bl-[4px] [&>p]:m-0 [&>p]:text-sm whitespace-pre-wrap [overflow-wrap:anywhere]";
   }
+}
+
+function renderMessageBubble(
+  message: ChatMessage,
+  agentName: string,
+  agentInitials: string,
+): JSX.Element {
+  const isAI = message.senderType === "AI";
+  const isAgent = message.senderType === "AGENT";
+
+  return (
+    <div
+      key={message._id}
+      className={bubbleClassName(message.senderType)}
+    >
+      {(isAI || isAgent) && (
+        <span
+          className="inline-flex items-center gap-1.5 text-xs"
+          aria-label={`${SENDER_LABELS_BASE[message.senderType].role}: ${isAI ? agentName : "Agente humano"}`}
+        >
+          <i
+            className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
+            aria-hidden="true"
+          >
+            {isAI ? agentInitials : "M"}
+          </i>
+
+          <em>{isAI ? agentName : "Agente humano"}</em>
+        </span>
+      )}
+
+      {message.senderType === "SYSTEM" ? (
+        <span className="inline-flex items-center gap-1.5">
+          <Icon name="brand" size={14} />
+
+          <span
+            dangerouslySetInnerHTML={{
+              __html: renderMarkdown(message.content),
+            }}
+          />
+        </span>
+      ) : (
+        <p
+          dangerouslySetInnerHTML={{
+            __html: renderMarkdown(message.content),
+          }}
+        />
+      )}
+    </div>
+  );
 }
 
 function widgetAccentStyle(color?: string): CSSProperties | undefined {
@@ -676,11 +735,16 @@ export default function PublicChat({
               </span>
 
               <strong>
-                {chatConfig?.widget?.title ??
+                {chatConfig?.widget?.agentName ??
+                  chatConfig?.widget?.title ??
                   chatConfig?.tenantName ??
                   "QuoPilot"}
               </strong>
             </div>
+
+            <p className="m-0 text-[12px] leading-normal opacity-80">
+              Asesor Comercial{chatConfig?.widget?.companyName ? ` | ${chatConfig.widget.companyName}` : ""}
+            </p>
 
             <h1 className="m-0 text-[28px] leading-[1.25] tracking-[-0.01em] max-[767px]:text-[22px]">
               Cuéntanos quién eres y en qué te ayudamos
@@ -707,9 +771,7 @@ export default function PublicChat({
 
             <div className="inline-flex items-center gap-2 self-start mt-auto px-3.5 py-1.5 rounded-full bg-accent-soft text-[13px] font-semibold max-[767px]:mt-0 [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-green-500 [&>i]:animate-[public-chat-pulse_2s_infinite]">
               <i aria-hidden="true" />
-              <span>
-                En línea · {chatConfig?.channelName ?? "Asistente virtual"}
-              </span>
+              <span>En línea</span>
             </div>
           </aside>
 
@@ -865,13 +927,14 @@ export default function PublicChat({
 
             <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-base [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:opacity-85 [&>small]:text-xs">
               <strong>
-                {chatConfig?.widget?.title ?? chat?.tenantName ?? "QuoPilot"}
+                {chatConfig?.widget?.agentName ??
+                  chatConfig?.widget?.title ??
+                  chat?.tenantName ??
+                  "QuoPilot"}
               </strong>
 
               <small>
-                {chat?.channelName
-                  ? chat.channelName
-                  : (chatConfig?.channelName ?? "Asistente virtual")}
+                Asesor Comercial{chatConfig?.widget?.companyName ? ` | ${chatConfig.widget.companyName}` : ""}
               </small>
             </div>
 
@@ -885,7 +948,7 @@ export default function PublicChat({
                 role="status"
               >
                 <i aria-hidden="true" />
-                <span>{closed ? "Cerrado" : "En línea"}</span>
+                <span>En línea</span>
               </div>
             )}
 
@@ -930,46 +993,12 @@ export default function PublicChat({
                   </p>
                 ) : (
                   messages.map((message) => (
-                    <div
-                      key={message._id}
-                      className={bubbleClassName(message.senderType)}
-                    >
-                      {(message.senderType === "AI" ||
-                        message.senderType === "AGENT") && (
-                        <span
-                          className="inline-flex items-center gap-1.5 text-xs"
-                          aria-label={`${SENDER_LABELS[message.senderType].role}: ${SENDER_LABELS[message.senderType].name}`}
-                        >
-                          <i
-                            className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
-                            aria-hidden="true"
-                          >
-                            {SENDER_LABELS[message.senderType].initial}
-                          </i>
-
-                          <em>{SENDER_LABELS[message.senderType].name}</em>
-                        </span>
-                      )}
-
-                      {message.senderType === "SYSTEM" ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Icon name="brand" size={14} />
-
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: renderMarkdown(message.content),
-                            }}
-                          />
-                        </span>
-                      ) : (
-                        <p
-                          dangerouslySetInnerHTML={{
-                            __html: renderMarkdown(message.content),
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))
+                    renderMessageBubble(
+                      message,
+                      chatConfig?.widget?.agentName ?? "Asistente",
+                      getAgentInitials(chatConfig?.widget?.agentName ?? "Asistente"),
+                    )
+                  ))}
                 )}
 
                 {agentTyping && !sending && (
@@ -979,10 +1008,10 @@ export default function PublicChat({
                         className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
                         aria-hidden="true"
                       >
-                        {SENDER_LABELS.AGENT.initial}
+                        M
                       </i>
 
-                      <em>{SENDER_LABELS.AGENT.name}</em>
+                      <em>Agente humano</em>
                     </span>
 
                     <span className="inline-flex items-center gap-2 text-[13px]">
