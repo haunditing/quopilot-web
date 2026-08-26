@@ -7,7 +7,22 @@
  * Atributos opcionales del <script>:
  *   data-quopilot-origin  — origen donde vive el chat (default: https://app.quopilot.com)
  *   data-quopilot-position — "bottom-right" | "bottom-left"
+ *
+ * API programática (CTA de landing con contexto de plan):
+ *   window.QuoPilotChat.selectPlan("PRO")
+ *   window.QuoPilotChat.open({ plan: "PRO" })
+ *   window.QuoPilotChat.close()
  */
+
+declare global {
+  interface Window {
+    QuoPilotChat?: {
+      open: (opts?: { plan?: string; planContext?: string }) => void;
+      selectPlan: (planKey: string) => void;
+      close: () => void;
+    };
+  }
+}
 
 (() => {
   "use strict";
@@ -213,6 +228,39 @@
         break;
     }
   });
+
+  /* ============================================================
+   * Contexto de plan (CTA de landing) + API programática
+   * ============================================================ */
+
+  let planContext: string | null = null;
+
+  function iframeUrlWithPlan(): string {
+    return planContext
+      ? `${frameUrl}?plan=${encodeURIComponent(planContext)}`
+      : frameUrl;
+  }
+
+  function applyPlan(planKey: string): void {
+    planContext = planKey;
+    // Recarga el iframe del chat con el plan en la URL para que la
+    // conversación arranque con ese contexto.
+    frame.src = iframeUrlWithPlan();
+  }
+
+  window.QuoPilotChat = {
+    selectPlan(planKey: string): void {
+      applyPlan(planKey);
+    },
+    open(opts?: { plan?: string; planContext?: string }): void {
+      const plan = opts?.plan ?? opts?.planContext;
+      if (plan) applyPlan(plan);
+      setOpen(true);
+    },
+    close(): void {
+      setOpen(false);
+    },
+  };
 
   /* ============================================================
    * Montaje

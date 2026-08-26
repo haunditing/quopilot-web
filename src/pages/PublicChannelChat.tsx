@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { apiRequest } from "../lib/api.js";
 import PublicChat, {
   readInjectedPublicChannel,
@@ -13,9 +13,14 @@ import Loading from "../components/Loading.js";
  * Resuelve el canal por token (estado inyectado por el SSR de la API
  * o fetch directo) y delega en PublicChat con el modo adaptativo
  * (embed dentro del widget · standalone para enlaces de bio).
+ *
+ * Acepta `?plan=PRO` en la URL: el widget de la landing abre el chat con
+ * el plan de interés y la conversación arranca con ese contexto.
  */
 export default function PublicChannelChat() {
   const { token = "" } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
+  const presetPlan = searchParams.get("plan") ?? undefined;
 
   const [config, setConfig] = useState<InjectedPublicChannel | null>(() =>
     readInjectedPublicChannel(),
@@ -87,6 +92,7 @@ export default function PublicChannelChat() {
       key={config.tenantId}
       tenantId={config.tenantId}
       variant={variant}
+      presetPlan={presetPlan}
       onEmbedClose={isEmbed ? handleEmbedClose : undefined}
     />
   );

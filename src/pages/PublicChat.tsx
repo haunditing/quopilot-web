@@ -46,6 +46,8 @@ interface PublicChatProps {
   variant?: PublicChatVariant;
   /** Cierra el widget desde fuera (postMessage al sitio padre). */
   onEmbedClose?: () => void;
+  /** Plan de interés (desde la landing): precarga asunto + mensaje inicial. */
+  presetPlan?: string;
 }
 
 let publicOptimisticId = 0;
@@ -171,6 +173,7 @@ export default function PublicChat({
   tenantId,
   variant = "page",
   onEmbedClose,
+  presetPlan,
 }: PublicChatProps) {
   const isEmbed = variant === "embed";
   const [chat, setChat] = useState<StoredChat | null>(() =>
