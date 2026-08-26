@@ -71,7 +71,15 @@ export default function AssistantChat({
   placeholder = "Ej.: cambia el tono del agente a amigable",
   suggestions = DEFAULT_SUGGESTIONS,
 }: AssistantChatProps) {
-  const { assistantImageUrl, brandName } = useBranding();
+  const { assistantImageUrl, brandName, primaryColor, secondaryColor } = useBranding();
+  const headerStyle =
+    primaryColor && secondaryColor
+      ? {
+          background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+        }
+      : primaryColor
+        ? { background: primaryColor }
+        : undefined;
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -223,34 +231,42 @@ export default function AssistantChat({
 
   return (
     <section className={cardClassName.filter(Boolean).join(" ")}>
-      <header className="flex items-center gap-3 px-4 py-3 bg-accent text-white">
+      <header
+        className="flex items-center gap-3 px-4 py-3 bg-[var(--accent)] text-[color:var(--accent-text)]"
+        style={headerStyle}
+      >
         {assistantImageUrl ? (
           <img
             src={assistantImageUrl}
             alt={brandName}
-            className="w-9 h-9 object-contain shrink-0 rounded-lg bg-white p-0.5"
+            className="w-10 h-10 object-contain shrink-0 rounded-lg bg-[color:var(--accent-text)]/10 p-0.5 backdrop-blur-sm"
           />
         ) : (
-          <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-white/15">
+          <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-[color:var(--accent-text)]/15 text-[color:var(--accent-text)]">
             <Icon name="bot" size={18} />
           </span>
         )}
 
         <div className="flex flex-col min-w-0 flex-1">
-          <strong className="text-sm font-semibold leading-snug truncate">
+          <strong className="text-sm font-semibold leading-snug truncate text-[color:var(--accent-text)]">
             {title}
           </strong>
 
           {subtitle && (
-            <small className="text-xs text-white/85 leading-snug line-clamp-2">
+            <small className="text-xs leading-snug line-clamp-2 text-[color:var(--accent-text)] opacity-80">
               {subtitle}
             </small>
           )}
         </div>
 
+        <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0 ml-1 px-2.5 py-1 rounded-full bg-[color:var(--accent-text)]/15 text-[11px] font-medium text-[color:var(--accent-text)] whitespace-nowrap">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-[public-chat-pulse_2s_infinite]" aria-hidden="true" />
+          En línea
+        </span>
+
         <button
           type="button"
-          className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg border border-white/45 bg-transparent text-white cursor-pointer transition-colors hover:bg-white/15 disabled:opacity-50 disabled:cursor-default"
+          className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg border border-[color:var(--accent-text)]/30 bg-transparent text-[color:var(--accent-text)] cursor-pointer transition-colors hover:bg-[color:var(--accent-text)]/15 disabled:opacity-50 disabled:cursor-default"
           aria-label="Limpiar conversación"
           title="Limpiar conversación"
           disabled={resetting || sending || messages.length === 0}
@@ -283,7 +299,7 @@ export default function AssistantChat({
                   className="w-12 h-12 object-contain"
                 />
               ) : (
-                <Icon name="bot" size={32} className="text-accent" />
+                <Icon name="bot" size={32} className="text-[var(--accent)]" />
               )}
 
               <p>{welcomeMessage}</p>
@@ -293,7 +309,7 @@ export default function AssistantChat({
                   <button
                     key={suggestion}
                     type="button"
-                    className="rounded-[10px] border border-line bg-surface-card text-ink-strong font-[inherit] text-[13px] px-3 py-2.5 text-left cursor-pointer transition-colors hover:border-accent hover:text-accent disabled:opacity-60 disabled:cursor-default"
+                    className="rounded-[10px] border border-line bg-surface-card text-ink-strong font-[inherit] text-[13px] px-3 py-2.5 text-left cursor-pointer transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent-bg)] disabled:opacity-60 disabled:cursor-default"
                     disabled={sending}
                     onClick={() => {
                       void handleSuggestion(suggestion);
@@ -338,16 +354,17 @@ export default function AssistantChat({
       )}
 
       <form
-        className="public-chat__composer"
+        className="sticky bottom-0 p-3 bg-surface-card border-t border-line flex flex-col gap-2"
         onSubmit={(event) => {
           void handleSend(event);
         }}
       >
         {sendError && <FormMessage kind="error">{sendError}</FormMessage>}
 
-        <div className="public-chat__composer-row">
+        <div className="flex items-center gap-2 bg-surface-light rounded-full px-2.5 py-1.5 border border-line shadow-sm focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent-bg)] transition-all">
           <input
             type="text"
+            className="flex-1 min-w-0 bg-transparent border-0 text-sm text-ink-strong placeholder:text-ink-muted focus:outline-none focus:ring-0 disabled:opacity-50 px-1.5"
             value={draft}
             placeholder={placeholder}
             aria-label="Tu mensaje"
@@ -360,6 +377,7 @@ export default function AssistantChat({
             variant="primary"
             icon="send"
             iconOnly
+            className="shrink-0 !min-h-0 !w-9 !h-9 !p-0 rounded-full shadow-sm hover:opacity-90 active:scale-95"
             disabled={sending || !draft.trim() || loading || Boolean(loadError)}
           >
             Enviar

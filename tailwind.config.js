@@ -7,9 +7,9 @@ export default {
     extend: {
       colors: {
         accent: {
-          DEFAULT: "#aa3bff",
-          soft: "rgba(170, 59, 255, 0.1)",
-          border: "rgba(170, 59, 255, 0.5)",
+          DEFAULT: "var(--accent)",
+          soft: "var(--accent-bg)",
+          border: "var(--accent-border)",
         },
         success: "#059669",
         danger: "#dc2626",
