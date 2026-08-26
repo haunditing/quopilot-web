@@ -673,26 +673,6 @@ export default function ChannelForm({ channelId }: ChannelFormProps) {
             )}
 
             {isEdit && form.type === "WEB_CHAT" && channel?.publicToken && (
-              <section id="channel-instalacion" className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6">
-                <header className="flex flex-row items-start gap-3 w-full mb-5">
-                  <span className="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-accent-soft text-accent">
-                    <Icon name="globe" size={20} />
-                  </span>
-
-                  <span className="flex flex-col gap-0.5 [&>strong]:text-base [&>strong]:text-ink-strong [&>small]:text-[13px] leading-normal text-slate-500">
-                    <strong>Instalación del widget</strong>
-                    <small>
-                      Conecta el chat con tu sitio web o compártelo en redes
-                      sociales usando el token público del canal.
-                    </small>
-                  </span>
-                </header>
-
-                <WebChatAccessPanel token={channel.publicToken} />
-              </section>
-        )}
-
-        {isEdit && form.type === "WEB_CHAT" && channel?.publicToken && (
           <section
             id="channel-instalacion"
             className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-6"
