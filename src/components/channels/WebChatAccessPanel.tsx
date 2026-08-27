@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Check, Copy, Globe, Code2 } from "lucide-react";
+import { API_URL } from "../../lib/api.js";
 
 /**
  * Molécula: sección de instalación del widget WebChat.
@@ -15,14 +16,21 @@ interface WebChatAccessPanelProps {
   className?: string;
 }
 
-// Dominio donde está PublicChat y el widget (mismo que sirve /c/:token). Usa VITE_APP_URL si está definido.
+// Dominio donde está PublicChat y el widget. En dev usa el API con cert válido (localhost:3000), en prod usa el app con widget.js
 const APP_BASE_URL = (
   (import.meta.env.VITE_APP_URL as string | undefined)?.trim() ||
   "https://app.quopilot.com"
 ).replace(/\/$/, "");
-const WIDGET_SCRIPT_URL = `${APP_BASE_URL}/widget.js`;
-const CDN_SNIPPET = (token: string) =>
-  `<script src="${WIDGET_SCRIPT_URL}" data-quopilot-token="${token}" async></script>`;
+const WIDGET_SCRIPT_URL = (() => {
+  const isLocalhost = APP_BASE_URL.includes("localhost") || API_URL.includes("localhost");
+  if (isLocalhost) return `${API_URL.replace(/\/$/, "")}/api/public/chat-widget.js`;
+  return `${APP_BASE_URL}/widget.js`;
+})();
+const CDN_SNIPPET = (token: string) => {
+  const isLocalhost = APP_BASE_URL.includes("localhost");
+  const originAttr = isLocalhost ? ` data-quopilot-origin="${APP_BASE_URL}"` : "";
+  return `<script src="${WIDGET_SCRIPT_URL}" data-quopilot-token="${token}"${originAttr} async></script>`;
+};
 
 const STANDALONE_URL = (token: string) => `${APP_BASE_URL}/c/${token}`;
 
