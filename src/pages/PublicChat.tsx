@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AsyncBoundary from "../components/AsyncBoundary.js";
 import type { CSSProperties, FormEvent, ReactElement } from "react";
 import Button from "../components/Button.js";
-import Field from "../components/Field.js";
 import FormMessage from "../components/FormMessage.js";
 import Icon from "../components/Icon.js";
 import {
@@ -19,14 +18,12 @@ import type {
   ChatMessage,
   PublicChatConfigResponse,
 } from "../types/agent-conversation.js";
-import {
-  isValidEmail,
-  isValidPhone,
-  normalizePhoneInput,
-} from "../lib/validation.js";
+import { isValidEmail, isValidPhone } from "../lib/validation.js";
 import { renderMarkdown } from "../lib/sanitize.js";
 import { contrastTextFor } from "../lib/contrast.js";
 import { useConfirm } from "../hooks/useConfirm.js";
+import { usePublicChatLead } from "../hooks/usePublicChatLead.js";
+import PublicChatLeadForm from "../components/public-chat/PublicChatLeadForm.js";
 
 interface StoredChat {
   conversationId: string;
@@ -175,21 +172,6 @@ export type ChatTopic =
   | "DEMO"
   | "OTHER";
 
-const TOPIC_OPTIONS: Array<{ value: ChatTopic; label: string }> = [
-  { value: "PRICING", label: "Precios y planes" },
-  { value: "PRODUCT_INFO", label: "Información de productos" },
-  { value: "SUPPORT", label: "Soporte" },
-  { value: "DEMO", label: "Agendar demostración" },
-  { value: "OTHER", label: "Otro asunto" },
-];
-
-const TOPIC_MESSAGE_TEMPLATES: Partial<Record<ChatTopic, string>> = {
-  PRICING: "Quiero información sobre precios y planes.",
-  PRODUCT_INFO: "Quiero información sobre los productos y servicios.",
-  SUPPORT: "Necesito soporte o ayuda con un tema.",
-  DEMO: "Me gustaría agendar una demostración.",
-};
-
 export interface InjectedPublicChannel {
   channel: string;
   tenantId: string;
@@ -239,18 +221,31 @@ export default function PublicChat({
     readStoredChat(tenantId),
   );
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const { confirm } = useConfirm();
-  const [phone, setPhone] = useState("");
-  const [company, setCompany] = useState("");
-  const [topic, setTopic] = useState<ChatTopic | "">("");
-  const [initialMessage, setInitialMessage] = useState("");
-  const [nameError, setNameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-  const [topicError, setTopicError] = useState("");
-  const [initialMessageError, setInitialMessageError] = useState("");
+  const {
+    name,
+    setName,
+    nameError,
+    setNameError,
+    email,
+    setEmail,
+    emailError,
+    setEmailError,
+    phone,
+    setPhone,
+    phoneError,
+    setPhoneError,
+    company,
+    setCompany,
+    topic,
+    setTopic,
+    topicError,
+    setTopicError,
+    initialMessage,
+    setInitialMessage,
+    initialMessageError,
+    setInitialMessageError,
+  } = usePublicChatLead({ presetPlan });
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState("");
 
@@ -306,24 +301,6 @@ export default function PublicChat({
       cancelled = true;
     };
   }, [tenantId]);
-
-  // Precarga del plan cuando viene desde la landing (?plan=PRO)
-  useEffect(() => {
-    if (!presetPlan || topic) return;
-    const normalized = presetPlan.trim().toUpperCase();
-    const validTopics: ChatTopic[] = ["PRICING", "PRODUCT_INFO", "SUPPORT", "DEMO", "OTHER"];
-    if ((validTopics as string[]).includes(normalized)) {
-      const asTopic = normalized as ChatTopic;
-      setTopic(asTopic);
-      if (asTopic !== "OTHER") {
-        setInitialMessage(TOPIC_MESSAGE_TEMPLATES[asTopic] ?? "");
-      }
-    } else {
-      // Fallback: si es un plan comercial (PRO/STARTER) lo mapeamos a PRICING
-      setTopic("PRICING");
-      setInitialMessage(`Me interesa el plan ${presetPlan}. ${TOPIC_MESSAGE_TEMPLATES.PRICING ?? ""}`.trim());
-    }
-  }, [presetPlan, topic]);
 
   useEffect(() => {
     return () => {
@@ -739,197 +716,141 @@ export default function PublicChat({
       style={accentStyle}
     >
       {!chat ? (
-        <div
-          className={
-            isEmbed
-              ? "flex h-full w-full flex-col overflow-hidden bg-surface-card"
-              : "grid grid-cols-1 md:grid-cols-[1fr_1.05fr] w-full max-w-[960px] min-h-[min(640px,calc(100vh-48px))] rounded-[20px] overflow-hidden bg-surface-card shadow-card max-[767px]:grid-cols-1 max-[767px]:min-h-0"
-          }
-        >
-          <aside className={`flex flex-col gap-4 bg-accent text-white ${isEmbed ? "p-5" : "p-8 max-[767px]:p-6"}`}>
-            <div className="inline-flex items-center gap-2.5 text-base font-bold">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-soft" aria-hidden="true">
-                <Icon name="brand" size={22} />
-              </span>
-
-              <strong>
-                {chatConfig?.widget?.agentName ??
-                  chatConfig?.widget?.title ??
-                  chatConfig?.tenantName ??
-                  "QuoPilot"}
-              </strong>
-            </div>
-
-            <p className="m-0 text-[12px] leading-normal opacity-80">
-              Asesor Comercial{chatConfig?.widget?.companyName ? ` | ${chatConfig.widget.companyName}` : ""}
-            </p>
-
-            <h1 className="m-0 text-[28px] leading-[1.25] tracking-[-0.01em] max-[767px]:text-[22px]">
-              Cuéntanos quién eres y en qué te ayudamos
-            </h1>
-
-            <p className="m-0 text-[15px] opacity-90 leading-normal">{DEFAULT_INTRO}</p>
-
-            <ul className="flex flex-col gap-2.5 m-0 p-0 list-none [&>li]:inline-flex [&>li]:items-center [&>li]:gap-2.5 [&>li]:text-sm [&_svg]:shrink-0">
-              <li>
-                <Icon name="check" size={16} />
-                <span>Asistente virtual disponible 24/7</span>
-              </li>
-
-              <li>
-                <Icon name="check" size={16} />
-                <span>Respuesta inmediata a tu consulta</span>
-              </li>
-
-              <li>
-                <Icon name="check" size={16} />
-                <span>Un agente humano se une si lo necesitas</span>
-              </li>
-            </ul>
-
-            <div className="inline-flex items-center gap-2 self-start mt-auto px-3.5 py-1.5 rounded-full bg-accent-soft text-[13px] font-semibold max-[767px]:mt-0 [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-green-500 [&>i]:animate-[public-chat-pulse_2s_infinite]">
-              <i aria-hidden="true" />
-              <span>En línea</span>
-            </div>
-          </aside>
-
-          <form className="flex flex-col gap-4 p-8 overflow-y-auto bg-surface-card max-[767px]:p-6" onSubmit={handleStart}>
-            <div className="flex flex-row items-start gap-3 pb-4 border-b border-line">
-              <div className="inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-accent-soft text-accent" aria-hidden="true">
-                <Icon name="brand" size={20} />
+        isEmbed ? (
+          <div className="flex h-full w-full flex-col overflow-hidden bg-surface-card">
+            <header className="flex items-center gap-2.5 p-4 bg-accent text-[color:var(--accent-text)] shrink-0">
+              <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
+                <Icon name="brand" size={18} />
               </div>
-
-              <div>
-                <h2 className="m-0 text-lg font-bold leading-tight text-ink-strong">Escríbenos ahora</h2>
-
-                <p className="mt-0.5 mb-0 text-sm leading-normal text-ink-muted">
-                  Completa tus datos y te responderemos de inmediato.
-                </p>
+              <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-base [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:opacity-85 [&>small]:text-xs">
+                <strong>
+                  {chatConfig?.widget?.agentName ??
+                    chatConfig?.widget?.title ??
+                    chatConfig?.tenantName ??
+                    "QuoPilot"}
+                </strong>
+                <small>
+                  Asesor Comercial{chatConfig?.widget?.companyName ? ` | ${chatConfig.widget.companyName}` : ""}
+                </small>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3.5 max-[380px]:grid-cols-1">
-              <Field
-                id="public-chat-name"
-                label="Nombre"
-                type="text"
-                value={name}
-                error={nameError}
-                required
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setNameError("");
-                }}
-                placeholder="Tu nombre y apellido"
-                autoComplete="name"
-              />
-
-              <Field
-                id="public-chat-email"
-                label="Email"
-                type="email"
-                value={email}
-                error={emailError}
-                required
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  setEmailError("");
-                }}
-                placeholder="tu@correo.com"
-                autoComplete="email"
-              />
-
-              <Field
-                id="public-chat-phone"
-                label="Teléfono (WhatsApp)"
-                type="tel"
-                value={phone}
-                error={phoneError}
-                required
-                helper="Con indicativo de país, ej: +57 300 000 0000"
-                onChange={(event) => {
-                  setPhone(normalizePhoneInput(event.target.value));
-                  setPhoneError("");
-                }}
-                placeholder="+573001234567"
-                autoComplete="tel"
-              />
-
-              <Field
-                id="public-chat-company"
-                label="Empresa (opcional)"
-                type="text"
-                value={company}
-                onChange={(event) => setCompany(event.target.value)}
-                placeholder="Nombre de tu empresa"
-                autoComplete="organization"
-              />
-            </div>
-
-            <Field
-              id="public-chat-topic"
-              label="Asunto"
-              as="select"
-              error={topicError || undefined}
-              value={topic}
-                onChange={(event) => {
-                  const nextTopic = event.target.value as ChatTopic;
-
-                  setTopic(nextTopic);
-                  setTopicError("");
-
-                  if (nextTopic === "OTHER") {
-                    setInitialMessage("");
-                    setInitialMessageError("");
-                  } else {
-                    setInitialMessage(TOPIC_MESSAGE_TEMPLATES[nextTopic] ?? "");
-                    setInitialMessageError("");
-                  }
-                }}
+              <div
+                className="inline-flex items-center gap-1.5 ml-auto px-2.5 py-1 rounded-full bg-accent-soft text-xs whitespace-nowrap [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-green-500 [&>i]:animate-[public-chat-pulse_2s_infinite]"
+                role="status"
               >
-                <option value="" disabled>
-                  ¿Sobre qué quieres hablar?
-                </option>
-
-              {TOPIC_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Field>
-
-            <Field
-              id="public-chat-message"
-              label="Mensaje"
-              as="textarea"
-              rows={3}
-              error={initialMessageError || undefined}
-              value={initialMessage}
-              readOnly={topic !== "" && topic !== "OTHER"}
-              onChange={(event) => {
-                setInitialMessage(event.target.value);
-                setInitialMessageError("");
-              }}
-              placeholder={
-                topic === "OTHER"
-                  ? "Cuéntanos brevemente en qué te podemos ayudar"
-                  : "Se generará un mensaje según el asunto seleccionado"
-              }
+                <i aria-hidden="true" />
+                <span>En línea</span>
+              </div>
+              {onEmbedClose && (
+                <button
+                  type="button"
+                  aria-label="Minimizar chat"
+                  title="Minimizar"
+                  onClick={onEmbedClose}
+                  className="inline-flex items-center justify-center p-1 border-none rounded-full cursor-pointer shrink-0 transition-colors duration-150 hover:bg-white/15"
+                >
+                  <Icon name="chevron-down" size={16} />
+                </button>
+              )}
+            </header>
+            <PublicChatLeadForm
+              compact
+              name={name}
+              setName={setName}
+              nameError={nameError}
+              setNameError={setNameError}
+              email={email}
+              setEmail={setEmail}
+              emailError={emailError}
+              setEmailError={setEmailError}
+              phone={phone}
+              setPhone={setPhone}
+              phoneError={phoneError}
+              setPhoneError={setPhoneError}
+              company={company}
+              setCompany={setCompany}
+              topic={topic}
+              setTopic={setTopic}
+              topicError={topicError}
+              setTopicError={setTopicError}
+              initialMessage={initialMessage}
+              setInitialMessage={setInitialMessage}
+              initialMessageError={initialMessageError}
+              setInitialMessageError={setInitialMessageError}
+              startError={startError}
+              starting={starting}
+              onSubmit={handleStart}
             />
-
-            {startError && <FormMessage kind="error">{startError}</FormMessage>}
-
-            <Button
-              type="submit"
-              variant="primary"
-              icon="send"
-              className="w-full justify-center"
-              disabled={starting}
-            >
-              {starting ? "Iniciando..." : "Iniciar conversación"}
-            </Button>
-          </form>
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.05fr] w-full max-w-[960px] min-h-[min(640px,calc(100vh-48px))] rounded-[20px] overflow-hidden bg-surface-card shadow-card max-[767px]:grid-cols-1 max-[767px]:min-h-0">
+            <aside className="flex flex-col gap-4 bg-accent text-white p-8 max-[767px]:p-6">
+              <div className="inline-flex items-center gap-2.5 text-base font-bold">
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-soft" aria-hidden="true">
+                  <Icon name="brand" size={22} />
+                </span>
+                <strong>
+                  {chatConfig?.widget?.agentName ??
+                    chatConfig?.widget?.title ??
+                    chatConfig?.tenantName ??
+                    "QuoPilot"}
+                </strong>
+              </div>
+              <p className="m-0 text-[12px] leading-normal opacity-80">
+                Asesor Comercial{chatConfig?.widget?.companyName ? ` | ${chatConfig.widget.companyName}` : ""}
+              </p>
+              <h1 className="m-0 text-[28px] leading-[1.25] tracking-[-0.01em] max-[767px]:text-[22px]">
+                Cuéntanos quién eres y en qué te ayudamos
+              </h1>
+              <p className="m-0 text-[15px] opacity-90 leading-normal">{DEFAULT_INTRO}</p>
+              <ul className="flex flex-col gap-2.5 m-0 p-0 list-none [&>li]:inline-flex [&>li]:items-center [&>li]:gap-2.5 [&>li]:text-sm [&_svg]:shrink-0">
+                <li>
+                  <Icon name="check" size={16} />
+                  <span>Asistente virtual disponible 24/7</span>
+                </li>
+                <li>
+                  <Icon name="check" size={16} />
+                  <span>Respuesta inmediata a tu consulta</span>
+                </li>
+                <li>
+                  <Icon name="check" size={16} />
+                  <span>Un agente humano se une si lo necesitas</span>
+                </li>
+              </ul>
+              <div className="inline-flex items-center gap-2 self-start mt-auto px-3.5 py-1.5 rounded-full bg-accent-soft text-[13px] font-semibold max-[767px]:mt-0 [&>i]:w-2 [&>i]:h-2 [&>i]:rounded-full [&>i]:bg-green-500 [&>i]:animate-[public-chat-pulse_2s_infinite]">
+                <i aria-hidden="true" />
+                <span>En línea</span>
+              </div>
+            </aside>
+            <PublicChatLeadForm
+              compact={false}
+              name={name}
+              setName={setName}
+              nameError={nameError}
+              setNameError={setNameError}
+              email={email}
+              setEmail={setEmail}
+              emailError={emailError}
+              setEmailError={setEmailError}
+              phone={phone}
+              setPhone={setPhone}
+              phoneError={phoneError}
+              setPhoneError={setPhoneError}
+              company={company}
+              setCompany={setCompany}
+              topic={topic}
+              setTopic={setTopic}
+              topicError={topicError}
+              setTopicError={setTopicError}
+              initialMessage={initialMessage}
+              setInitialMessage={setInitialMessage}
+              initialMessageError={initialMessageError}
+              setInitialMessageError={setInitialMessageError}
+              startError={startError}
+              starting={starting}
+              onSubmit={handleStart}
+            />
+          </div>
+        )
       ) : (
         <div
           className={
