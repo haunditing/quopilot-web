@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Check, Copy, Globe, Code2 } from "lucide-react";
+import { API_URL } from "../../lib/api.js";
 
 /**
  * Molécula: sección de instalación del widget WebChat.
@@ -15,8 +16,17 @@ interface WebChatAccessPanelProps {
   className?: string;
 }
 
+// Usa la base donde realmente está sirviendo el script (API con cert válido).
+// En producción VITE_API_URL es el dominio público del API (ej: https://api.quopilot.com)
+// Cuando el CDN https://cdn.quopilot.com tenga cert válido, cambiar a https://cdn.quopilot.com/v1/widget.js
+const WIDGET_SCRIPT_URL = (() => {
+  const base = API_URL.replace(/\/$/, "").replace(/\/api$/, "");
+  // Si API_URL ya es https://admin.quopilot.com o https://api.quopilot.com, el script está en /api/public/chat-widget.js
+  if (base.includes("localhost")) return `${base}/api/public/chat-widget.js`;
+  return `${base}/api/public/chat-widget.js`;
+})();
 const CDN_SNIPPET = (token: string) =>
-  `<script src="https://cdn.quopilot.com/v1/widget.js" data-quopilot-token="${token}" async></script>`;
+  `<script src="${WIDGET_SCRIPT_URL}" data-quopilot-token="${token}" async></script>`;
 
 const STANDALONE_URL = (token: string) =>
   `https://app.quopilot.com/c/${token}`;
