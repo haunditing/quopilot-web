@@ -4,7 +4,7 @@ import Icon from "../Icon.js";
 import type { IconName } from "../Icon.js";
 import Button from "../Button.js";
 import { clearAuth, getUser } from "../../services/auth-storage.js";
-import { getRoleLabel, getRoleScope } from "../../lib/roles.js";
+import { getRoleLabel } from "../../lib/roles.js";
 import { useCapabilities } from "../../hooks/useCapabilities.js";
 import { useBranding } from "../../context/BrandingProvider.js";
 
@@ -123,7 +123,7 @@ export default function AppSidebar({
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const { hasCapability } = useCapabilities();
-  const { logoUrl, brandName } = useBranding();
+  const { logoUrl, logoWithNameUrl, brandName } = useBranding();
   const user = getUser();
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -165,7 +165,6 @@ export default function AppSidebar({
     .filter((group) => group.items.length > 0);
 
   const roleLabel = user?.role ? getRoleLabel(user.role) : undefined;
-  const brandSubtitle = user?.role ? getRoleScope(user.role) : undefined;
   const avatarInitial = user?.name?.charAt(0) ?? "U";
 
   return (
@@ -187,35 +186,39 @@ export default function AppSidebar({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Marca */}
+      {/* Marca — isotipo cuando contraído, imagotipo cuando desplegado */}
       <div
         className={`flex items-center w-full mb-8 text-[color:var(--shell-text)] ${
           effectivelyCollapsed ? "justify-center" : "justify-between"
         }`}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
-          {logoUrl ? (
+          {effectivelyCollapsed ? (
+            logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={brandName}
+                className="h-10 w-10 object-contain shrink-0"
+              />
+            ) : (
+              <Icon
+                name="brand"
+                size={32}
+                className="shrink-0 text-[color:var(--accent-binset-inline-end,var(--accent))]"
+              />
+            )
+          ) : logoWithNameUrl || logoUrl ? (
             <img
-              src={logoUrl}
+              src={logoWithNameUrl || logoUrl}
               alt={brandName}
-              className="h-10 max-w-[150px] w-auto object-contain shrink-0"
+              className="h-14 max-w-[190px] w-auto object-contain shrink-0"
             />
           ) : (
             <Icon
               name="brand"
-              size={24}
+              size={32}
               className="shrink-0 text-[color:var(--accent-binset-inline-end,var(--accent))]"
             />
-          )}
-          {!effectivelyCollapsed && (
-            <span className="flex flex-col">
-              <strong className="text-lg tracking-[-0.3px]">{brandName}</strong>
-              {brandSubtitle && (
-                <small className="text-xs text-[color:var(--shell-text-muted)]">
-                  {brandSubtitle}
-                </small>
-              )}
-            </span>
           )}
         </div>
         {!effectivelyCollapsed && (

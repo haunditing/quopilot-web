@@ -35,8 +35,10 @@ function isLight(hex: string): boolean {
 
 interface BrandingContextValue {
   branding: Branding | null;
-  /** Logo principal resuelto a URL absoluta (o "" si no hay). */
+  /** Logo sin nombre (isotipo) — para sidebar contraída. */
   logoUrl: string;
+  /** Logo con nombre (imagotipo) — para sidebar desplegada. */
+  logoWithNameUrl: string;
   /** Favicon resuelto a URL absoluta (o "" si no hay). */
   faviconUrl: string;
   /** Imagen del asistente resuelta a URL absoluta (o "" si no hay). */
@@ -49,6 +51,7 @@ interface BrandingContextValue {
 const BrandingContext = createContext<BrandingContextValue>({
   branding: null,
   logoUrl: "",
+  logoWithNameUrl: "",
   faviconUrl: "",
   assistantImageUrl: "",
   brandName: "QuoPilot",
@@ -147,6 +150,9 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const value: BrandingContextValue = {
     branding,
     logoUrl: branding?.logoUrl ? resolveBrandAssetUrl(branding.logoUrl) : "",
+    logoWithNameUrl: branding?.logoWithNameUrl
+      ? resolveBrandAssetUrl(branding.logoWithNameUrl)
+      : "",
     faviconUrl: branding?.faviconUrl
       ? resolveBrandAssetUrl(branding.faviconUrl)
       : "",

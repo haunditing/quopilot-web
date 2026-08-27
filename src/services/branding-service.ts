@@ -2,6 +2,7 @@ import { apiFetch } from "../lib/api.js";
 
 export interface Branding {
   logoUrl?: string | null;
+  logoWithNameUrl?: string | null;
   faviconUrl?: string | null;
   assistantImageUrl?: string | null;
   primaryColor?: string | null;
