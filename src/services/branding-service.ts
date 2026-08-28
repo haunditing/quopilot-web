@@ -5,6 +5,7 @@ export interface Branding {
   logoWithNameUrl?: string | null;
   faviconUrl?: string | null;
   assistantImageUrl?: string | null;
+  defaultAgentImageUrl?: string | null;
   primaryColor?: string | null;
   secondaryColor?: string | null;
   brandName?: string | null;

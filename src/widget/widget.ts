@@ -174,6 +174,33 @@ declare global {
   fab.innerHTML =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C7.03 3 3 6.58 3 11c0 2.09.9 3.99 2.38 5.42-.13 1.05-.56 2.36-1.62 3.33a.6.6 0 0 0 .42 1.04c1.94-.08 3.53-.75 4.65-1.49 1 .29 2.06.45 3.17.45 4.97 0 9-3.58 9-8s-4.03-8-9-8z"/></svg>';
 
+  // Imagen del agente en el FAB (custom si es PRO, si no la por defecto de QuoPilot configurada en web-admin)
+  function setFabImage(url: string) {
+    var safe = url.replace(/"/g, "&quot;");
+    fab.innerHTML = '<img src="' + safe + '" alt="Asistente" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" />';
+    (fab as HTMLElement).style.background = "#fff";
+    (fab as HTMLElement).style.padding = "0";
+    (fab as HTMLElement).style.overflow = "hidden";
+    (fab as HTMLElement).style.border = "2px solid #fff";
+  }
+
+  (function loadAgentImage() {
+    var apiOrigin =
+      normalizeOrigin(
+        (currentScript?.dataset as Record<string, string | undefined>)?.["quopilotApiOrigin"],
+      ) || APP_ORIGIN;
+    var url = apiOrigin.replace(/\/$/, "") + "/api/v1/public/channels/" + encodeURIComponent(token);
+    fetch(url, { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data: unknown) {
+        if (!data || typeof data !== "object") return;
+        var d = data as { agentImage?: string; defaultAgentImage?: string };
+        var img = (d.agentImage && String(d.agentImage).trim()) || (d.defaultAgentImage && String(d.defaultAgentImage).trim());
+        if (img) setFabImage(img);
+      })
+      .catch(function () {});
+  })();
+
   /* ============================================================
    * Estado e interacción
    * ============================================================ */
@@ -205,6 +232,15 @@ declare global {
    * ============================================================ */
 
   window.addEventListener("message", (event: MessageEvent) => {
+    const data = event.data as { type?: unknown; image?: unknown } | null;
+    const type = data?.type;
+
+    // Mensaje de imagen del agente no requiere validación estricta de origen (viene del iframe)
+    if (type === "quopilot:agentImage" && typeof data?.image === "string" && data.image.trim()) {
+      setFabImage(data.image.trim());
+      return;
+    }
+
     // Validación de origen: descarta cualquier ventana no confiable.
     if (event.origin !== TRUSTED_ORIGIN) {
       return;
@@ -214,10 +250,6 @@ declare global {
     if (event.source && event.source !== frame.contentWindow) {
       return;
     }
-
-    const type = (
-      event.data as { type?: unknown } | null
-    )?.type;
 
     switch (type) {
       case "quopilot:close":

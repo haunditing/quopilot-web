@@ -43,6 +43,8 @@ interface BrandingContextValue {
   faviconUrl: string;
   /** Imagen del asistente resuelta a URL absoluta (o "" si no hay). */
   assistantImageUrl: string;
+  /** Imagen por defecto del agente comercial (configurada en web-admin). */
+  defaultAgentImageUrl: string;
   brandName: string;
   primaryColor: string | null;
   secondaryColor: string | null;
@@ -54,6 +56,7 @@ const BrandingContext = createContext<BrandingContextValue>({
   logoWithNameUrl: "",
   faviconUrl: "",
   assistantImageUrl: "",
+  defaultAgentImageUrl: "",
   brandName: "QuoPilot",
   primaryColor: null,
   secondaryColor: null,
@@ -158,6 +161,9 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       : "",
     assistantImageUrl: branding?.assistantImageUrl
       ? resolveBrandAssetUrl(branding.assistantImageUrl)
+      : "",
+    defaultAgentImageUrl: branding?.defaultAgentImageUrl
+      ? resolveBrandAssetUrl(branding.defaultAgentImageUrl)
       : "",
     brandName: branding?.brandName || "QuoPilot",
     primaryColor: branding?.primaryColor ?? null,

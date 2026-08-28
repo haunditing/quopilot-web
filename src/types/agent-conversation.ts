@@ -9,6 +9,8 @@ export interface PublicChatConfigResponse {
   tenantName: string;
   channelName?: string;
   agentName?: string;
+  agentImage?: string;
+  defaultAgentImage?: string;
   widget?: ChatWidgetConfig;
 }
 

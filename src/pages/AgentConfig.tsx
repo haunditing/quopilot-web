@@ -22,6 +22,7 @@ import { useAgentConfig } from "../hooks/useAgentConfig.js";
 import { useSectionScrollSpy } from "../hooks/useSectionScrollSpy.js";
 import { useToast } from "../hooks/useToast.js";
 import { getProducts } from "../services/product-service.js";
+import { getCurrentTenant } from "../services/tenant-service.js";
 import type {
   AgentConfig,
   AgentConfigInput,
@@ -34,6 +35,7 @@ import type { Product } from "../types/product.js";
 
 interface AgentForm {
   name: string;
+  avatarData?: string;
   description: string;
   personality: string;
   systemInstructions: string;
@@ -157,6 +159,7 @@ const SECTION_TABS: SectionTab[] = [
 function agentToForm(agent: AgentConfig): AgentForm {
   return {
     name: agent.name,
+    avatarData: (agent as unknown as { avatarData?: string }).avatarData ?? "",
     description: agent.description ?? "",
     personality: agent.personality ?? "",
     systemInstructions: agent.systemInstructions ?? "",
@@ -216,6 +219,7 @@ function formToInput(form: AgentForm): AgentConfigInput {
 
   return {
     name: form.name,
+    avatarData: form.avatarData || undefined,
     description: form.description || undefined,
     personality: form.personality || undefined,
     systemInstructions: form.systemInstructions || undefined,
@@ -267,6 +271,7 @@ export default function AgentConfig() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [tenantPlan, setTenantPlan] = useState<string>("FREE");
 
   const formReady = form !== null;
 
@@ -311,6 +316,20 @@ export default function AgentConfig() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCurrentTenant()
+      .then((t) => {
+        if (!cancelled) setTenantPlan((t.plan ?? "FREE").toUpperCase());
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const canCustomizeAvatar = tenantPlan === "PRO" || tenantPlan === "ENTERPRISE";
 
   const { activeSection, scrollToSection } = useSectionScrollSpy({
     sectionIds: useMemo(() => SECTION_TABS.map((tab) => tab.id), []),
@@ -547,6 +566,69 @@ export default function AgentConfig() {
                 title="Información general"
                 description="Nombre, idioma y tono del asistente"
               >
+                {/* Avatar del agente — solo PRO/ENTERPRISE pueden personalizar */}
+                <div className="flex items-center gap-4 p-4 rounded-xl border border-line bg-surface-light">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-accent-soft border border-line flex items-center justify-center shrink-0">
+                    {form.avatarData ? (
+                      <img src={form.avatarData} alt="Avatar del agente" className="w-full h-full object-cover" />
+                    ) : (
+                      <Icon name="bot" size={28} className="text-accent" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <strong className="text-sm font-semibold text-ink-strong">Imagen del agente</strong>
+                    <span className="text-xs text-ink-muted">
+                      {canCustomizeAvatar
+                        ? "PNG, JPG o WebP · máx 2 MB. Se muestra en el header del chat."
+                        : "Disponible en plan Pro o superior. Se usa la imagen por defecto de QuoPilot."}
+                    </span>
+                    {canCustomizeAvatar ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line bg-surface-card text-xs font-semibold text-ink-strong cursor-pointer hover:border-accent-border hover:bg-accent-soft hover:text-accent">
+                          <Icon name="upload" size={14} />
+                          Subir imagen
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 2_000_000) {
+                                setSaveError("La imagen no puede superar 2 MB");
+                                e.target.value = "";
+                                return;
+                              }
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                setField("avatarData", reader.result as string);
+                                setSaveError("");
+                              };
+                              reader.onerror = () => setSaveError("No fue posible leer la imagen");
+                              reader.readAsDataURL(file);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                        {form.avatarData && (
+                          <button
+                            type="button"
+                            className="px-3 py-1.5 rounded-lg border border-line bg-surface-card text-xs font-semibold text-ink-muted hover:bg-accent-soft hover:text-accent"
+                            onClick={() => setField("avatarData", "")}
+                          >
+                            Quitar
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-semibold text-amber-700">
+                        <Icon name="lock" size={12} />
+                        Requiere plan Pro
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     id="agent-name"

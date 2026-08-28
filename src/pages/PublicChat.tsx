@@ -24,6 +24,7 @@ import { contrastTextFor } from "../lib/contrast.js";
 import { useConfirm } from "../hooks/useConfirm.js";
 import { usePublicChatLead } from "../hooks/usePublicChatLead.js";
 import PublicChatLeadForm from "../components/public-chat/PublicChatLeadForm.js";
+import { useBranding } from "../context/BrandingProvider.js";
 
 interface StoredChat {
   conversationId: string;
@@ -100,6 +101,7 @@ function renderMessageBubble(
   message: ChatMessage,
   agentName: string,
   agentInitials: string,
+  agentImage?: string,
 ): ReactElement {
   const isAI = message.senderType === "AI";
   const isAgent = message.senderType === "AGENT";
@@ -114,12 +116,20 @@ function renderMessageBubble(
           className="inline-flex items-center gap-1.5 text-xs"
           aria-label={`${SENDER_LABELS_BASE[message.senderType].role}: ${isAI ? agentName : "Agente humano"}`}
         >
-          <i
-            className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
-            aria-hidden="true"
-          >
-            {isAI ? agentInitials : "M"}
-          </i>
+          {isAI && agentImage ? (
+            <img
+              src={agentImage}
+              alt={agentName}
+              className="w-5 h-5 rounded-full object-cover shrink-0 border border-line"
+            />
+          ) : (
+            <i
+              className="inline-flex items-center justify-center w-5 h-5 rounded-full not-italic font-semibold text-[11px] bg-accent text-[color:var(--accent-text)]"
+              aria-hidden="true"
+            >
+              {isAI ? agentInitials : "M"}
+            </i>
+          )}
 
           <em>{isAI ? agentName : "Agente humano"}</em>
         </span>
@@ -255,6 +265,8 @@ export default function PublicChat({
   const [chatConfig, setChatConfig] = useState<PublicChatConfigResponse | null>(
     null,
   );
+  const { defaultAgentImageUrl } = useBranding();
+  const effectiveAgentImage = chatConfig?.agentImage ?? chatConfig?.defaultAgentImage ?? defaultAgentImageUrl ?? undefined;
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -291,6 +303,10 @@ export default function PublicChat({
       .then((config) => {
         if (!cancelled) {
           setChatConfig(config);
+          if (window.parent !== window) {
+            const img = (config as { agentImage?: string; defaultAgentImage?: string }).agentImage || (config as { defaultAgentImage?: string }).defaultAgentImage;
+            if (img) window.parent.postMessage({ type: "quopilot:agentImage", image: img }, "*");
+          }
         }
       })
       .catch(() => {
@@ -719,9 +735,17 @@ export default function PublicChat({
         isEmbed ? (
           <div className="flex h-full w-full flex-col overflow-hidden bg-surface-card">
             <header className="flex items-center gap-2.5 p-4 bg-accent text-[color:var(--accent-text)] shrink-0">
-              <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
-                <Icon name="brand" size={18} />
-              </div>
+              {effectiveAgentImage ? (
+                <img
+                  src={effectiveAgentImage}
+                  alt={chatConfig?.widget?.agentName ?? chatConfig?.agentName ?? "Asistente"}
+                  className="w-[34px] h-[34px] rounded-full object-cover shrink-0 border border-white/20"
+                />
+              ) : (
+                <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
+                  <Icon name="brand" size={18} />
+                </div>
+              )}
               <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-base [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:opacity-85 [&>small]:text-xs">
                 <strong>
                   {chatConfig?.widget?.agentName ??
@@ -860,9 +884,17 @@ export default function PublicChat({
           }
         >
           <header className="flex items-center gap-2.5 p-4 bg-accent text-[color:var(--accent-text)]">
-            <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
-              <Icon name="brand" size={18} />
-            </div>
+            {chatConfig?.agentImage ? (
+              <img
+                src={chatConfig.agentImage}
+                alt={chatConfig?.widget?.agentName ?? chatConfig?.agentName ?? "Asistente"}
+                className="w-[34px] h-[34px] rounded-full object-cover shrink-0 border border-white/20"
+              />
+            ) : (
+              <div className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-full bg-accent-soft text-[color:var(--accent-text)] shrink-0" aria-hidden="true">
+                <Icon name="brand" size={18} />
+              </div>
+            )}
 
             <div className="flex flex-col gap-0.5 min-w-0 [&>strong]:text-base [&>strong]:truncate [&>strong]:whitespace-nowrap [&>small]:opacity-85 [&>small]:text-xs">
               <strong>
@@ -934,10 +966,11 @@ export default function PublicChat({
                   messages.map((message) =>
                     renderMessageBubble(
                       message,
-                      chatConfig?.widget?.agentName ?? "Asistente",
+                      chatConfig?.widget?.agentName ?? chatConfig?.agentName ?? "Asistente",
                       getAgentInitials(
-                        chatConfig?.widget?.agentName ?? "Asistente",
+                        chatConfig?.widget?.agentName ?? chatConfig?.agentName ?? "Asistente",
                       ),
+                      effectiveAgentImage,
                     ),
                   )
                 )}
